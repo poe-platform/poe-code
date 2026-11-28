@@ -13004,7 +13004,7 @@ fn cmd_csvsql(
             if stmt.to_ascii_uppercase().starts_with("SELECT")
                 || stmt.to_ascii_uppercase().starts_with("WITH")
             {
-                out.push_str(&exec_sql_select(
+                out.push_str(&match exec_sql_select(
                     stmt,
                     &tables,
                     &BTreeMap::new(),
@@ -13015,7 +13015,12 @@ fn cmd_csvsql(
                     None,
                     true,
                     ",",
-                ));
+                ) {
+                    Ok(value) => value,
+                    Err(error) => {
+                        return err_out(&error, 1);
+                    }
+                });
             }
         }
         if let Some((_, error)) = out.split_once("\x00RAISE_ERR:") {
@@ -20851,7 +20856,7 @@ fn sql_unique_conflicts(
     row: &[String],
     skip_row: Option<usize>,
     tables: &BTreeMap<String, SqlTable>,
-) -> Vec<usize> {
+) -> Result<Vec<usize>, String> {
     let expressions: Vec<&str> = terms
         .iter()
         .map(|term| parse_sql_order_term(term).0)
@@ -20859,16 +20864,20 @@ fn sql_unique_conflicts(
     let evaluate = |expression: &str, row: &[String]| {
         let column = split_sql_collation(expression).map_or(expression, |(inner, _)| inner);
         if let Some(position) = find_sql_col(&table.columns, column) {
-            row.get(position)
+            Ok(row
+                .get(position)
                 .cloned()
-                .unwrap_or_else(|| SQL_NULL.to_string())
+                .unwrap_or_else(|| SQL_NULL.to_string()))
         } else {
             eval_sql_row_value(expression, &table.columns, row, tables)
         }
     };
-    let key: Vec<String> = expressions.iter().map(|expr| evaluate(expr, row)).collect();
+    let key: Vec<String> = expressions
+        .iter()
+        .map(|expr| evaluate(expr, row))
+        .collect::<Result<_, String>>()?;
     if key.iter().any(|value| value == SQL_NULL) {
-        return Vec::new();
+        return Ok(Vec::new());
     }
     let mut conflicts = Vec::new();
     for (index, existing) in table.rows.iter().enumerate() {
@@ -20877,7 +20886,7 @@ fn sql_unique_conflicts(
         }
         let mut matches = true;
         for (expression, value) in expressions.iter().zip(&key) {
-            let existing_value = evaluate(expression, existing);
+            let existing_value = evaluate(expression, existing)?;
             if existing_value == SQL_NULL || existing_value != *value {
                 matches = false;
                 break;
@@ -20887,7 +20896,7 @@ fn sql_unique_conflicts(
             conflicts.push(index);
         }
     }
-    conflicts
+    Ok(conflicts)
 }
 
 fn sql_unique_error(table_name: &str, table: &SqlTable, name: &str, terms: &[String]) -> String {
@@ -21871,12 +21880,18 @@ fn cmd_sqlite3(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> 
                             .collect();
                     if is_unique && let Some(table) = tables.get(&tname) {
                         for (index, row) in table.rows.iter().enumerate() {
-                            if !sql_unique_conflicts(table, &terms, row, Some(index), &tables)
-                                .is_empty()
-                            {
-                                errors
-                                    .push_str(&sql_unique_error(&tname, table, &idx_name, &terms));
-                                break 'statements;
+                            match sql_unique_conflicts(table, &terms, row, Some(index), &tables) {
+                                Ok(conflicts) if conflicts.is_empty() => {}
+                                Ok(_) => {
+                                    errors.push_str(&sql_unique_error(
+                                        &tname, table, &idx_name, &terms,
+                                    ));
+                                    break 'statements;
+                                }
+                                Err(error) => {
+                                    errors.push_str(&error);
+                                    break 'statements;
+                                }
                             }
                         }
                     }
@@ -22136,14 +22151,19 @@ fn cmd_sqlite3(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> 
                     errors.push_str(&format!("Error: table {tname} already exists\n"));
                     break;
                 }
-                if let Some(mut table) =
-                    resolve_sql_from_table(&format!("({query})"), &tables, &views)
-                {
-                    for column in &mut table.metadata {
-                        column.strict_type = None;
+                match resolve_sql_from_table(&format!("({query})"), &tables, &views) {
+                    Ok(Some(mut table)) => {
+                        for column in &mut table.metadata {
+                            column.strict_type = None;
+                        }
+                        table.create_sql = synthesize_table_create_sql(&tname, &table);
+                        tables.insert(tname, table);
                     }
-                    table.create_sql = synthesize_table_create_sql(&tname, &table);
-                    tables.insert(tname, table);
+                    Ok(None) => {}
+                    Err(error) => {
+                        errors.push_str(&error);
+                        break;
+                    }
                 }
             } else if let Some(open) = stmt.find('(') {
                 if stmt.contains(')') {
@@ -22381,11 +22401,18 @@ fn cmd_sqlite3(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> 
                     }
                 }
                 if let Some((base_sql, rec_sql, is_union_all)) = rec_split {
-                    let Some(base_table) =
-                        resolve_sql_from_table(&format!("({base_sql})"), &tables, &views)
-                    else {
-                        break;
-                    };
+                    let base_table =
+                        match resolve_sql_from_table(&format!("({base_sql})"), &tables, &views) {
+                            Ok(Some(table)) => table,
+                            Ok(None) => break,
+                            Err(error) => {
+                                for cname in &cte_names {
+                                    tables.remove(cname);
+                                }
+                                errors.push_str(&error);
+                                break 'statements;
+                            }
+                        };
                     let cols = explicit_cols.clone().unwrap_or(base_table.columns);
                     let mut all_rows = base_table.rows;
                     let mut frontier = all_rows.clone();
@@ -22402,7 +22429,7 @@ fn cmd_sqlite3(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> 
                                 ..SqlTable::default()
                             },
                         );
-                        let step_out = exec_sql_select_ext(
+                        let step_out = match exec_sql_select_ext(
                             rec_sql,
                             &iter_tables,
                             &views,
@@ -22415,7 +22442,16 @@ fn cmd_sqlite3(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> 
                             false,
                             "\x1f",
                             SQL_NULL,
-                        );
+                        ) {
+                            Ok(value) => value,
+                            Err(error) => {
+                                for cname in &cte_names {
+                                    tables.remove(cname);
+                                }
+                                errors.push_str(&error);
+                                break 'statements;
+                            }
+                        };
                         let mut next_frontier = Vec::new();
                         for line in step_out.lines().filter(|l| !l.is_empty()) {
                             let r: Vec<String> =
@@ -22441,7 +22477,16 @@ fn cmd_sqlite3(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> 
                         },
                     );
                 } else if let Some(mut cte_tbl) =
-                    resolve_sql_from_table(&format!("({inner_sql})"), &tables, &views)
+                    match resolve_sql_from_table(&format!("({inner_sql})"), &tables, &views) {
+                        Ok(value) => value,
+                        Err(error) => {
+                            for cname in &cte_names {
+                                tables.remove(cname);
+                            }
+                            errors.push_str(&error);
+                            break 'statements;
+                        }
+                    }
                 {
                     if let Some(cols) = explicit_cols {
                         cte_tbl.columns = cols;
@@ -22456,7 +22501,7 @@ fn cmd_sqlite3(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> 
                     .trim();
             }
             if resolved_any_cte && rest.to_ascii_uppercase().starts_with("SELECT ") {
-                let chunk = exec_sql_select_with_mode(
+                let chunk = match exec_sql_select_with_mode(
                     rest,
                     &tables,
                     &views,
@@ -22467,14 +22512,16 @@ fn cmd_sqlite3(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> 
                     &row_sep,
                     &nullvalue,
                     &widths,
-                );
-                if let Some((_, error)) = chunk.split_once("\x00RAISE_ERR:") {
-                    errors.push_str(&format!("Runtime error: {error}\n"));
-                    for cname in &cte_names {
-                        tables.remove(cname);
+                ) {
+                    Ok(value) => value,
+                    Err(error) => {
+                        for cname in &cte_names {
+                            tables.remove(cname);
+                        }
+                        errors.push_str(&error);
+                        break 'statements;
                     }
-                    break;
-                }
+                };
                 emit_chunk(
                     chunk,
                     &mut once_path,
@@ -22576,7 +22623,7 @@ fn cmd_sqlite3(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> 
             if upper.contains(" MATCH ") && !tables.values().any(|t| t.is_fts5) {
                 return err_out("Error: MATCH requires an FTS5 table or column\n", 1);
             }
-            let chunk = exec_sql_select_with_mode(
+            let chunk = match exec_sql_select_with_mode(
                 stmt,
                 &tables,
                 &views,
@@ -22587,11 +22634,13 @@ fn cmd_sqlite3(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> 
                 &row_sep,
                 &nullvalue,
                 &widths,
-            );
-            if let Some((_, error)) = chunk.split_once("\x00RAISE_ERR:") {
-                errors.push_str(&format!("Runtime error: {error}\n"));
-                break;
-            }
+            ) {
+                Ok(value) => value,
+                Err(error) => {
+                    errors.push_str(&error);
+                    break 'statements;
+                }
+            };
             emit_chunk(
                 chunk,
                 &mut once_path,
@@ -22814,7 +22863,7 @@ fn fire_sql_triggers(
             }
         }
         if let Some(ref we) = tr.when_expr {
-            if !eval_sql_where(we, &trig_cols, &trig_metadata, &trig_row, tables) {
+            if !eval_sql_where(we, &trig_cols, &trig_metadata, &trig_row, tables)? {
                 continue;
             }
         }
@@ -22886,7 +22935,7 @@ fn fire_sql_triggers(
             } else if sub_up.starts_with("SELECT ") {
                 let sel_out = exec_sql_select_ext(
                     sub, tables, views, false, false, false, false, false, None, false, "|", "",
-                );
+                )?;
                 if let Some(err_pos) = sel_out.find("\x00RAISE_ERR:") {
                     let after = &sel_out[err_pos + 11..];
                     let msg = after.lines().next().unwrap_or("ABORT").trim();
@@ -22940,7 +22989,7 @@ fn format_sql_returning(
     json_mode: bool,
     csv_mode: bool,
     sep: &str,
-) -> String {
+) -> Result<String, String> {
     let expanded_specs: Vec<(String, String)> = if rcols.len() == 1 && rcols[0] == "*" {
         t_cols.iter().map(|c| (c.clone(), c.clone())).collect()
     } else {
@@ -22970,7 +23019,7 @@ fn format_sql_returning(
         for r in rows {
             let mut entries = Vec::new();
             for (expr_s, alias) in &expanded_specs {
-                let val_s = eval_sql_row_value(expr_s, t_cols, r, tables);
+                let val_s = eval_sql_row_value(expr_s, t_cols, r, tables)?;
                 let jv = if val_s == SQL_NULL {
                     JVal::Null
                 } else if let Some(text) = val_s.strip_prefix(SQL_TEXT_PREFIX) {
@@ -22988,21 +23037,21 @@ fn format_sql_returning(
             .into_iter()
             .map(|v| v.to_json_string(true, false, 0))
             .collect();
-        return format!("[{}]\n", items.join(",\n"));
+        return Ok(format!("[{}]\n", items.join(",\n")));
     }
     let mut ret_out = String::new();
     for r in rows {
         let picked: Vec<String> = expanded_specs
             .iter()
             .map(|(expr_s, _)| eval_sql_row_expr(expr_s, t_cols, r, tables))
-            .collect();
+            .collect::<Result<_, String>>()?;
         if csv_mode {
             ret_out.push_str(&format_csv_row(&picked, ','));
         } else {
             ret_out.push_str(&format!("{}\n", picked.join(sep)));
         }
     }
-    ret_out
+    Ok(ret_out)
 }
 
 #[allow(clippy::too_many_arguments)]
@@ -23075,8 +23124,10 @@ fn exec_sql_insert(
 
     let tname = resolve_sql_table_name(tables, &tname).to_owned();
     let is_view = views.contains_key(&tname);
-    let Some(t_cols) = tables.get(&tname).map(|t| t.columns.clone()).or_else(|| {
-        resolve_sql_from_table(&tname, tables, views).map(|t| {
+    let Some(t_cols) = (if let Some(table) = tables.get(&tname) {
+        Some(table.columns.clone())
+    } else {
+        resolve_sql_from_table(&tname, tables, views)?.map(|t| {
             t.columns
                 .iter()
                 .map(|column| {
@@ -23132,20 +23183,8 @@ fn exec_sql_insert(
             let tuple_str = &after_open[1..close_rel];
             let vals = split_top_level_comma(tuple_str)
                 .into_iter()
-                .map(|v| {
-                    let vt = v.trim();
-                    if vt.eq_ignore_ascii_case("NULL") {
-                        SQL_NULL.to_string()
-                    } else if ((vt.starts_with('\'') && vt.ends_with('\''))
-                        || (vt.starts_with('"') && vt.ends_with('"')))
-                        && !vt.contains("||")
-                    {
-                        sql_text_value(&vt[1..vt.len() - 1].replace("''", "'"))
-                    } else {
-                        eval_sql_row_value(vt, &[], &[], tables)
-                    }
-                })
-                .collect();
+                .map(|value| eval_sql_row_value(value, &[], &[], tables))
+                .collect::<Result<_, String>>()?;
             value_tuples.push(vals);
             rest = &after_open[close_rel + 1..];
         }
@@ -23154,10 +23193,7 @@ fn exec_sql_insert(
         let sel_out = exec_sql_select_ext(
             sel_sql, tables, views, false, false, false, false, false, None, false, "\x1f",
             SQL_NULL,
-        );
-        if let Some((_, error)) = sel_out.split_once("\x00RAISE_ERR:") {
-            return Err(format!("Runtime error: {error}\n"));
-        }
+        )?;
         for line in sel_out.lines() {
             value_tuples.push(line.split('\x1f').map(|s| s.to_string()).collect());
         }
@@ -23230,7 +23266,8 @@ fn exec_sql_insert(
         }
         for (gcol, gexpr) in &gen_clone {
             if let Some(gpos) = find_sql_col(&t_cols, gcol) {
-                row[gpos] = eval_sql_row_value(gexpr, &t_cols, &row, tables);
+                row[gpos] = eval_sql_row_value(gexpr, &t_cols, &row, tables)
+                    .inspect_err(|_| *tables = stmt_snap.clone())?;
             }
         }
         if let Some(table) = tables.get(&tname) {
@@ -23289,7 +23326,9 @@ fn exec_sql_insert(
             }
         }
         for chk in &chk_clone {
-            if !eval_sql_where(chk, &t_cols, &tables[&tname].metadata, &row, tables) {
+            if !eval_sql_where(chk, &t_cols, &tables[&tname].metadata, &row, tables)
+                .inspect_err(|_| *tables = stmt_snap.clone())?
+            {
                 *tables = stmt_snap;
                 return Err(format!("Error: CHECK constraint failed: {chk}\n"));
             }
@@ -23309,7 +23348,7 @@ fn exec_sql_insert(
         let mut replace_conflicts = BTreeSet::new();
         let mut ignore_conflict = is_do_nothing;
         for (name, terms, declared_ignore) in &unique_idx_clone {
-            let conflicts = sql_unique_conflicts(&tables[&tname], terms, &row, None, tables);
+            let conflicts = sql_unique_conflicts(&tables[&tname], terms, &row, None, tables).inspect_err(|_| *tables = stmt_snap.clone())?;
             if let Some(&index) = conflicts.first() {
                 if !upper.starts_with("INSERT OR ") && !is_or_replace && !is_do_update {
                     ignore_conflict |= *declared_ignore;
@@ -23362,7 +23401,8 @@ fn exec_sql_insert(
                     (du_str.as_str(), None)
                 };
                 let cond_ok = match where_part {
-                    Some(wc) => eval_sql_where(wc, &u_cols, &u_metadata, &u_row, tables),
+                    Some(wc) => eval_sql_where(wc, &u_cols, &u_metadata, &u_row, tables)
+                        .inspect_err(|_| *tables = stmt_snap.clone())?,
                     None => true,
                 };
                 if cond_ok {
@@ -23373,14 +23413,16 @@ fn exec_sql_insert(
                             if let Some(c_idx) = find_sql_col(&t_cols, lhs.trim()) {
                                 updated_cols.push(c_idx);
                                 updated_row[c_idx] =
-                                    eval_sql_row_value(rhs.trim(), &u_cols, &u_row, tables);
+                                    eval_sql_row_value(rhs.trim(), &u_cols, &u_row, tables)
+                                        .inspect_err(|_| *tables = stmt_snap.clone())?;
                             }
                         }
                     }
                     for (gcol, gexpr) in &gen_clone {
                         if let Some(gpos) = find_sql_col(&t_cols, gcol) {
                             updated_row[gpos] =
-                                eval_sql_row_value(gexpr, &t_cols, &updated_row, tables);
+                                eval_sql_row_value(gexpr, &t_cols, &updated_row, tables)
+                                    .inspect_err(|_| *tables = stmt_snap.clone())?;
                         }
                     }
                     apply_sql_row_affinity(
@@ -23413,7 +23455,7 @@ fn exec_sql_insert(
                             &updated_row,
                             Some(e_idx),
                             tables,
-                        );
+                        ).inspect_err(|_| *tables = stmt_snap.clone())?;
                         if !conflicts.is_empty() {
                             let error = sql_unique_error(&tname, &tables[&tname], name, terms);
                             *tables = stmt_snap;
@@ -23468,7 +23510,7 @@ fn exec_sql_insert(
     }
 
     if let Some(rcols) = returning_cols {
-        return Ok(format_sql_returning(
+        return format_sql_returning(
             &rcols,
             &t_cols,
             &affected_rows,
@@ -23476,7 +23518,8 @@ fn exec_sql_insert(
             json_mode,
             csv_mode,
             sep,
-        ));
+        )
+        .inspect_err(|_| *tables = stmt_snap);
     }
     Ok(String::new())
 }
@@ -23516,7 +23559,7 @@ fn exec_sql_update(
         stmt_norm[wp + 7..w_end].trim()
     });
     let is_view = views.contains_key(&tname);
-    let Some(target) = resolve_sql_from_table(&tname, tables, views) else {
+    let Some(target) = resolve_sql_from_table(&tname, tables, views)? else {
         return Ok(String::new());
     };
     let t_cols: Vec<String> = target
@@ -23539,7 +23582,7 @@ fn exec_sql_update(
     }
     let from_table = if let Some(fp) = from_pos {
         let from_clause = stmt_norm[fp + 6..set_end].trim();
-        let mut source = resolve_sql_from_table(from_clause, tables, &BTreeMap::new())
+        let mut source = resolve_sql_from_table(from_clause, tables, &BTreeMap::new())?
             .ok_or_else(|| format!("Error: no such table: {from_clause}\n"))?;
         let source_name = from_clause
             .split_whitespace()
@@ -23573,27 +23616,36 @@ fn exec_sql_update(
         eval_r.extend_from_slice(r);
         let matches = if let Some(source) = &from_table {
             // Select one source row before mutating any target rows.
-            source.rows.iter().any(|source_row| {
+            let mut matched = false;
+            for source_row in &source.rows {
                 eval_r.truncate(r.len() * 2);
                 eval_r.extend_from_slice(source_row);
-                where_clause.is_none_or(|wc| {
-                    eval_sql_where(wc, &eval_cols, &eval_metadata, &eval_r, &tables_snap)
-                })
-            })
+                if match where_clause {
+                    Some(wc) => {
+                        eval_sql_where(wc, &eval_cols, &eval_metadata, &eval_r, &tables_snap)?
+                    }
+                    None => true,
+                } {
+                    matched = true;
+                    break;
+                }
+            }
+            matched
         } else {
-            where_clause.is_none_or(|wc| {
-                eval_sql_where(wc, &eval_cols, &eval_metadata, &eval_r, &tables_snap)
-            })
+            match where_clause {
+                Some(wc) => eval_sql_where(wc, &eval_cols, &eval_metadata, &eval_r, &tables_snap)?,
+                None => true,
+            }
         };
         if matches {
             let old_r = r.clone();
             let mut new_r = r.clone();
             for (c_idx, rhs_expr) in &assigns {
-                new_r[*c_idx] = eval_sql_row_value(rhs_expr, &eval_cols, &eval_r, &tables_snap);
+                new_r[*c_idx] = eval_sql_row_value(rhs_expr, &eval_cols, &eval_r, &tables_snap)?;
             }
             for (gcol, gexpr) in &gen_clone {
                 if let Some(gpos) = find_sql_col(&t_cols, gcol) {
-                    new_r[gpos] = eval_sql_row_value(gexpr, &t_cols, &new_r, &tables_snap);
+                    new_r[gpos] = eval_sql_row_value(gexpr, &t_cols, &new_r, &tables_snap)?;
                 }
             }
             apply_sql_row_affinity(&mut new_r, &target.metadata, &t_cols, &tname)?;
@@ -23653,13 +23705,16 @@ fn exec_sql_update(
             }
         }
         for check in &checks {
-            if !eval_sql_where(check, &t_cols, &tables[&tname].metadata, &ur, tables) {
+            if !eval_sql_where(check, &t_cols, &tables[&tname].metadata, &ur, tables)
+                .inspect_err(|_| *tables = tables_snap.clone())?
+            {
                 *tables = tables_snap;
                 return Err(format!("Error: CHECK constraint failed: {check}\n"));
             }
         }
         for (name, terms, ignore) in tables[&tname].unique_indexes.clone() {
-            let conflicts = sql_unique_conflicts(&tables[&tname], &terms, &ur, Some(r_idx), tables);
+            let conflicts = sql_unique_conflicts(&tables[&tname], &terms, &ur, Some(r_idx), tables)
+                .inspect_err(|_| *tables = tables_snap.clone())?;
             if !conflicts.is_empty() {
                 if ignore {
                     continue 'rows;
@@ -23744,7 +23799,7 @@ fn exec_sql_update(
                         }
                     }
                     for (old_cr, new_cr) in child_updates {
-                        let _ = fire_sql_triggers(
+                        fire_sql_triggers(
                             &ctname,
                             SqlTriggerOp::Update,
                             &[c_idx],
@@ -23755,8 +23810,9 @@ fn exec_sql_update(
                             tables,
                             views,
                             triggers,
-                        );
-                        let _ = fire_sql_triggers(
+                        )
+                        .inspect_err(|_| *tables = tables_snap.clone())?;
+                        fire_sql_triggers(
                             &ctname,
                             SqlTriggerOp::Update,
                             &[c_idx],
@@ -23767,7 +23823,8 @@ fn exec_sql_update(
                             tables,
                             views,
                             triggers,
-                        );
+                        )
+                        .inspect_err(|_| *tables = tables_snap.clone())?;
                     }
                 }
             }
@@ -23790,7 +23847,7 @@ fn exec_sql_update(
         }
     }
     if let Some(rcols) = returning_cols {
-        return Ok(format_sql_returning(
+        return format_sql_returning(
             &rcols,
             &t_cols,
             &affected_rows,
@@ -23798,7 +23855,8 @@ fn exec_sql_update(
             json_mode,
             csv_mode,
             sep,
-        ));
+        )
+        .inspect_err(|_| *tables = tables_snap);
     }
     Ok(String::new())
 }
@@ -23836,7 +23894,7 @@ fn exec_sql_delete(
     });
     let tname = resolve_sql_table_name(tables, &tname).to_owned();
     let is_view = views.contains_key(&tname);
-    let Some(target) = resolve_sql_from_table(&tname, tables, views) else {
+    let Some(target) = resolve_sql_from_table(&tname, tables, views)? else {
         return Ok(String::new());
     };
     let t_cols: Vec<String> = target
@@ -23852,25 +23910,29 @@ fn exec_sql_delete(
     let tables_snap = tables.clone();
     let mut deleted_rows: Vec<Vec<String>> = Vec::new();
     if is_view {
-        deleted_rows = target
-            .rows
-            .into_iter()
-            .filter(|r| {
-                where_clause.is_none_or(|wc| {
-                    eval_sql_where(wc, &target.columns, &target.metadata, r, &tables_snap)
-                })
-            })
-            .collect();
+        for row in target.rows {
+            if match where_clause {
+                Some(wc) => {
+                    eval_sql_where(wc, &target.columns, &target.metadata, &row, &tables_snap)?
+                }
+                None => true,
+            } {
+                deleted_rows.push(row);
+            }
+        }
     } else if let Some(tbl) = tables.get_mut(&tname) {
         if let Some(wc) = where_clause {
-            tbl.retain_rows(|r| {
-                if eval_sql_where(wc, &target.columns, &target.metadata, r, &tables_snap) {
-                    deleted_rows.push(r.clone());
-                    false
-                } else {
-                    true
+            let mut keep_rows = Vec::with_capacity(tbl.rows.len());
+            for row in &tbl.rows {
+                let delete =
+                    eval_sql_where(wc, &target.columns, &target.metadata, row, &tables_snap)?;
+                keep_rows.push(!delete);
+                if delete {
+                    deleted_rows.push(row.clone());
                 }
-            });
+            }
+            let mut keep = keep_rows.into_iter();
+            tbl.retain_rows(|_| keep.next().unwrap_or(false));
         } else {
             deleted_rows = std::mem::take(&mut tbl.rows);
             tbl.rowids.clear();
@@ -23895,7 +23957,7 @@ fn exec_sql_delete(
             }
             continue;
         }
-        let _ = fire_sql_triggers(
+        fire_sql_triggers(
             &tname,
             SqlTriggerOp::Delete,
             &[],
@@ -23906,7 +23968,8 @@ fn exec_sql_delete(
             tables,
             views,
             triggers,
-        );
+        )
+        .inspect_err(|_| *tables = tables_snap.clone())?;
         if foreign_keys_enabled {
             let child_table_names: Vec<String> = tables.keys().cloned().collect();
             for ctname in child_table_names {
@@ -23993,7 +24056,7 @@ fn exec_sql_delete(
                 }
             }
         }
-        let _ = fire_sql_triggers(
+        fire_sql_triggers(
             &tname,
             SqlTriggerOp::Delete,
             &[],
@@ -24004,10 +24067,11 @@ fn exec_sql_delete(
             tables,
             views,
             triggers,
-        );
+        )
+        .inspect_err(|_| *tables = tables_snap.clone())?;
     }
     if let Some(rcols) = returning_cols {
-        return Ok(format_sql_returning(
+        return format_sql_returning(
             &rcols,
             &t_cols,
             &deleted_rows,
@@ -24015,7 +24079,8 @@ fn exec_sql_delete(
             json_mode,
             csv_mode,
             sep,
-        ));
+        )
+        .inspect_err(|_| *tables = tables_snap);
     }
     Ok(String::new())
 }
@@ -24073,7 +24138,7 @@ fn resolve_sql_from_table(
     from_clause: &str,
     tables: &BTreeMap<String, SqlTable>,
     views: &BTreeMap<String, String>,
-) -> Option<SqlTable> {
+) -> Result<Option<SqlTable>, String> {
     let trimmed = from_clause.trim();
     let upper = trimmed.to_ascii_uppercase();
 
@@ -24101,17 +24166,17 @@ fn resolve_sql_from_table(
                 }
                 let ncols = rows.first().map(|r| r.len()).unwrap_or(1);
                 let cols: Vec<String> = (1..=ncols).map(|i| format!("column{i}")).collect();
-                return Some(SqlTable {
+                return Ok(Some(SqlTable {
                     columns: cols,
                     rows,
                     imported_csv: false,
                     ..SqlTable::default()
-                });
+                }));
             }
             let sub_out = exec_sql_select_ext(
                 inner_sql, tables, views, false, false, false, false, false, None, true, "\x1f",
                 SQL_NULL,
-            );
+            )?;
             let mut lines = sub_out.lines();
             let hdr_line = lines.next().unwrap_or("");
             let cols: Vec<String> = if hdr_line.is_empty() {
@@ -24139,12 +24204,12 @@ fn resolve_sql_from_table(
             let rows: Vec<Vec<String>> = lines
                 .map(|l| l.split('\x1f').map(|s| s.to_string()).collect())
                 .collect();
-            return Some(SqlTable {
+            return Ok(Some(SqlTable {
                 columns: cols,
                 rows,
                 imported_csv: false,
                 ..SqlTable::default()
-            });
+            }));
         }
     }
 
@@ -24171,12 +24236,12 @@ fn resolve_sql_from_table(
                 .step_by(step)
                 .map(|v| vec![v.to_string()])
                 .collect();
-            return Some(SqlTable {
+            return Ok(Some(SqlTable {
                 columns: vec!["value".to_string()],
                 rows,
                 imported_csv: false,
                 ..SqlTable::default()
-            });
+            }));
         }
     }
     if upper.starts_with("JSON_TREE(") {
@@ -24194,7 +24259,7 @@ fn resolve_sql_from_table(
             {
                 collect_json_tree_rows(&jval, "$", &mut rows);
             }
-            return Some(SqlTable {
+            return Ok(Some(SqlTable {
                 columns: vec![
                     "fullkey".to_string(),
                     "type".to_string(),
@@ -24203,7 +24268,7 @@ fn resolve_sql_from_table(
                 rows,
                 imported_csv: false,
                 ..SqlTable::default()
-            });
+            }));
         }
     }
     if upper.starts_with("JSON_EACH(") {
@@ -24233,12 +24298,12 @@ fn resolve_sql_from_table(
                     _ => {}
                 }
             }
-            return Some(SqlTable {
+            return Ok(Some(SqlTable {
                 columns: vec!["key".to_string(), "value".to_string()],
                 rows,
                 imported_csv: false,
                 ..SqlTable::default()
-            });
+            }));
         }
     }
 
@@ -24246,7 +24311,8 @@ fn resolve_sql_from_table(
     if let Some(je_pos) = upper.find(", JSON_EACH(") {
         let left_part = trimmed[..je_pos].trim();
         let right_part = trimmed[je_pos + 2..].trim();
-        let left_tbl = resolve_sql_from_table(left_part, tables, views)?;
+        let left_tbl = resolve_sql_from_table(left_part, tables, views)?
+            .ok_or_else(|| "Error: no such table\n".to_string())?;
         if let Some(open) = right_part.find('(')
             && let Some(close_rel) = find_matching_paren(&right_part[open..])
         {
@@ -24272,14 +24338,14 @@ fn resolve_sql_from_table(
                         &left_tbl.columns,
                         lr,
                         tables,
-                    )
+                    )?
                 } else {
                     eval_sql_row_expr(
                         je_args.first().copied().unwrap_or(""),
                         &left_tbl.columns,
                         lr,
                         tables,
-                    )
+                    )?
                 };
                 if let Ok(mut parsed) = parse_json_stream(&json_s)
                     && let Some(jval) = parsed.pop()
@@ -24305,14 +24371,14 @@ fn resolve_sql_from_table(
                     }
                 }
             }
-            return Some(SqlTable {
+            return Ok(Some(SqlTable {
                 columns: out_cols,
                 hidden_star_columns: left_tbl.hidden_star_columns,
                 metadata: left_tbl.metadata,
                 rows: out_rows,
                 imported_csv: left_tbl.imported_csv,
                 ..SqlTable::default()
-            });
+            }));
         }
     }
 
@@ -24357,7 +24423,8 @@ fn resolve_sql_from_table(
         }
         if !join_pos_list.is_empty() {
             let first_seg = trimmed[..join_pos_list[0].0].trim();
-            let mut acc_tbl = resolve_sql_from_table(first_seg, tables, views)?;
+            let mut acc_tbl = resolve_sql_from_table(first_seg, tables, views)?
+                .ok_or_else(|| "Error: no such table\n".to_string())?;
             let first_tname = first_seg
                 .split_whitespace()
                 .next()
@@ -24392,7 +24459,8 @@ fn resolve_sql_from_table(
                 } else {
                     (seg, None)
                 };
-                let mut right_tbl = resolve_sql_from_table(tbl_part, tables, views)?;
+                let mut right_tbl = resolve_sql_from_table(tbl_part, tables, views)?
+                    .ok_or_else(|| "Error: no such table\n".to_string())?;
                 let right_tname = tbl_part
                     .split_whitespace()
                     .next()
@@ -24442,8 +24510,12 @@ fn resolve_sql_from_table(
                 if !using_cols.is_empty() {
                     let mut conditions = Vec::new();
                     for col in using_cols {
-                        let left_idx = find_sql_col(&acc_tbl.columns, col)?;
-                        let right_idx = find_sql_col(&right_tbl.columns, col)?;
+                        let Some(left_idx) = find_sql_col(&acc_tbl.columns, col) else {
+                            return Ok(None);
+                        };
+                        let Some(right_idx) = find_sql_col(&right_tbl.columns, col) else {
+                            return Ok(None);
+                        };
                         conditions.push(format!(
                             "{} = {}",
                             acc_tbl.columns[left_idx], right_tbl.columns[right_idx]
@@ -24477,7 +24549,7 @@ fn resolve_sql_from_table(
                         cr.extend(rr.iter().cloned());
                         let ok = match on_cond_owned.as_deref() {
                             Some(oc) => {
-                                eval_sql_where(oc, &combined_cols, &combined_metadata, &cr, tables)
+                                eval_sql_where(oc, &combined_cols, &combined_metadata, &cr, tables)?
                             }
                             None => true,
                         };
@@ -24511,7 +24583,7 @@ fn resolve_sql_from_table(
                     ..SqlTable::default()
                 };
             }
-            return Some(acc_tbl);
+            return Ok(Some(acc_tbl));
         }
     }
 
@@ -24581,10 +24653,12 @@ fn resolve_sql_from_table(
             ..SqlTable::default()
         }
     } else {
-        let vsql = views.get(raw_tname)?;
+        let Some(vsql) = views.get(raw_tname) else {
+            return Ok(None);
+        };
         let sub_out = exec_sql_select_ext(
             vsql, tables, views, false, false, false, false, false, None, true, "\x1f", SQL_NULL,
-        );
+        )?;
         let mut lines = sub_out.lines();
         let hdr_line = lines.next().unwrap_or("");
         let cols: Vec<String> = hdr_line.split('\x1f').map(|s| s.to_string()).collect();
@@ -24605,10 +24679,10 @@ fn resolve_sql_from_table(
         .iter()
         .map(|c| format!("{qualifier}.{c}"))
         .collect();
-    Some(SqlTable {
+    Ok(Some(SqlTable {
         columns: qual_cols,
         ..base_tbl
-    })
+    }))
 }
 
 fn has_top_level_aggregate(select_part: &str) -> bool {
@@ -24675,7 +24749,7 @@ fn exec_sql_select(
     insert_table: Option<&str>,
     header_mode: bool,
     sep: &str,
-) -> String {
+) -> Result<String, String> {
     exec_sql_select_ext(
         stmt,
         tables,
@@ -25035,7 +25109,7 @@ fn exec_sql_select_ext(
     header_mode: bool,
     sep: &str,
     nullvalue: &str,
-) -> String {
+) -> Result<String, String> {
     let mode = if insert_table.is_some() {
         "insert"
     } else if json_mode {
@@ -25101,7 +25175,7 @@ fn compare_sql_order_values(a: &str, b: &str, desc: bool, nulls_first: bool) -> 
     if desc { order.reverse() } else { order }
 }
 
-fn parse_sql_limit(clause: &str, tables: &BTreeMap<String, SqlTable>) -> (usize, usize) {
+fn parse_sql_limit(clause: &str, tables: &BTreeMap<String, SqlTable>) -> Result<(usize, usize), String> {
     let parts = split_top_level_comma(clause);
     let (count, offset) = if parts.len() == 2 {
         // SQLite's comma form reverses the LIMIT count OFFSET offset order.
@@ -25111,14 +25185,14 @@ fn parse_sql_limit(clause: &str, tables: &BTreeMap<String, SqlTable>) -> (usize,
     } else {
         (clause, "0")
     };
-    (
-        eval_sql_row_expr(count.trim(), &[], &[], tables)
+    Ok((
+        eval_sql_row_expr(count.trim(), &[], &[], tables)?
             .parse()
             .unwrap_or(usize::MAX),
-        eval_sql_row_expr(offset.trim(), &[], &[], tables)
+        eval_sql_row_expr(offset.trim(), &[], &[], tables)?
             .parse()
             .unwrap_or(0),
-    )
+    ))
 }
 
 #[allow(clippy::too_many_arguments)]
@@ -25133,7 +25207,7 @@ fn exec_sql_select_with_mode(
     row_sep: &str,
     nullvalue: &str,
     widths: &[usize],
-) -> String {
+) -> Result<String, String> {
     let stmt_norm = stmt.replace(['\r', '\n', '\t'], " ");
     let stmt = stmt_norm.as_str();
     let upper = stmt.to_ascii_uppercase();
@@ -25179,11 +25253,11 @@ fn exec_sql_select_with_mode(
                 header_mode,
                 sep,
                 nullvalue,
-            );
+            )?;
             let right_out = exec_sql_select_ext(
                 right_sql, tables, views, false, false, false, false, false, None, false, sep,
                 nullvalue,
-            );
+            )?;
             let mut left_lines_iter = left_out.lines();
             let hdr_opt = if header_mode {
                 left_lines_iter.next().map(|s| s.to_string())
@@ -25233,7 +25307,7 @@ fn exec_sql_select_with_mode(
                 });
             }
             if let Some(lp) = lim_pos {
-                let (limit, offset) = parse_sql_limit(&stmt[lp + 7..], tables);
+                let (limit, offset) = parse_sql_limit(&stmt[lp + 7..], tables)?;
                 combined = combined.into_iter().skip(offset).take(limit).collect();
             }
             let mut res = String::new();
@@ -25244,7 +25318,7 @@ fn exec_sql_select_with_mode(
             if !combined.is_empty() {
                 res.push_str(&format!("{}\n", combined.join("\n")));
             }
-            return res;
+            return Ok(res);
         }
     }
 
@@ -25263,13 +25337,13 @@ fn exec_sql_select_with_mode(
                 let expr_part = trimmed[..as_pos].trim();
                 let alias = trimmed[as_pos + 4..].trim().trim_matches('"').to_string();
                 aliases.push(alias);
-                vals.push(eval_sql_row_value(expr_part, &[], &[], tables));
+                vals.push(eval_sql_row_value(expr_part, &[], &[], tables)?);
             } else {
                 aliases.push(trimmed.to_string());
-                vals.push(eval_sql_row_value(trimmed, &[], &[], tables));
+                vals.push(eval_sql_row_value(trimmed, &[], &[], tables)?);
             }
         }
-        return format_sql_result_rows(
+        return Ok(format_sql_result_rows(
             &aliases,
             &[vals],
             None,
@@ -25280,7 +25354,7 @@ fn exec_sql_select_with_mode(
             row_sep,
             nullvalue,
             widths,
-        );
+        ));
     };
 
     let mut is_distinct = false;
@@ -25324,8 +25398,8 @@ fn exec_sql_select_with_mode(
         .min()
         .unwrap_or(after_from.len());
     let from_spec = after_from[..table_end].trim();
-    let Some(mut tbl) = resolve_sql_from_table(from_spec, tables, views) else {
-        return String::new();
+    let Some(mut tbl) = resolve_sql_from_table(from_spec, tables, views)? else {
+        return Ok(String::new());
     };
     let visible_columns = tbl.columns.len();
     tbl.add_rowid_column();
@@ -25367,16 +25441,18 @@ fn exec_sql_select_with_mode(
 
     let (limit, offset) = limit_pos
         .map(|lp| parse_sql_limit(&after_from[lp + 7..], tables))
+        .transpose()?
         .unwrap_or((usize::MAX, 0));
 
-    let filtered: Vec<&Vec<String>> = tbl
-        .rows
-        .iter()
-        .filter(|r| match where_clause {
-            Some(wc) => eval_sql_where(wc, &tbl.columns, &tbl.metadata, r, tables),
+    let mut filtered = Vec::new();
+    for r in &tbl.rows {
+        if match where_clause {
+            Some(wc) => eval_sql_where(wc, &tbl.columns, &tbl.metadata, r, tables)?,
             None => true,
-        })
-        .collect();
+        } {
+            filtered.push(r);
+        }
+    }
 
     let sel_upper = select_part.to_ascii_uppercase();
     let has_window_over = sel_upper.contains("OVER (") || sel_upper.contains("OVER(");
@@ -25693,10 +25769,7 @@ fn exec_sql_select_with_mode(
                 }
             })
             .collect::<Result<_, String>>();
-        match specs {
-            Ok(specs) => specs,
-            Err(error) => return format!("\x00RAISE_ERR:{error}"),
-        }
+        specs?
     };
 
     let proj_headers: Vec<String> = proj_specs.iter().map(|(a, _)| a.clone()).collect();
@@ -25707,7 +25780,6 @@ fn exec_sql_select_with_mode(
             SqlProj::Win { .. } | SqlProj::Expr(_) => true,
         })
         .collect();
-    let overflow = Cell::new(false);
     let mut proj_rows: Vec<(&Vec<String>, Vec<String>)> = filtered
         .iter()
         .enumerate()
@@ -25877,14 +25949,7 @@ fn exec_sql_select_with_mode(
                                     .iter()
                                     .map(|&index| filtered[index])
                                     .collect();
-                                eval_sql_group_expr(
-                                    fn_part,
-                                    &tbl.columns,
-                                    &frame,
-                                    tables,
-                                    0,
-                                    &overflow,
-                                )
+                                eval_sql_group_expr(fn_part, &tbl.columns, &frame, tables, 0)?
                             } else if fn_up.starts_with("ROW_NUMBER(") {
                                 (my_pos + 1).to_string()
                             } else if fn_up.starts_with("CUME_DIST(")
@@ -26001,12 +26066,12 @@ fn exec_sql_select_with_mode(
                                     .get(1)
                                     .and_then(|s| s.parse::<usize>().ok())
                                     .unwrap_or(1);
-                                let default_val = eval_sql_value(
+                                let default_val = eval_sql_row_value(
                                     args.get(2).copied().unwrap_or("NULL"),
                                     &tbl.columns,
                                     r,
                                     tables,
-                                );
+                                )?;
                                 if is_lag {
                                     if my_pos >= offset {
                                         filtered[p_indices[my_pos - offset]]
@@ -26036,7 +26101,7 @@ fn exec_sql_select_with_mode(
                             };
                             expanded_e.replace_range(fn_start..=over_close, &replacement);
                         }
-                        vals.push(eval_sql_row_value(&expanded_e, &tbl.columns, r, tables));
+                        vals.push(eval_sql_row_value(&expanded_e, &tbl.columns, r, tables)?);
                     }
                     SqlProj::Win {
                         func,
@@ -26104,14 +26169,7 @@ fn exec_sql_select_with_mode(
                                     .iter()
                                     .map(|&index| filtered[index])
                                     .collect();
-                                eval_sql_group_expr(
-                                    expression,
-                                    &tbl.columns,
-                                    &frame,
-                                    tables,
-                                    0,
-                                    &overflow,
-                                )
+                                eval_sql_group_expr(expression, &tbl.columns, &frame, tables, 0)?
                             }
                             SqlWinFn::RowNumber => (my_pos + 1).to_string(),
                             SqlWinFn::CumeDist | SqlWinFn::PercentRank => sql_window_distribution(
@@ -26160,7 +26218,7 @@ fn exec_sql_select_with_mode(
                                 default_expr,
                             } => {
                                 let default_val =
-                                    eval_sql_value(default_expr, &tbl.columns, r, tables);
+                                    eval_sql_row_value(default_expr, &tbl.columns, r, tables)?;
                                 if my_pos >= *offset {
                                     let prev_i = p_indices[my_pos - *offset];
                                     filtered[prev_i]
@@ -26177,7 +26235,7 @@ fn exec_sql_select_with_mode(
                                 default_expr,
                             } => {
                                 let default_val =
-                                    eval_sql_value(default_expr, &tbl.columns, r, tables);
+                                    eval_sql_row_value(default_expr, &tbl.columns, r, tables)?;
                                 if my_pos + *offset < p_indices.len() {
                                     let next_i = p_indices[my_pos + *offset];
                                     filtered[next_i]
@@ -26285,13 +26343,9 @@ fn exec_sql_select_with_mode(
                     }
                 }
             }
-            (r, vals)
+            Ok((r, vals))
         })
-        .collect();
-
-    if overflow.get() {
-        return "\x00RAISE_ERR:integer overflow".to_string();
-    }
+        .collect::<Result<_, String>>()?;
 
     if is_distinct {
         let mut seen = Vec::new();
@@ -26316,20 +26370,17 @@ fn exec_sql_select_with_mode(
                 (expr, projected, desc, nulls_first)
             })
             .collect();
-        // Evaluate each key once per row, including expressions outside the projection.
-        let mut keyed_rows: Vec<_> = proj_rows
-            .into_iter()
-            .map(|(row, values)| {
-                let keys: Vec<_> = order_keys
-                    .iter()
-                    .map(|(expr, projected, _, _)| match projected {
-                        Some(index) => values[*index].clone(),
-                        None => eval_sql_row_value(expr, &tbl.columns, row, tables),
-                    })
-                    .collect();
-                (row, values, keys)
-            })
-            .collect();
+        let mut keyed_rows = Vec::with_capacity(proj_rows.len());
+        for (row, values) in proj_rows {
+            let mut keys = Vec::with_capacity(order_keys.len());
+            for (expr, projected, _, _) in &order_keys {
+                keys.push(match projected {
+                    Some(index) => values[*index].clone(),
+                    None => eval_sql_row_value(expr, &tbl.columns, row, tables)?,
+                });
+            }
+            keyed_rows.push((row, values, keys));
+        }
         keyed_rows.sort_by(|(_, _, a), (_, _, b)| {
             for ((va, vb), (_, _, desc, nulls_first)) in a.iter().zip(b).zip(&order_keys) {
                 let ord = compare_sql_order_values(va, vb, *desc, *nulls_first);
@@ -26351,10 +26402,7 @@ fn exec_sql_select_with_mode(
         .take(limit)
         .map(|(_, vals)| vals)
         .collect();
-    if overflow.get() {
-        return "\x00RAISE_ERR:integer overflow".to_string();
-    }
-    format_sql_result_rows(
+    Ok(format_sql_result_rows(
         &proj_headers,
         &only_rows,
         Some(&proj_is_num),
@@ -26365,7 +26413,7 @@ fn exec_sql_select_with_mode(
         row_sep,
         nullvalue,
         widths,
-    )
+    ))
 }
 
 #[allow(clippy::too_many_arguments)]
@@ -26386,9 +26434,7 @@ fn exec_sql_aggregate_select(
     row_sep: &str,
     nullvalue: &str,
     widths: &[usize],
-) -> String {
-    let integer_overflow = Cell::new(false);
-    let overflow = &integer_overflow;
+) -> Result<String, String> {
     let raw_items = split_top_level_comma(select_part);
     let mut exprs: Vec<(String, String)> = Vec::new();
     for item in raw_items {
@@ -26421,23 +26467,23 @@ fn exec_sql_aggregate_select(
             let key: Vec<String> = g_specs
                 .iter()
                 .map(|&gspec| {
-                    if let Some(gi) = find_sql_col(cols, gspec) {
+                    Ok(if let Some(gi) = find_sql_col(cols, gspec) {
                         r.get(gi).cloned().unwrap_or_default()
                     } else if let Some((e, _)) = exprs
                         .iter()
                         .find(|(_, alias)| alias.eq_ignore_ascii_case(gspec))
                     {
-                        eval_sql_row_expr(e, cols, r, &empty_tables)
+                        eval_sql_row_expr(e, cols, r, &empty_tables)?
                     } else if let Ok(pos) = gspec.parse::<usize>()
                         && pos >= 1
                         && pos <= exprs.len()
                     {
-                        eval_sql_row_expr(&exprs[pos - 1].0, cols, r, &empty_tables)
+                        eval_sql_row_expr(&exprs[pos - 1].0, cols, r, &empty_tables)?
                     } else {
-                        eval_sql_row_expr(gspec, cols, r, &empty_tables)
-                    }
+                        eval_sql_row_expr(gspec, cols, r, &empty_tables)?
+                    })
                 })
-                .collect();
+                .collect::<Result<_, String>>()?;
             map.entry(key).or_default().push(*r);
         }
         map.into_values().collect()
@@ -26450,38 +26496,38 @@ fn exec_sql_aggregate_select(
         // SQLite takes bare columns from a row supplying MIN/MAX. Keep the
         // group in input order so other aggregates (such as GROUP_CONCAT) do
         // not change their results when the source row changes.
-        let source_row = exprs
-            .iter()
-            .find_map(|(expr, _)| {
-                let upper = expr.to_ascii_uppercase();
-                if !(upper.starts_with("MAX(") || upper.starts_with("MIN("))
-                    || find_matching_paren(&expr[3..]) != Some(expr.len() - 4)
+        let mut source_row = 0;
+        'extremum: for (expr, _) in &exprs {
+            let upper = expr.to_ascii_uppercase();
+            if !(upper.starts_with("MAX(") || upper.starts_with("MIN("))
+                || find_matching_paren(&expr[3..]) != Some(expr.len() - 4)
+            {
+                continue;
+            }
+            let argument = &expr[4..expr.len() - 1];
+            if split_top_level_comma(argument).len() != 1 {
+                continue;
+            }
+            let extremum = eval_sql_group_expr(expr, cols, grp, tables, 0)?;
+            for (index, row) in grp.iter().enumerate() {
+                let value = eval_sql_row_expr(argument, cols, row, tables)?;
+                if value != SQL_NULL
+                    && (value == extremum
+                        || matches!((value.parse::<f64>(), extremum.parse::<f64>()),
+                            (Ok(value), Ok(extremum)) if value == extremum))
                 {
-                    return None;
+                    source_row = index;
+                    break 'extremum;
                 }
-                let argument = &expr[4..expr.len() - 1];
-                if split_top_level_comma(argument).len() != 1 {
-                    return None;
-                }
-                let extremum = eval_sql_group_expr(expr, cols, grp, tables, 0, overflow);
-                grp.iter().position(|row| {
-                    let value = eval_sql_row_expr(argument, cols, row, tables);
-                    value != SQL_NULL
-                        && (value == extremum
-                            || matches!((value.parse::<f64>(), extremum.parse::<f64>()),
-                        (Ok(value), Ok(extremum)) if value == extremum))
-                })
-            })
-            .unwrap_or(0);
+            }
+        }
         let mut row_vals = Vec::new();
         for (e, _) in &exprs {
             let eu = e.to_ascii_uppercase();
             if eu.contains("OVER (") || eu.contains("OVER(") {
                 row_vals.push(String::new());
             } else {
-                row_vals.push(eval_sql_group_expr(
-                    e, cols, grp, tables, source_row, overflow,
-                ));
+                row_vals.push(eval_sql_group_expr(e, cols, grp, tables, source_row)?);
             }
         }
         if let Some(hc) = having_clause {
@@ -26498,7 +26544,7 @@ fn exec_sql_aggregate_select(
                 })
                 .collect();
             let ext_grp_refs: Vec<&Vec<String>> = ext_grp.iter().collect();
-            if !eval_sql_having(hc, &ext_cols, &ext_grp_refs, tables, source_row, overflow) {
+            if !eval_sql_having(hc, &ext_cols, &ext_grp_refs, tables, source_row)? {
                 continue;
             }
         }
@@ -26559,12 +26605,12 @@ fn exec_sql_aggregate_select(
                 order_exprs.push((o_expr, desc));
             }
         }
-        let eval_grp_key = |row_i: usize, key_expr: &str| -> String {
+        let eval_grp_key = |row_i: usize, key_expr: &str| -> Result<String, String> {
             if let Some(p_idx) = exprs.iter().position(|(pe, palias)| {
                 palias.eq_ignore_ascii_case(key_expr) || pe.eq_ignore_ascii_case(key_expr)
             }) && p_idx != col_idx
             {
-                return out_rows[row_i].1.get(p_idx).cloned().unwrap_or_default();
+                return Ok(out_rows[row_i].1.get(p_idx).cloned().unwrap_or_default());
             }
             eval_sql_group_expr(
                 key_expr,
@@ -26572,7 +26618,6 @@ fn exec_sql_aggregate_select(
                 &out_grps[row_i].0,
                 tables,
                 out_grps[row_i].1,
-                overflow,
             )
         };
 
@@ -26581,21 +26626,30 @@ fn exec_sql_aggregate_select(
             let pk = part_expr
                 .as_deref()
                 .map(|pe| eval_grp_key(row_i, pe))
+                .transpose()?
                 .unwrap_or_default();
             partitions.entry(pk).or_default().push(row_i);
         }
+        let order_keys: Vec<Vec<String>> = (0..out_rows.len())
+            .map(|row_i| {
+                order_exprs
+                    .iter()
+                    .map(|(expr, _)| eval_grp_key(row_i, expr))
+                    .collect()
+            })
+            .collect::<Result<_, String>>()?;
         let mut combined_order = Vec::new();
         let mut win_updates: Vec<(usize, String)> = Vec::new();
         for (_pk, mut p_indices) in partitions {
             let cmp_rows = |a_i: usize, b_i: usize| {
-                for (oe, desc) in &order_exprs {
-                    let va = eval_grp_key(a_i, oe);
-                    let vb = eval_grp_key(b_i, oe);
+                for (key, (_, desc)) in order_exprs.iter().enumerate() {
+                    let va = &order_keys[a_i][key];
+                    let vb = &order_keys[b_i][key];
                     let ord = match (va.parse::<f64>(), vb.parse::<f64>()) {
                         (Ok(na), Ok(nb)) => {
                             na.partial_cmp(&nb).unwrap_or(std::cmp::Ordering::Equal)
                         }
-                        _ => va.cmp(&vb),
+                        _ => va.cmp(vb),
                     };
                     let ord = if *desc { ord.reverse() } else { ord };
                     if ord != std::cmp::Ordering::Equal {
@@ -26689,24 +26743,26 @@ fn exec_sql_aggregate_select(
             }
         }
         if !ord_specs.is_empty() {
-            out_rows.sort_by(|(ra, pa), (rb, pb)| {
-                for (target, desc, nulls_first) in &ord_specs {
-                    let (va_owned, vb_owned) = match target {
-                        AggOrdTarget::Proj(idx) => (
-                            pa.get(*idx).cloned().unwrap_or_default(),
-                            pb.get(*idx).cloned().unwrap_or_default(),
-                        ),
-                        AggOrdTarget::Col(idx) => (
-                            ra.get(*idx).cloned().unwrap_or_default(),
-                            rb.get(*idx).cloned().unwrap_or_default(),
-                        ),
-                        AggOrdTarget::Expr(expr_s) => (
-                            eval_sql_group_expr(expr_s, cols, &[ra], tables, 0, overflow),
-                            eval_sql_group_expr(expr_s, cols, &[rb], tables, 0, overflow),
-                        ),
-                    };
-                    let va = va_owned.as_str();
-                    let vb = vb_owned.as_str();
+            let mut keyed_rows = Vec::with_capacity(out_rows.len());
+            for (row_i, (raw, projected)) in out_rows.into_iter().enumerate() {
+                let mut keys = Vec::with_capacity(ord_specs.len());
+                for (target, _, _) in &ord_specs {
+                    keys.push(match target {
+                        AggOrdTarget::Proj(idx) => projected.get(*idx).cloned().unwrap_or_default(),
+                        AggOrdTarget::Col(idx) => raw.get(*idx).cloned().unwrap_or_default(),
+                        AggOrdTarget::Expr(expr) => eval_sql_group_expr(
+                            expr,
+                            cols,
+                            &out_grps[row_i].0,
+                            tables,
+                            out_grps[row_i].1,
+                        )?,
+                    });
+                }
+                keyed_rows.push((keys, (raw, projected)));
+            }
+            keyed_rows.sort_by(|(a, _), (b, _)| {
+                for ((va, vb), (_, desc, nulls_first)) in a.iter().zip(b).zip(&ord_specs) {
                     let ord = compare_sql_order_values(va, vb, *desc, *nulls_first);
                     if ord != std::cmp::Ordering::Equal {
                         return ord;
@@ -26714,10 +26770,8 @@ fn exec_sql_aggregate_select(
                 }
                 std::cmp::Ordering::Equal
             });
+            out_rows = keyed_rows.into_iter().map(|(_, row)| row).collect();
         }
-    }
-    if overflow.get() {
-        return "\x00RAISE_ERR:integer overflow".to_string();
     }
     let hdr: Vec<String> = exprs.iter().map(|(_, alias)| alias.clone()).collect();
     let only_rows: Vec<Vec<String>> = out_rows
@@ -26726,7 +26780,7 @@ fn exec_sql_aggregate_select(
         .take(limit)
         .map(|(_, r)| r)
         .collect();
-    format_sql_result_rows(
+    Ok(format_sql_result_rows(
         &hdr,
         &only_rows,
         None,
@@ -26737,7 +26791,7 @@ fn exec_sql_aggregate_select(
         row_sep,
         nullvalue,
         widths,
-    )
+    ))
 }
 
 fn split_top_level_sql_cmp<'a>(s: &'a str, op: &str) -> Option<(&'a str, &'a str)> {
@@ -26773,8 +26827,7 @@ fn eval_sql_having(
     grp: &[&Vec<String>],
     tables: &BTreeMap<String, SqlTable>,
     source_row: usize,
-    overflow: &Cell<bool>,
-) -> bool {
+) -> Result<bool, String> {
     let trimmed = hc.trim();
     if trimmed.starts_with('(') && find_matching_paren(trimmed) == Some(trimmed.len() - 1) {
         return eval_sql_having(
@@ -26783,45 +26836,40 @@ fn eval_sql_having(
             grp,
             tables,
             source_row,
-            overflow,
         );
     }
     let upper = trimmed.to_ascii_uppercase();
     if let Some(or_p) = find_top_sql_bool_kw(&upper, " OR ") {
-        return eval_sql_having(&trimmed[..or_p], cols, grp, tables, source_row, overflow)
-            || eval_sql_having(
-                &trimmed[or_p + 4..],
-                cols,
-                grp,
-                tables,
-                source_row,
-                overflow,
-            );
+        return Ok(
+            eval_sql_having(&trimmed[..or_p], cols, grp, tables, source_row)?
+                || eval_sql_having(&trimmed[or_p + 4..], cols, grp, tables, source_row)?,
+        );
     }
     if let Some(and_p) = find_top_sql_bool_kw(&upper, " AND ") {
-        return eval_sql_having(&trimmed[..and_p], cols, grp, tables, source_row, overflow)
-            && eval_sql_having(
-                &trimmed[and_p + 5..],
-                cols,
-                grp,
-                tables,
-                source_row,
-                overflow,
-            );
+        return Ok(
+            eval_sql_having(&trimmed[..and_p], cols, grp, tables, source_row)?
+                && eval_sql_having(&trimmed[and_p + 5..], cols, grp, tables, source_row)?,
+        );
     }
     if upper.starts_with("NOT ") && !upper.starts_with("NOT EXISTS") && !upper.contains(" NOT IN (")
     {
-        return !eval_sql_having(&trimmed[4..], cols, grp, tables, source_row, overflow);
+        return Ok(!eval_sql_having(
+            &trimmed[4..],
+            cols,
+            grp,
+            tables,
+            source_row,
+        )?);
     }
     for op in [">=", "<=", "!=", "<>", "=", ">", "<"] {
         if let Some((lhs, rhs)) = split_top_level_sql_cmp(trimmed, op) {
-            let lv = eval_sql_group_expr(lhs.trim(), cols, grp, tables, source_row, overflow);
-            let rv = eval_sql_group_expr(rhs.trim(), cols, grp, tables, source_row, overflow);
+            let lv = eval_sql_group_expr(lhs.trim(), cols, grp, tables, source_row)?;
+            let rv = eval_sql_group_expr(rhs.trim(), cols, grp, tables, source_row)?;
             let ord = match (lv.parse::<f64>(), rv.parse::<f64>()) {
                 (Ok(na), Ok(nb)) => na.partial_cmp(&nb).unwrap_or(std::cmp::Ordering::Equal),
                 _ => lv.cmp(&rv),
             };
-            return match op {
+            return Ok(match op {
                 ">=" => ord != std::cmp::Ordering::Less,
                 "<=" => ord != std::cmp::Ordering::Greater,
                 "!=" | "<>" => ord != std::cmp::Ordering::Equal,
@@ -26829,13 +26877,13 @@ fn eval_sql_having(
                 ">" => ord == std::cmp::Ordering::Greater,
                 "<" => ord == std::cmp::Ordering::Less,
                 _ => true,
-            };
+            });
         }
     }
     if let Some(first_row) = grp.get(source_row) {
         return eval_sql_where(trimmed, cols, &[], first_row, tables);
     }
-    true
+    Ok(true)
 }
 
 fn eval_sql_printf(fmt: &str, args: &[String]) -> String {
@@ -27002,31 +27050,31 @@ fn eval_sql_json_extract(
     cols: &[String],
     row: &[String],
     tables: &BTreeMap<String, SqlTable>,
-) -> JVal {
+) -> Result<JVal, String> {
     let Some(doc_arg) = args.first() else {
-        return JVal::Null;
+        return Ok(JVal::Null);
     };
-    let doc = eval_sql_row_expr(doc_arg, cols, row, tables);
+    let doc = eval_sql_row_expr(doc_arg, cols, row, tables)?;
     let Some(value) = parse_json_stream(&doc)
         .ok()
         .and_then(|mut values| values.pop())
     else {
-        return JVal::Null;
+        return Ok(JVal::Null);
     };
     let mut values = Vec::with_capacity(args.len().saturating_sub(1));
     for path in &args[1..] {
-        let path = eval_sql_row_expr(path, cols, row, tables);
+        let path = eval_sql_row_expr(path, cols, row, tables)?;
         values.push(
             parse_sql_json_path(&path, &value)
                 .map(|segs| get_jq_jval_path(&value, &segs))
                 .unwrap_or(JVal::Null),
         );
     }
-    match values.len() {
+    Ok(match values.len() {
         0 => value,
         1 => values.pop().unwrap(),
         _ => JVal::Array(values),
-    }
+    })
 }
 
 fn parse_sql_arg_to_jval(val_s: &str, raw_expr: &str) -> JVal {
@@ -27097,7 +27145,7 @@ fn substitute_correlated_subquery(
     cols: &[String],
     row: &[String],
     tables: &BTreeMap<String, SqlTable>,
-) -> String {
+) -> Result<String, String> {
     let upper = sub_sql.to_ascii_uppercase();
     let from = find_top_sql_bool_kw(&upper, " FROM ").map(|start| {
         let start = start + 6;
@@ -27109,7 +27157,7 @@ fn substitute_correlated_subquery(
         start..end
     });
     let local = match from.as_ref() {
-        Some(range) => resolve_sql_from_table(&sub_sql[range.clone()], tables, &BTreeMap::new()),
+        Some(range) => resolve_sql_from_table(&sub_sql[range.clone()], tables, &BTreeMap::new())?,
         None => None,
     };
     let matches = |column: &str, reference: &str| {
@@ -27139,7 +27187,7 @@ fn substitute_correlated_subquery(
                     })
                     .map(|(column, value)| (column.clone(), value.clone()))
                     .unzip();
-                let bound = substitute_correlated_subquery(inner, &outer_cols, &outer_row, tables);
+                let bound = substitute_correlated_subquery(inner, &outer_cols, &outer_row, tables)?;
                 out.push('(');
                 out.push_str(&bound);
                 out.push(')');
@@ -27211,7 +27259,7 @@ fn substitute_correlated_subquery(
         let end = chars.peek().map_or(sub_sql.len(), |(i, _)| *i);
         out.push_str(&sub_sql[start..end]);
     }
-    out
+    Ok(out)
 }
 
 fn find_sql_binary_operator(s: &str) -> Option<(usize, &str)> {
@@ -27312,12 +27360,12 @@ fn eval_sql_row_expr(
     cols: &[String],
     row: &[String],
     tables: &BTreeMap<String, SqlTable>,
-) -> String {
-    let value = eval_sql_row_value(expr, cols, row, tables);
-    value
-        .strip_prefix(SQL_TEXT_PREFIX)
-        .map(str::to_string)
-        .unwrap_or(value)
+) -> Result<String, String> {
+    let mut value = eval_sql_row_value(expr, cols, row, tables)?;
+    if value.starts_with(SQL_TEXT_PREFIX) {
+        value.drain(..SQL_TEXT_PREFIX.len());
+    }
+    Ok(value)
 }
 
 fn eval_sql_row_value(
@@ -27325,10 +27373,10 @@ fn eval_sql_row_value(
     cols: &[String],
     row: &[String],
     tables: &BTreeMap<String, SqlTable>,
-) -> String {
+) -> Result<String, String> {
     let s = expr.trim();
     if s.is_empty() {
-        return SQL_NULL.to_string();
+        return Ok(SQL_NULL.to_string());
     }
     let upper = s.to_ascii_uppercase();
     if !upper.starts_with("CASE ") {
@@ -27339,14 +27387,14 @@ fn eval_sql_row_value(
                 if keyword == " AND " && upper[..position].contains(" BETWEEN ") {
                     continue;
                 }
-                let lhs = eval_sql_row_expr(&s[..position], cols, row, tables);
-                let rhs = eval_sql_row_expr(&s[position + keyword.len()..], cols, row, tables);
+                let lhs = eval_sql_row_expr(&s[..position], cols, row, tables)?;
+                let rhs = eval_sql_row_expr(&s[position + keyword.len()..], cols, row, tables)?;
                 let truth = |value: &str| {
                     (value != SQL_NULL).then(|| value.trim().parse::<f64>().unwrap_or(0.0) != 0.0)
                 };
                 let lhs = truth(&lhs);
                 let rhs = truth(&rhs);
-                return if lhs == Some(decisive) || rhs == Some(decisive) {
+                return Ok(if lhs == Some(decisive) || rhs == Some(decisive) {
                     if decisive { "1" } else { "0" }
                 } else if lhs.is_none() || rhs.is_none() {
                     SQL_NULL
@@ -27355,31 +27403,31 @@ fn eval_sql_row_value(
                 } else {
                     "1"
                 }
-                .to_string();
+                .to_string());
             }
         }
         if upper.starts_with("NOT ") {
-            let value = eval_sql_row_expr(&s[4..], cols, row, tables);
-            return if value == SQL_NULL {
+            let value = eval_sql_row_expr(&s[4..], cols, row, tables)?;
+            return Ok(if value == SQL_NULL {
                 SQL_NULL
             } else if value.trim().parse::<f64>().unwrap_or(0.0) == 0.0 {
                 "1"
             } else {
                 "0"
             }
-            .to_string();
+            .to_string());
         }
     }
     // Split the lowest-precedence operator; concatenation binds above arithmetic.
     if let Some((sp, op)) = find_sql_binary_operator(s) {
-        let lv_s = eval_sql_row_expr(&s[..sp], cols, row, tables);
-        let rv_s = eval_sql_row_expr(&s[sp + op.len()..], cols, row, tables);
+        let lv_s = eval_sql_row_expr(&s[..sp], cols, row, tables)?;
+        let rv_s = eval_sql_row_expr(&s[sp + op.len()..], cols, row, tables)?;
         if op == "&" {
-            return sql_bitwise_and(&lv_s, &rv_s);
+            return Ok(sql_bitwise_and(&lv_s, &rv_s));
         }
         if op == "||" {
             if lv_s == SQL_NULL || rv_s == SQL_NULL {
-                return SQL_NULL.to_string();
+                return Ok(SQL_NULL.to_string());
             }
             let lv = if lv_s == "\x00LIT_NULL" {
                 "NULL"
@@ -27391,7 +27439,7 @@ fn eval_sql_row_value(
             } else {
                 &rv_s
             };
-            return sql_text_value(&format!("{lv}{rv}"));
+            return Ok(sql_text_value(&format!("{lv}{rv}")));
         }
         if let (Ok(lv), Ok(rv)) = (lv_s.parse::<i64>(), rv_s.parse::<i64>()) {
             let result = match op {
@@ -27400,7 +27448,7 @@ fn eval_sql_row_value(
                 _ => None,
             };
             if let Some(result) = result {
-                return result.to_string();
+                return Ok(result.to_string());
             }
         }
         let lv = lv_s.parse::<f64>().unwrap_or(0.0);
@@ -27426,29 +27474,29 @@ fn eval_sql_row_value(
             _ => 0.0,
         };
         if (res - res.round()).abs() < 1e-9 {
-            return (res.round() as i64).to_string();
+            return Ok((res.round() as i64).to_string());
         }
-        return res.to_string();
+        return Ok(res.to_string());
     }
     if let Some((inner, _)) = split_sql_collation(s) {
         return eval_sql_row_value(inner, cols, row, tables);
     }
     if (s.starts_with('\'') && s.ends_with('\'')) || (s.starts_with('"') && s.ends_with('"')) {
-        return sql_text_value(&s[1..s.len() - 1].replace("''", "'"));
+        return Ok(sql_text_value(&s[1..s.len() - 1].replace("''", "'")));
     }
     if s.parse::<f64>().is_ok() {
-        return s.to_string();
+        return Ok(s.to_string());
     }
     if let Some(hex) = upper.strip_prefix("X'").and_then(|s| s.strip_suffix('\''))
         && hex.len().is_multiple_of(2)
         && hex.bytes().all(|b| b.is_ascii_hexdigit())
     {
-        return format!("{SQL_BLOB_PREFIX}{hex}");
+        return Ok(format!("{SQL_BLOB_PREFIX}{hex}"));
     }
     if s.starts_with('(') && find_matching_paren(s) == Some(s.len() - 1) {
         let inner = s[1..s.len() - 1].trim();
         if inner.to_ascii_uppercase().starts_with("SELECT ") {
-            let sub_sql = substitute_correlated_subquery(inner, cols, row, tables);
+            let sub_sql = substitute_correlated_subquery(inner, cols, row, tables)?;
             let res = exec_sql_select_ext(
                 &sub_sql,
                 tables,
@@ -27462,8 +27510,8 @@ fn eval_sql_row_value(
                 false,
                 "|",
                 SQL_NULL,
-            );
-            return res.lines().next().unwrap_or(SQL_NULL).to_string();
+            )?;
+            return Ok(res.lines().next().unwrap_or(SQL_NULL).to_string());
         }
         return eval_sql_row_value(inner, cols, row, tables);
     }
@@ -27473,7 +27521,7 @@ fn eval_sql_row_value(
             && let Some(close) = find_matching_paren(after_ex)
         {
             let inner = after_ex[1..close].trim();
-            let sub_sql = substitute_correlated_subquery(inner, cols, row, tables);
+            let sub_sql = substitute_correlated_subquery(inner, cols, row, tables)?;
             let res = exec_sql_select(
                 &sub_sql,
                 tables,
@@ -27485,22 +27533,22 @@ fn eval_sql_row_value(
                 None,
                 false,
                 "|",
-            );
-            return if res.trim().is_empty() {
+            )?;
+            return Ok(if res.trim().is_empty() {
                 "0".to_string()
             } else {
                 "1".to_string()
-            };
+            });
         }
     }
     if upper.starts_with("CASE ") && upper.ends_with(" END") {
         let inner = s[5..s.len() - 4].trim();
         let (base_opt, branches, else_opt) = split_sql_case_branches(inner);
         if let Some(base_expr) = base_opt {
-            let base_val = eval_sql_row_expr(base_expr, cols, row, tables);
+            let base_val = eval_sql_row_expr(base_expr, cols, row, tables)?;
             if base_val != SQL_NULL {
                 for (cond_s, then_val) in branches {
-                    let when_val = eval_sql_row_expr(cond_s, cols, row, tables);
+                    let when_val = eval_sql_row_expr(cond_s, cols, row, tables)?;
                     let matches = if let (Ok(bn), Ok(wn)) =
                         (base_val.parse::<f64>(), when_val.parse::<f64>())
                     {
@@ -27515,14 +27563,15 @@ fn eval_sql_row_value(
             }
         } else {
             for (cond_s, then_val) in branches {
-                if eval_sql_where(cond_s, cols, &[], row, tables) {
+                if eval_sql_where(cond_s, cols, &[], row, tables)? {
                     return eval_sql_row_value(then_val, cols, row, tables);
                 }
             }
         }
-        return else_opt
+        return Ok(else_opt
             .map(|ev| eval_sql_row_value(ev, cols, row, tables))
-            .unwrap_or_else(|| SQL_NULL.to_string());
+            .transpose()?
+            .unwrap_or_else(|| SQL_NULL.to_string()));
     }
     if upper.starts_with("RAISE(") && s.ends_with(')') {
         let args = split_top_level_comma(&s[6..s.len() - 1]);
@@ -27531,56 +27580,57 @@ fn eval_sql_row_value(
             .map(|a| a.trim().to_ascii_uppercase())
             .unwrap_or_default();
         if mode == "IGNORE" {
-            return "\x00RAISE_IGNORE".to_string();
+            return Ok("\x00RAISE_IGNORE".to_string());
         }
         let msg = args
             .get(1)
             .map(|a| eval_sql_row_expr(a, cols, row, tables))
+            .transpose()?
             .unwrap_or(mode);
-        return format!("\x00RAISE_ERR:{msg}");
+        return Ok(format!("\x00RAISE_ERR:{msg}"));
     }
     if (upper.starts_with("COALESCE(") || upper.starts_with("IFNULL(")) && s.ends_with(')') {
         let pfx = if upper.starts_with("IFNULL(") { 7 } else { 9 };
         for arg in split_top_level_comma(&s[pfx..s.len() - 1]) {
-            let v = eval_sql_row_value(arg, cols, row, tables);
+            let v = eval_sql_row_value(arg, cols, row, tables)?;
             if v != SQL_NULL {
-                return v;
+                return Ok(v);
             }
         }
-        return SQL_NULL.to_string();
+        return Ok(SQL_NULL.to_string());
     }
     if upper.starts_with("IIF(") && s.ends_with(')') {
         let args = split_top_level_comma(&s[4..s.len() - 1]);
         if args.len() >= 2 {
-            let cond_ok = eval_sql_where(args[0], cols, &[], row, tables);
+            let cond_ok = eval_sql_where(args[0], cols, &[], row, tables)?;
             if cond_ok {
                 return eval_sql_row_value(args[1], cols, row, tables);
             }
             if let Some(f_arg) = args.get(2) {
                 return eval_sql_row_value(f_arg, cols, row, tables);
             }
-            return SQL_NULL.to_string();
+            return Ok(SQL_NULL.to_string());
         }
     }
     if upper.starts_with("LENGTH(") && s.ends_with(')') {
-        let inner = eval_sql_row_expr(&s[7..s.len() - 1], cols, row, tables);
+        let inner = eval_sql_row_expr(&s[7..s.len() - 1], cols, row, tables)?;
         if inner == SQL_NULL {
-            return SQL_NULL.to_string();
+            return Ok(SQL_NULL.to_string());
         }
         if let Some(hex) = inner.strip_prefix(SQL_BLOB_PREFIX) {
-            return (hex.len() / 2).to_string();
+            return Ok((hex.len() / 2).to_string());
         }
-        return inner.chars().count().to_string();
+        return Ok(inner.chars().count().to_string());
     }
     if upper.starts_with("OCTET_LENGTH(") && s.ends_with(')') {
-        let inner = eval_sql_row_expr(&s[13..s.len() - 1], cols, row, tables);
+        let inner = eval_sql_row_expr(&s[13..s.len() - 1], cols, row, tables)?;
         if inner == SQL_NULL {
-            return SQL_NULL.to_string();
+            return Ok(SQL_NULL.to_string());
         }
         if let Some(hex) = inner.strip_prefix(SQL_BLOB_PREFIX) {
-            return (hex.len() / 2).to_string();
+            return Ok((hex.len() / 2).to_string());
         }
-        return inner.len().to_string();
+        return Ok(inner.len().to_string());
     }
     if (upper.starts_with("SUBSTR(") || upper.starts_with("SUBSTRING(")) && s.ends_with(')') {
         let pfx = if upper.starts_with("SUBSTRING(") {
@@ -27590,17 +27640,17 @@ fn eval_sql_row_value(
         };
         let parts = split_top_level_comma(&s[pfx..s.len() - 1]);
         if parts.len() >= 2 {
-            let text = eval_sql_row_expr(parts[0], cols, row, tables);
+            let text = eval_sql_row_expr(parts[0], cols, row, tables)?;
             if text == SQL_NULL {
-                return SQL_NULL.to_string();
+                return Ok(SQL_NULL.to_string());
             }
             let chs: Vec<char> = text.chars().collect();
-            let pos = eval_sql_row_expr(parts[1], cols, row, tables)
+            let pos = eval_sql_row_expr(parts[1], cols, row, tables)?
                 .trim()
                 .parse::<f64>()
                 .unwrap_or(1.0) as isize;
             let mut len = if parts.len() >= 3 {
-                eval_sql_row_expr(parts[2], cols, row, tables)
+                eval_sql_row_expr(parts[2], cols, row, tables)?
                     .trim()
                     .parse::<f64>()
                     .unwrap_or(0.0) as isize
@@ -27620,31 +27670,31 @@ fn eval_sql_row_value(
             if len < 0 {
                 let end_idx = start_idx.max(0) as usize;
                 let begin_idx = (start_idx.max(0) + len).max(0) as usize;
-                return chs[begin_idx.min(chs.len())..end_idx.min(chs.len())]
+                return Ok(chs[begin_idx.min(chs.len())..end_idx.min(chs.len())]
                     .iter()
-                    .collect();
+                    .collect());
             }
             if start_idx < 0 {
                 let adj_len = (len + start_idx).max(0) as usize;
-                return chs[..adj_len.min(chs.len())].iter().collect();
+                return Ok(chs[..adj_len.min(chs.len())].iter().collect());
             }
             let st = (start_idx as usize).min(chs.len());
             let en = (st + len as usize).min(chs.len());
-            return chs[st..en].iter().collect();
+            return Ok(chs[st..en].iter().collect());
         }
     }
     if upper.starts_with("INSTR(") && s.ends_with(')') {
         let args = split_top_level_comma(&s[6..s.len() - 1]);
         if args.len() >= 2 {
-            let hay = eval_sql_row_expr(args[0], cols, row, tables);
-            let needle = eval_sql_row_expr(args[1], cols, row, tables);
+            let hay = eval_sql_row_expr(args[0], cols, row, tables)?;
+            let needle = eval_sql_row_expr(args[1], cols, row, tables)?;
             if needle.is_empty() {
-                return "1".to_string();
+                return Ok("1".to_string());
             }
             if let Some(byte_pos) = hay.find(&needle) {
-                return (hay[..byte_pos].chars().count() + 1).to_string();
+                return Ok((hay[..byte_pos].chars().count() + 1).to_string());
             }
-            return "0".to_string();
+            return Ok("0".to_string());
         }
     }
     if (upper.starts_with("MAX(") || upper.starts_with("MIN("))
@@ -27655,9 +27705,9 @@ fn eval_sql_row_value(
             let is_max = upper.starts_with("MAX(");
             let mut best_raw: Option<String> = None;
             for a in args {
-                let v = eval_sql_row_expr(a, cols, row, tables);
+                let v = eval_sql_row_expr(a, cols, row, tables)?;
                 if v == SQL_NULL {
-                    return SQL_NULL.to_string();
+                    return Ok(SQL_NULL.to_string());
                 }
                 best_raw = Some(match best_raw {
                     None => v,
@@ -27678,64 +27728,70 @@ fn eval_sql_row_value(
                     }
                 });
             }
-            return best_raw.unwrap_or_else(|| SQL_NULL.to_string());
+            return Ok(best_raw.unwrap_or_else(|| SQL_NULL.to_string()));
         }
     }
     if upper.starts_with("JSON_ARRAY_LENGTH(") && s.ends_with(')') {
         let args = split_top_level_comma(&s[18..s.len() - 1]);
         if let Some(doc_arg) = args.first() {
-            let doc_s = eval_sql_row_expr(doc_arg, cols, row, tables);
+            let doc_s = eval_sql_row_expr(doc_arg, cols, row, tables)?;
             let path_s = args
                 .get(1)
                 .map(|a| eval_sql_row_expr(a, cols, row, tables))
+                .transpose()?
                 .unwrap_or_else(|| "$".to_string());
             if let Ok(mut parsed) = parse_json_stream(&doc_s)
                 && let Some(jval) = parsed.pop()
             {
                 let Some(segs) = parse_sql_json_path(&path_s, &jval) else {
-                    return SQL_NULL.to_string();
+                    return Ok(SQL_NULL.to_string());
                 };
                 let found = get_jq_jval_path(&jval, &segs);
-                return match found {
+                return Ok(match found {
                     JVal::Array(items) => items.len().to_string(),
                     _ => "0".to_string(),
-                };
+                });
             }
         }
-        return "0".to_string();
+        return Ok("0".to_string());
     }
     if upper.starts_with("ABS(") && s.ends_with(')') {
-        let v = eval_sql_row_expr(&s[4..s.len() - 1], cols, row, tables);
-        if let Ok(n) = v.parse::<f64>() {
-            let a = n.abs();
-            if !v.contains('.') && (a - a.round()).abs() < 1e-9 {
-                return (a.round() as i64).to_string();
-            }
-            return a.to_string();
+        let v = eval_sql_row_value(&s[4..s.len() - 1], cols, row, tables)?;
+        if let Ok(n) = v.parse::<i64>() {
+            return n
+                .checked_abs()
+                .map(|value| value.to_string())
+                .ok_or_else(|| "Error: stepping, integer overflow\n".to_string());
         }
-        return "0".to_string();
+        let v = v.strip_prefix(SQL_TEXT_PREFIX).unwrap_or(&v);
+        if let Ok(n) = v.parse::<f64>() {
+            return Ok(n.abs().to_string());
+        }
+        return Ok("0".to_string());
     }
     if upper.starts_with("ROUND(") && s.ends_with(')') {
         let args = split_top_level_comma(&s[6..s.len() - 1]);
         if let Some(first) = args.first() {
-            let raw_v = eval_sql_row_expr(first, cols, row, tables);
+            let raw_v = eval_sql_row_expr(first, cols, row, tables)?;
             if raw_v == SQL_NULL {
-                return SQL_NULL.to_string();
+                return Ok(SQL_NULL.to_string());
             }
             let n = raw_v.parse::<f64>().unwrap_or(0.0);
             let digits = args
                 .get(1)
-                .and_then(|d| eval_sql_row_expr(d, cols, row, tables).parse::<i32>().ok())
+                .map(|d| eval_sql_row_expr(d, cols, row, tables))
+                .transpose()?
+                .and_then(|value| value.parse::<i32>().ok())
                 .unwrap_or(0);
             if digits <= 0 {
-                return format!("{:.1}", n.round());
+                return Ok(format!("{:.1}", n.round()));
             }
             let factor = 10f64.powi(digits);
             let r = (n * factor).round() / factor;
             if (r - r.round()).abs() < 1e-9 {
-                return format!("{r:.1}");
+                return Ok(format!("{r:.1}"));
             }
-            return r.to_string();
+            return Ok(r.to_string());
         }
     }
     if upper.starts_with("TYPEOF(") && s.ends_with(')') {
@@ -27743,7 +27799,7 @@ fn eval_sql_row_value(
         if (inner_raw.starts_with('\'') && inner_raw.ends_with('\''))
             || (inner_raw.starts_with('"') && inner_raw.ends_with('"'))
         {
-            return "text".to_string();
+            return Ok("text".to_string());
         }
         let mut inner = inner_raw;
         while inner.starts_with('(') && find_matching_paren(inner) == Some(inner.len() - 1) {
@@ -27753,8 +27809,8 @@ fn eval_sql_row_value(
             && find_matching_paren(&inner[12..]) == Some(inner.len() - 13)
         {
             let args = split_top_level_comma(&inner[13..inner.len() - 1]);
-            let value = eval_sql_json_extract(&args, cols, row, tables);
-            return match value {
+            let value = eval_sql_json_extract(&args, cols, row, tables)?;
+            return Ok(match value {
                 JVal::Null => "null",
                 JVal::Bool(_) => "integer",
                 JVal::Number(_, ref literal)
@@ -27765,115 +27821,115 @@ fn eval_sql_row_value(
                 JVal::Number(_, _) => "real",
                 JVal::Str(_) | JVal::Array(_) | JVal::Object(_) => "text",
             }
-            .to_string();
+            .to_string());
         }
-        let v = eval_sql_row_value(inner_raw, cols, row, tables);
+        let v = eval_sql_row_value(inner_raw, cols, row, tables)?;
         if v.starts_with(SQL_TEXT_PREFIX) {
-            return "text".to_string();
+            return Ok("text".to_string());
         }
         if v.starts_with(SQL_BLOB_PREFIX) {
-            return "blob".to_string();
+            return Ok("blob".to_string());
         }
         if v == "\x00LIT_NULL" || v.starts_with(SQL_TEXT_PREFIX) {
-            return "text".to_string();
+            return Ok("text".to_string());
         }
         if v == SQL_NULL {
-            return "null".to_string();
+            return Ok("null".to_string());
         }
         if v.parse::<f64>().is_ok() {
             if v.contains('.') {
-                return "real".to_string();
+                return Ok("real".to_string());
             }
-            return "integer".to_string();
+            return Ok("integer".to_string());
         }
-        return "text".to_string();
+        return Ok("text".to_string());
     }
     if upper.starts_with("QUOTE(") && s.ends_with(')') {
         let inner_raw = s[6..s.len() - 1].trim();
         let is_str_lit = (inner_raw.starts_with('\'') && inner_raw.ends_with('\''))
             || (inner_raw.starts_with('"') && inner_raw.ends_with('"'));
-        let v = eval_sql_row_value(inner_raw, cols, row, tables);
+        let v = eval_sql_row_value(inner_raw, cols, row, tables)?;
         if let Some(hex) = v.strip_prefix(SQL_BLOB_PREFIX) {
-            return format!("X'{hex}'");
+            return Ok(format!("X'{hex}'"));
         }
         if let Some(text) = v.strip_prefix(SQL_TEXT_PREFIX) {
             return format!("'{}'", text.replace('\'', "''"));
         }
         if is_str_lit {
-            return format!("'{}'", sql_value_text(&v).replace('\'', "''"));
+            return Ok(format!("'{}'", sql_value_text(&v).replace('\'', "''")));
         }
         if v == "\x00LIT_NULL" {
-            return "'NULL'".to_string();
+            return Ok("'NULL'".to_string());
         }
         if v == SQL_NULL {
-            return "\x00LIT_NULL".to_string();
+            return Ok("\x00LIT_NULL".to_string());
         }
         if v.parse::<f64>().is_ok() {
-            return v;
+            return Ok(v);
         }
-        return format!("'{}'", sql_value_text(&v).replace('\'', "''"));
+        return Ok(format!("'{}'", sql_value_text(&v).replace('\'', "''")));
     }
     if upper.starts_with("HEX(") && s.ends_with(')') {
-        let inner = eval_sql_row_expr(&s[4..s.len() - 1], cols, row, tables);
+        let inner = eval_sql_row_expr(&s[4..s.len() - 1], cols, row, tables)?;
         if inner == SQL_NULL {
-            return String::new();
+            return Ok(String::new());
         }
         if let Some(hex) = inner.strip_prefix(SQL_BLOB_PREFIX) {
-            return hex.to_string();
+            return Ok(hex.to_string());
         }
         let mut hex = String::new();
         for b in inner.as_bytes() {
             hex.push_str(&format!("{b:02X}"));
         }
-        return hex;
+        return Ok(hex);
     }
     if upper.starts_with("JSON_OBJECT(") && s.ends_with(')') {
         let args = split_top_level_comma(&s[12..s.len() - 1]);
         let mut entries = Vec::new();
         let mut ai = 0usize;
         while ai + 1 < args.len() {
-            let k = eval_sql_row_expr(args[ai], cols, row, tables);
-            let v_s = eval_sql_row_value(args[ai + 1], cols, row, tables);
+            let k = eval_sql_row_expr(args[ai], cols, row, tables)?;
+            let v_s = eval_sql_row_value(args[ai + 1], cols, row, tables)?;
             let jv = parse_sql_arg_to_jval(&v_s, args[ai + 1]);
             entries.push((k, jv));
             ai += 2;
         }
-        return JVal::Object(entries).to_json_string(true, false, 0);
+        return Ok(JVal::Object(entries).to_json_string(true, false, 0));
     }
     if upper.starts_with("JSON_ARRAY(") && s.ends_with(')') {
         let args = split_top_level_comma(&s[11..s.len() - 1]);
         let items: Vec<JVal> = args
             .into_iter()
             .map(|a| {
-                let v_s = eval_sql_row_value(a, cols, row, tables);
-                parse_sql_arg_to_jval(&v_s, a)
+                let v_s = eval_sql_row_value(a, cols, row, tables)?;
+                Ok(parse_sql_arg_to_jval(&v_s, a))
             })
-            .collect();
-        return JVal::Array(items).to_json_string(true, false, 0);
+            .collect::<Result<_, String>>()?;
+        return Ok(JVal::Array(items).to_json_string(true, false, 0));
     }
     if upper.starts_with("NULLIF(") && s.ends_with(')') {
         let args = split_top_level_comma(&s[7..s.len() - 1]);
         if args.len() >= 2 {
-            let a = eval_sql_row_expr(args[0], cols, row, tables);
-            let b = eval_sql_row_expr(args[1], cols, row, tables);
-            return if a == b { SQL_NULL.to_string() } else { a };
+            let a = eval_sql_row_expr(args[0], cols, row, tables)?;
+            let b = eval_sql_row_expr(args[1], cols, row, tables)?;
+            return Ok(if a == b { SQL_NULL.to_string() } else { a });
         }
     }
     if upper.starts_with("UPPER(") && s.ends_with(')') {
-        let value = eval_sql_row_expr(&s[6..s.len() - 1], cols, row, tables);
-        return if value == SQL_NULL {
+        let value = eval_sql_row_expr(&s[6..s.len() - 1], cols, row, tables)?;
+        return Ok(if value == SQL_NULL {
             value
         } else {
             value.to_ascii_uppercase()
-        };
+        });
     }
     if upper.starts_with("LOWER(") && s.ends_with(')') {
-        let value = eval_sql_row_expr(&s[6..s.len() - 1], cols, row, tables);
-        return if value == SQL_NULL {
+        let value = eval_sql_row_expr(&s[6..s.len() - 1], cols, row, tables)?;
+        return Ok(if value == SQL_NULL {
             value
         } else {
             value.to_ascii_lowercase()
-        };
+        });
     }
     if (upper.starts_with("TRIM(") || upper.starts_with("LTRIM(") || upper.starts_with("RTRIM("))
         && s.ends_with(')')
@@ -27881,90 +27937,90 @@ fn eval_sql_row_value(
         let pfx = if upper.starts_with("TRIM(") { 5 } else { 6 };
         let args = split_top_level_comma(&s[pfx..s.len() - 1]);
         if let Some(first) = args.first() {
-            let base = eval_sql_row_expr(first, cols, row, tables);
+            let base = eval_sql_row_expr(first, cols, row, tables)?;
             if base == SQL_NULL {
-                return SQL_NULL.to_string();
+                return Ok(SQL_NULL.to_string());
             }
             if let Some(chars_arg) = args.get(1) {
-                let cut_chars: Vec<char> = eval_sql_row_expr(chars_arg, cols, row, tables)
+                let cut_chars: Vec<char> = eval_sql_row_expr(chars_arg, cols, row, tables)?
                     .chars()
                     .collect();
                 let pred = |c: char| cut_chars.contains(&c);
-                return if upper.starts_with("LTRIM(") {
+                return Ok(if upper.starts_with("LTRIM(") {
                     base.trim_start_matches(pred).to_string()
                 } else if upper.starts_with("RTRIM(") {
                     base.trim_end_matches(pred).to_string()
                 } else {
                     base.trim_matches(pred).to_string()
-                };
+                });
             }
-            return if upper.starts_with("LTRIM(") {
+            return Ok(if upper.starts_with("LTRIM(") {
                 base.trim_start().to_string()
             } else if upper.starts_with("RTRIM(") {
                 base.trim_end().to_string()
             } else {
                 base.trim().to_string()
-            };
+            });
         }
     }
     if upper.starts_with("REPLACE(") && s.ends_with(')') {
         let args = split_top_level_comma(&s[8..s.len() - 1]);
         if args.len() >= 3 {
-            let base = eval_sql_row_expr(args[0], cols, row, tables);
+            let base = eval_sql_row_expr(args[0], cols, row, tables)?;
             if base == SQL_NULL {
-                return SQL_NULL.to_string();
+                return Ok(SQL_NULL.to_string());
             }
-            let from_s = eval_sql_row_expr(args[1], cols, row, tables);
-            let to_s = eval_sql_row_expr(args[2], cols, row, tables);
-            return base.replace(&from_s, &to_s);
+            let from_s = eval_sql_row_expr(args[1], cols, row, tables)?;
+            let to_s = eval_sql_row_expr(args[2], cols, row, tables)?;
+            return Ok(base.replace(&from_s, &to_s));
         }
     }
     if (upper.starts_with("PRINTF(") || upper.starts_with("FORMAT(")) && s.ends_with(')') {
         let args = split_top_level_comma(&s[7..s.len() - 1]);
         if let Some(fmt_raw) = args.first() {
-            let fmt_s = eval_sql_row_expr(fmt_raw, cols, row, tables);
+            let fmt_s = eval_sql_row_expr(fmt_raw, cols, row, tables)?;
             let eval_args: Vec<String> = args[1..]
                 .iter()
                 .map(|a| eval_sql_row_expr(a, cols, row, tables))
-                .collect();
-            return eval_sql_printf(&fmt_s, &eval_args);
+                .collect::<Result<_, String>>()?;
+            return Ok(eval_sql_printf(&fmt_s, &eval_args));
         }
     }
     if upper.starts_with("CONCAT(") && s.ends_with(')') {
         let args = split_top_level_comma(&s[7..s.len() - 1]);
         let mut out_s = String::new();
         for a in args {
-            let v = eval_sql_row_expr(a, cols, row, tables);
+            let v = eval_sql_row_expr(a, cols, row, tables)?;
             if v != SQL_NULL {
                 out_s.push_str(&v);
             }
         }
-        return out_s;
+        return Ok(out_s);
     }
     if upper.starts_with("CONCAT_WS(") && s.ends_with(')') {
         let args = split_top_level_comma(&s[10..s.len() - 1]);
         if let Some(sep_arg) = args.first() {
-            let sep_s = eval_sql_row_expr(sep_arg, cols, row, tables);
+            let sep_s = eval_sql_row_expr(sep_arg, cols, row, tables)?;
             let mut parts_v = Vec::new();
             for a in &args[1..] {
-                let v = eval_sql_row_expr(a, cols, row, tables);
+                let v = eval_sql_row_expr(a, cols, row, tables)?;
                 if v != SQL_NULL {
                     parts_v.push(v);
                 }
             }
-            return parts_v.join(&sep_s);
+            return Ok(parts_v.join(&sep_s));
         }
-        return SQL_NULL.to_string();
+        return Ok(SQL_NULL.to_string());
     }
     if (upper.starts_with("LPAD(") || upper.starts_with("RPAD(")) && s.ends_with(')') {
         let is_left = upper.starts_with("LPAD(");
         let args = split_top_level_comma(&s[5..s.len() - 1]);
         if args.len() >= 2 {
-            let base = eval_sql_row_expr(args[0], cols, row, tables);
+            let base = eval_sql_row_expr(args[0], cols, row, tables)?;
             if base == SQL_NULL {
-                return SQL_NULL.to_string();
+                return Ok(SQL_NULL.to_string());
             }
-            let target_len = eval_sql_row_expr(args[1], cols, row, tables)
+            let target_len = eval_sql_row_expr(args[1], cols, row, tables)?
                 .trim()
                 .parse::<f64>()
                 .unwrap_or(0.0)
@@ -27972,11 +28028,12 @@ fn eval_sql_row_value(
             let pad_s = args
                 .get(2)
                 .map(|a| eval_sql_row_expr(a, cols, row, tables))
+                .transpose()?
                 .filter(|p| !p.is_empty())
                 .unwrap_or_else(|| " ".to_string());
             let base_chars: Vec<char> = base.chars().collect();
             if base_chars.len() >= target_len {
-                return base;
+                return Ok(base);
             }
             let needed = target_len - base_chars.len();
             let pad_chars: Vec<char> = pad_s.chars().collect();
@@ -27984,40 +28041,40 @@ fn eval_sql_row_value(
             for i in 0..needed {
                 fill.push(pad_chars[i % pad_chars.len()]);
             }
-            return if is_left {
+            return Ok(if is_left {
                 format!("{fill}{base}")
             } else {
                 format!("{base}{fill}")
-            };
+            });
         }
     }
     if upper.starts_with("REPEAT(") && s.ends_with(')') {
         let args = split_top_level_comma(&s[7..s.len() - 1]);
         if args.len() >= 2 {
-            let base = eval_sql_row_expr(args[0], cols, row, tables);
+            let base = eval_sql_row_expr(args[0], cols, row, tables)?;
             if base == SQL_NULL {
-                return SQL_NULL.to_string();
+                return Ok(SQL_NULL.to_string());
             }
-            let count = eval_sql_row_expr(args[1], cols, row, tables)
+            let count = eval_sql_row_expr(args[1], cols, row, tables)?
                 .trim()
                 .parse::<f64>()
                 .unwrap_or(0.0)
                 .max(0.0) as usize;
-            return base.repeat(count);
+            return Ok(base.repeat(count));
         }
     }
     if upper.starts_with("REVERSE(") && s.ends_with(')') {
-        let base = eval_sql_row_expr(&s[8..s.len() - 1], cols, row, tables);
+        let base = eval_sql_row_expr(&s[8..s.len() - 1], cols, row, tables)?;
         if base == SQL_NULL {
-            return SQL_NULL.to_string();
+            return Ok(SQL_NULL.to_string());
         }
-        return base.chars().rev().collect();
+        return Ok(base.chars().rev().collect());
     }
     if upper.starts_with("CHAR(") && s.ends_with(')') {
         let args = split_top_level_comma(&s[5..s.len() - 1]);
         let mut out_s = String::new();
         for a in args {
-            let cp = eval_sql_row_expr(a, cols, row, tables)
+            let cp = eval_sql_row_expr(a, cols, row, tables)?
                 .trim()
                 .parse::<f64>()
                 .unwrap_or(0.0)
@@ -28026,26 +28083,26 @@ fn eval_sql_row_value(
                 out_s.push(ch);
             }
         }
-        return out_s;
+        return Ok(out_s);
     }
     if upper.starts_with("UNICODE(") && s.ends_with(')') {
-        let base = eval_sql_row_expr(&s[8..s.len() - 1], cols, row, tables);
+        let base = eval_sql_row_expr(&s[8..s.len() - 1], cols, row, tables)?;
         if base == SQL_NULL {
-            return SQL_NULL.to_string();
+            return Ok(SQL_NULL.to_string());
         }
-        return base
+        return Ok(base
             .chars()
             .next()
             .map(|c| (c as u32).to_string())
-            .unwrap_or_default();
+            .unwrap_or_default());
     }
     if upper.starts_with("UNHEX(") && s.ends_with(')') {
-        let h: String = eval_sql_row_expr(&s[6..s.len() - 1], cols, row, tables)
+        let h: String = eval_sql_row_expr(&s[6..s.len() - 1], cols, row, tables)?
             .chars()
             .filter(|c| !c.is_whitespace())
             .collect();
         if h.len() % 2 != 0 || !h.chars().all(|c| c.is_ascii_hexdigit()) {
-            return SQL_NULL.to_string();
+            return Ok(SQL_NULL.to_string());
         }
         let mut bytes = Vec::with_capacity(h.len() / 2);
         let mut i = 0usize;
@@ -28055,21 +28112,21 @@ fn eval_sql_row_value(
             }
             i += 2;
         }
-        return String::from_utf8_lossy(&bytes).to_string();
+        return Ok(String::from_utf8_lossy(&bytes).to_string());
     }
     if upper.starts_with("SIGN(") && s.ends_with(')') {
-        let v = eval_sql_row_expr(&s[5..s.len() - 1], cols, row, tables);
+        let v = eval_sql_row_expr(&s[5..s.len() - 1], cols, row, tables)?;
         if v == SQL_NULL {
-            return SQL_NULL.to_string();
+            return Ok(SQL_NULL.to_string());
         }
         let n = v.parse::<f64>().unwrap_or(0.0);
-        return if n > 0.0 {
+        return Ok(if n > 0.0 {
             "1".to_string()
         } else if n < 0.0 {
             "-1".to_string()
         } else {
             "0".to_string()
-        };
+        });
     }
     if (upper.starts_with("CEIL(")
         || upper.starts_with("CEILING(")
@@ -28080,9 +28137,9 @@ fn eval_sql_row_value(
     {
         let open_p = s.find('(').unwrap_or(4);
         let fn_name = &upper[..open_p];
-        let v = eval_sql_row_expr(&s[open_p + 1..s.len() - 1], cols, row, tables);
+        let v = eval_sql_row_expr(&s[open_p + 1..s.len() - 1], cols, row, tables)?;
         if v == SQL_NULL {
-            return SQL_NULL.to_string();
+            return Ok(SQL_NULL.to_string());
         }
         let n = v.parse::<f64>().unwrap_or(0.0);
         let r = match fn_name {
@@ -28093,9 +28150,9 @@ fn eval_sql_row_value(
             _ => n,
         };
         if (r - r.round()).abs() < 1e-9 {
-            return (r.round() as i64).to_string();
+            return Ok((r.round() as i64).to_string());
         }
-        return r.to_string();
+        return Ok(r.to_string());
     }
     if (upper.starts_with("MOD(") || upper.starts_with("POW(") || upper.starts_with("POWER("))
         && s.ends_with(')')
@@ -28104,50 +28161,50 @@ fn eval_sql_row_value(
         let fn_name = &upper[..open_p];
         let args = split_top_level_comma(&s[open_p + 1..s.len() - 1]);
         if args.len() >= 2 {
-            let va = eval_sql_row_expr(args[0], cols, row, tables);
-            let vb = eval_sql_row_expr(args[1], cols, row, tables);
+            let va = eval_sql_row_expr(args[0], cols, row, tables)?;
+            let vb = eval_sql_row_expr(args[1], cols, row, tables)?;
             if va == SQL_NULL || vb == SQL_NULL {
-                return SQL_NULL.to_string();
+                return Ok(SQL_NULL.to_string());
             }
             let a = va.parse::<f64>().unwrap_or(0.0);
             let b = vb.parse::<f64>().unwrap_or(0.0);
             if fn_name == "MOD" {
                 if b == 0.0 {
-                    return SQL_NULL.to_string();
+                    return Ok(SQL_NULL.to_string());
                 }
                 let r = a % b;
                 if (r - r.round()).abs() < 1e-9 {
-                    return (r.round() as i64).to_string();
+                    return Ok((r.round() as i64).to_string());
                 }
-                return r.to_string();
+                return Ok(r.to_string());
             } else {
                 let r = a.powf(b);
                 if (r - r.round()).abs() < 1e-9 {
-                    return (r.round() as i64).to_string();
+                    return Ok((r.round() as i64).to_string());
                 }
-                return r.to_string();
+                return Ok(r.to_string());
             }
         }
     }
     if upper.starts_with("JSON_QUOTE(") && s.ends_with(')') {
         let raw_arg = s[11..s.len() - 1].trim();
-        let val_s = eval_sql_row_value(raw_arg, cols, row, tables);
-        return parse_sql_arg_to_jval(&val_s, raw_arg).to_json_string(true, false, 0);
+        let val_s = eval_sql_row_value(raw_arg, cols, row, tables)?;
+        return Ok(parse_sql_arg_to_jval(&val_s, raw_arg).to_json_string(true, false, 0));
     }
     if upper.starts_with("CAST(") && find_matching_paren(&s[4..]) == Some(s.len() - 5) {
         let inner = &s[5..s.len() - 1];
         if let Some(ap) = inner.to_ascii_uppercase().rfind(" AS ") {
-            let val = eval_sql_row_expr(&inner[..ap], cols, row, tables);
+            let val = eval_sql_row_expr(&inner[..ap], cols, row, tables)?;
             if val == SQL_NULL {
-                return SQL_NULL.to_string();
+                return Ok(SQL_NULL.to_string());
             }
             let target_t = inner[ap + 4..].trim().to_ascii_uppercase();
             if target_t == "BLOB" {
-                return if val.starts_with(SQL_BLOB_PREFIX) {
+                return Ok(if val.starts_with(SQL_BLOB_PREFIX) {
                     val
                 } else {
                     sql_blob_value(val.as_bytes())
-                };
+                });
             }
             if target_t.starts_with("INT") {
                 let prefix_num: String = val
@@ -28160,7 +28217,7 @@ fn eval_sql_row_value(
                     .map(|(_, c)| c)
                     .collect();
                 let n = prefix_num.parse::<f64>().unwrap_or(0.0);
-                return (n as i64).to_string();
+                return Ok((n as i64).to_string());
             }
             if target_t.starts_with("REAL")
                 || target_t.starts_with("FLOA")
@@ -28177,46 +28234,47 @@ fn eval_sql_row_value(
                     .collect();
                 let n = prefix_num.parse::<f64>().unwrap_or(0.0);
                 if (n - n.round()).abs() < 1e-9 {
-                    return format!("{n:.1}");
+                    return Ok(format!("{n:.1}"));
                 }
-                return n.to_string();
+                return Ok(n.to_string());
             }
-            return if target_t.starts_with("TEXT") {
+            return Ok(if target_t.starts_with("TEXT") {
                 sql_text_value(&val)
             } else {
                 val
-            };
+            });
         }
     }
     if upper.starts_with("JSON_EXTRACT(") && s.ends_with(')') {
         let args = split_top_level_comma(&s[13..s.len() - 1]);
-        let value = eval_sql_json_extract(&args, cols, row, tables);
-        return match value {
+        let value = eval_sql_json_extract(&args, cols, row, tables)?;
+        return Ok(match value {
             JVal::Null => SQL_NULL.to_string(),
             JVal::Bool(true) => "1".to_string(),
             JVal::Bool(false) => "0".to_string(),
             JVal::Str(text) => sql_text_value(&text),
             _ => value.to_raw_string(true, false),
-        };
+        });
     }
     if upper.starts_with("JSON_TYPE(") && s.ends_with(')') {
         let args = split_top_level_comma(&s[10..s.len() - 1]);
         if let Some(doc_arg) = args.first() {
-            let doc_s = eval_sql_row_expr(doc_arg, cols, row, tables);
+            let doc_s = eval_sql_row_expr(doc_arg, cols, row, tables)?;
             if let Ok(mut parsed) = parse_json_stream(&doc_s)
                 && let Some(jval) = parsed.pop()
             {
                 let path_s = args
                     .get(1)
                     .map(|a| eval_sql_row_expr(a, cols, row, tables))
+                    .transpose()?
                     .unwrap_or_else(|| "$".to_string());
                 let Some(segs) = parse_sql_json_path(&path_s, &jval) else {
-                    return SQL_NULL.to_string();
+                    return Ok(SQL_NULL.to_string());
                 };
                 let Some(found) = get_sql_json_path(&jval, &segs) else {
-                    return SQL_NULL.to_string();
+                    return Ok(SQL_NULL.to_string());
                 };
-                return match found {
+                return Ok(match found {
                     JVal::Object(_) => "object".to_string(),
                     JVal::Array(_) => "array".to_string(),
                     JVal::Str(_) => "text".to_string(),
@@ -28230,27 +28288,27 @@ fn eval_sql_row_value(
                     JVal::Bool(true) => "true".to_string(),
                     JVal::Bool(false) => "false".to_string(),
                     JVal::Null => "null".to_string(),
-                };
+                });
             }
         }
-        return SQL_NULL.to_string();
+        return Ok(SQL_NULL.to_string());
     }
     if upper.starts_with("JSON(") && s.ends_with(')') {
-        let doc_s = eval_sql_row_expr(&s[5..s.len() - 1], cols, row, tables);
+        let doc_s = eval_sql_row_expr(&s[5..s.len() - 1], cols, row, tables)?;
         if let Ok(mut parsed) = parse_json_stream(&doc_s)
             && let Some(jv) = parsed.pop()
         {
-            return jv.to_json_string(true, false, 0);
+            return Ok(jv.to_json_string(true, false, 0));
         }
-        return doc_s;
+        return Ok(doc_s);
     }
     if upper.starts_with("JSON_VALID(") && s.ends_with(')') {
-        let doc_s = eval_sql_row_expr(&s[11..s.len() - 1], cols, row, tables);
-        return if parse_json_stream(&doc_s).is_ok_and(|v| !v.is_empty()) {
+        let doc_s = eval_sql_row_expr(&s[11..s.len() - 1], cols, row, tables)?;
+        return Ok(if parse_json_stream(&doc_s).is_ok_and(|v| !v.is_empty()) {
             "1".to_string()
         } else {
             "0".to_string()
-        };
+        });
     }
     if (upper.starts_with("JSON_SET(")
         || upper.starts_with("JSON_INSERT(")
@@ -28260,14 +28318,14 @@ fn eval_sql_row_value(
         let open_p = s.find('(').unwrap_or(8);
         let args = split_top_level_comma(&s[open_p + 1..s.len() - 1]);
         if let Some(doc_arg) = args.first() {
-            let doc_s = eval_sql_row_expr(doc_arg, cols, row, tables);
+            let doc_s = eval_sql_row_expr(doc_arg, cols, row, tables)?;
             if let Ok(mut parsed) = parse_json_stream(&doc_s)
                 && let Some(mut jval) = parsed.pop()
             {
                 let mut ai = 1usize;
                 while ai + 1 < args.len() {
-                    let path_s = eval_sql_row_expr(args[ai], cols, row, tables);
-                    let val_s = eval_sql_row_expr(args[ai + 1], cols, row, tables);
+                    let path_s = eval_sql_row_expr(args[ai], cols, row, tables)?;
+                    let val_s = eval_sql_row_expr(args[ai + 1], cols, row, tables)?;
                     let Some(segs) = parse_sql_json_path(&path_s, &jval) else {
                         ai += 2;
                         continue;
@@ -28281,107 +28339,107 @@ fn eval_sql_row_value(
                     }
                     let new_jv = parse_sql_arg_to_jval(&val_s, args[ai + 1]);
                     if set_jq_jval_path(&mut jval, &segs, new_jv).is_err() {
-                        return SQL_NULL.to_string();
+                        return Ok(SQL_NULL.to_string());
                     }
                     ai += 2;
                 }
-                return jval.to_json_string(true, false, 0);
+                return Ok(jval.to_json_string(true, false, 0));
             }
         }
-        return SQL_NULL.to_string();
+        return Ok(SQL_NULL.to_string());
     }
     if upper.starts_with("JSON_REMOVE(") && s.ends_with(')') {
         let args = split_top_level_comma(&s[12..s.len() - 1]);
         if let Some(doc_arg) = args.first() {
-            let doc_s = eval_sql_row_expr(doc_arg, cols, row, tables);
+            let doc_s = eval_sql_row_expr(doc_arg, cols, row, tables)?;
             if let Ok(mut parsed) = parse_json_stream(&doc_s)
                 && let Some(mut jval) = parsed.pop()
             {
                 for p_arg in &args[1..] {
-                    let path_s = eval_sql_row_expr(p_arg, cols, row, tables);
+                    let path_s = eval_sql_row_expr(p_arg, cols, row, tables)?;
                     let Some(segs) = parse_sql_json_path(&path_s, &jval) else {
                         continue;
                     };
                     delete_jq_jval_path(&mut jval, &segs);
                 }
-                return jval.to_json_string(true, false, 0);
+                return Ok(jval.to_json_string(true, false, 0));
             }
         }
-        return SQL_NULL.to_string();
+        return Ok(SQL_NULL.to_string());
     }
     if upper.starts_with("JSON_PATCH(") && s.ends_with(')') {
         let args = split_top_level_comma(&s[11..s.len() - 1]);
         if args.len() >= 2 {
-            let doc_s = eval_sql_row_expr(args[0], cols, row, tables);
-            let patch_s = eval_sql_row_expr(args[1], cols, row, tables);
+            let doc_s = eval_sql_row_expr(args[0], cols, row, tables)?;
+            let patch_s = eval_sql_row_expr(args[1], cols, row, tables)?;
             if let (Ok(mut pd), Ok(mut pp)) =
                 (parse_json_stream(&doc_s), parse_json_stream(&patch_s))
                 && let (Some(mut jdoc), Some(jpatch)) = (pd.pop(), pp.pop())
             {
                 apply_json_merge_patch(&mut jdoc, jpatch);
-                return jdoc.to_json_string(true, false, 0);
+                return Ok(jdoc.to_json_string(true, false, 0));
             }
         }
-        return SQL_NULL.to_string();
+        return Ok(SQL_NULL.to_string());
     }
     if let Some((lhs, rhs)) = s.split_once("->>") {
-        let doc_s = eval_sql_row_expr(lhs, cols, row, tables);
-        let path_s = eval_sql_row_expr(rhs, cols, row, tables);
+        let doc_s = eval_sql_row_expr(lhs, cols, row, tables)?;
+        let path_s = eval_sql_row_expr(rhs, cols, row, tables)?;
         if let Ok(mut parsed) = parse_json_stream(&doc_s)
             && let Some(jval) = parsed.pop()
         {
             let Some(segs) = parse_sql_json_path(&path_s, &jval) else {
-                return SQL_NULL.to_string();
+                return Ok(SQL_NULL.to_string());
             };
             let found = get_jq_jval_path(&jval, &segs);
-            return match found {
+            return Ok(match found {
                 JVal::Null => SQL_NULL.to_string(),
                 JVal::Array(_) | JVal::Object(_) => found.to_json_string(true, false, 0),
                 _ => found.to_raw_string(true, false),
-            };
+            });
         }
-        return SQL_NULL.to_string();
+        return Ok(SQL_NULL.to_string());
     }
     if let Some((lhs, rhs)) = s.split_once("->") {
-        let doc_s = eval_sql_row_expr(lhs, cols, row, tables);
-        let path_s = eval_sql_row_expr(rhs, cols, row, tables);
+        let doc_s = eval_sql_row_expr(lhs, cols, row, tables)?;
+        let path_s = eval_sql_row_expr(rhs, cols, row, tables)?;
         if let Ok(mut parsed) = parse_json_stream(&doc_s)
             && let Some(jval) = parsed.pop()
         {
             let Some(segs) = parse_sql_json_path(&path_s, &jval) else {
-                return SQL_NULL.to_string();
+                return Ok(SQL_NULL.to_string());
             };
             let found = get_jq_jval_path(&jval, &segs);
-            return match found {
+            return Ok(match found {
                 JVal::Null => SQL_NULL.to_string(),
                 _ => found.to_json_string(true, false, 0),
-            };
+            });
         }
-        return SQL_NULL.to_string();
+        return Ok(SQL_NULL.to_string());
     }
     if let Some(rest) = s.strip_prefix('-') {
-        if let Ok(n) = eval_sql_row_expr(rest.trim(), cols, row, tables).parse::<f64>() {
+        if let Ok(n) = eval_sql_row_expr(rest.trim(), cols, row, tables)?.parse::<f64>() {
             let neg = -n;
             if (neg - neg.round()).abs() < 1e-9 {
-                return (neg.round() as i64).to_string();
+                return Ok((neg.round() as i64).to_string());
             }
-            return neg.to_string();
+            return Ok(neg.to_string());
         }
     } else if let Some(rest) = s.strip_prefix('+')
-        && let Ok(n) = eval_sql_row_expr(rest.trim(), cols, row, tables).parse::<f64>()
+        && let Ok(n) = eval_sql_row_expr(rest.trim(), cols, row, tables)?.parse::<f64>()
     {
         if (n - n.round()).abs() < 1e-9 {
-            return (n.round() as i64).to_string();
+            return Ok((n.round() as i64).to_string());
         }
-        return n.to_string();
+        return Ok(n.to_string());
     }
     if let Some(c_idx) = find_sql_col(cols, s) {
-        return row
+        return Ok(row
             .get(c_idx)
             .cloned()
-            .unwrap_or_else(|| SQL_NULL.to_string());
+            .unwrap_or_else(|| SQL_NULL.to_string()));
     }
-    eval_sql_scalar_expr(s)
+    Ok(eval_sql_scalar_expr(s))
 }
 
 fn split_sql_case_branches(inner: &str) -> (Option<&str>, Vec<(&str, &str)>, Option<&str>) {
@@ -28550,28 +28608,26 @@ fn eval_sql_group_expr(
     grp: &[&Vec<String>],
     tables: &BTreeMap<String, SqlTable>,
     source_row: usize,
-    overflow: &Cell<bool>,
-) -> String {
+) -> Result<String, String> {
     let s = expr.trim();
     // Split the lowest-precedence operator; concatenation binds above arithmetic.
     if let Some((sp, op)) = find_sql_binary_operator(s) {
-        let lv_s = eval_sql_group_expr(&s[..sp], cols, grp, tables, source_row, overflow);
-        let rv_s =
-            eval_sql_group_expr(&s[sp + op.len()..], cols, grp, tables, source_row, overflow);
+        let lv_s = eval_sql_group_expr(&s[..sp], cols, grp, tables, source_row)?;
+        let rv_s = eval_sql_group_expr(&s[sp + op.len()..], cols, grp, tables, source_row)?;
         if op == "&" {
-            return sql_bitwise_and(&lv_s, &rv_s);
+            return Ok(sql_bitwise_and(&lv_s, &rv_s));
         }
         if op == "||" {
             if lv_s == SQL_NULL || rv_s == SQL_NULL {
-                return SQL_NULL.to_string();
+                return Ok(SQL_NULL.to_string());
             }
-            return format!("{lv_s}{rv_s}");
+            return Ok(format!("{lv_s}{rv_s}"));
         }
         if op == "+"
             && let (Ok(lv), Ok(rv)) = (lv_s.parse::<i64>(), rv_s.parse::<i64>())
             && let Some(sum) = lv.checked_add(rv)
         {
-            return sum.to_string();
+            return Ok(sum.to_string());
         }
         let lv = lv_s.parse::<f64>().unwrap_or(0.0);
         let rv = rv_s.parse::<f64>().unwrap_or(0.0);
@@ -28582,11 +28638,11 @@ fn eval_sql_group_expr(
             && !s[sp + 1..].contains('.')
         {
             let ri = rv as i64;
-            return if ri != 0 {
+            return Ok(if ri != 0 {
                 ((lv as i64) / ri).to_string()
             } else {
                 "0".to_string()
-            };
+            });
         }
         let res = match op {
             "+" => lv + rv,
@@ -28613,15 +28669,15 @@ fn eval_sql_group_expr(
             && !rv_s.contains('.')
             && op != "/"
         {
-            return (res.round() as i64).to_string();
+            return Ok((res.round() as i64).to_string());
         }
-        return res.to_string();
+        return Ok(res.to_string());
     }
     if (s.starts_with('\'') && s.ends_with('\'')) || (s.starts_with('"') && s.ends_with('"')) {
-        return s[1..s.len() - 1].to_string();
+        return Ok(s[1..s.len() - 1].to_string());
     }
     if s.parse::<f64>().is_ok() {
-        return s.to_string();
+        return Ok(s.to_string());
     }
     let upper = s.to_ascii_uppercase();
     if (upper.starts_with("JSON_EXTRACT(") || upper.starts_with("JSON_TYPE(")) && s.ends_with(')') {
@@ -28629,21 +28685,22 @@ fn eval_sql_group_expr(
         let prefix_len = if is_type { 10 } else { 13 };
         let args = split_top_level_comma(&s[prefix_len..s.len() - 1]);
         if let Some(doc_arg) = args.first() {
-            let doc_s = eval_sql_group_expr(doc_arg, cols, grp, tables, source_row, overflow);
+            let doc_s = eval_sql_group_expr(doc_arg, cols, grp, tables, source_row)?;
             let path_s = args
                 .get(1)
-                .map(|a| eval_sql_group_expr(a, cols, grp, tables, source_row, overflow))
+                .map(|a| eval_sql_group_expr(a, cols, grp, tables, source_row))
+                .transpose()?
                 .unwrap_or_else(|| "$".to_string());
             if let Ok(mut parsed) = parse_json_stream(&doc_s)
                 && let Some(jval) = parsed.pop()
             {
                 let Some(segs) = parse_sql_json_path(&path_s, &jval) else {
-                    return SQL_NULL.to_string();
+                    return Ok(SQL_NULL.to_string());
                 };
                 let Some(found) = get_sql_json_path(&jval, &segs) else {
-                    return SQL_NULL.to_string();
+                    return Ok(SQL_NULL.to_string());
                 };
-                return if is_type {
+                return Ok(if is_type {
                     match found {
                         JVal::Object(_) => "object".to_string(),
                         JVal::Array(_) => "array".to_string(),
@@ -28667,20 +28724,19 @@ fn eval_sql_group_expr(
                         JVal::Array(_) | JVal::Object(_) => found.to_json_string(true, false, 0),
                         _ => found.to_raw_string(true, false),
                     }
-                };
+                });
             }
         }
-        return SQL_NULL.to_string();
+        return Ok(SQL_NULL.to_string());
     }
     if upper.starts_with("CASE ") && upper.ends_with(" END") {
         let inner = s[5..s.len() - 4].trim();
         let (base_opt, branches, else_opt) = split_sql_case_branches(inner);
         if let Some(base_expr) = base_opt {
-            let base_val = eval_sql_group_expr(base_expr, cols, grp, tables, source_row, overflow);
+            let base_val = eval_sql_group_expr(base_expr, cols, grp, tables, source_row)?;
             if base_val != SQL_NULL {
                 for (cond_s, then_val) in branches {
-                    let when_val =
-                        eval_sql_group_expr(cond_s, cols, grp, tables, source_row, overflow);
+                    let when_val = eval_sql_group_expr(cond_s, cols, grp, tables, source_row)?;
                     let matches = if let (Ok(bn), Ok(wn)) =
                         (base_val.parse::<f64>(), when_val.parse::<f64>())
                     {
@@ -28689,9 +28745,7 @@ fn eval_sql_group_expr(
                         base_val == when_val
                     };
                     if matches {
-                        return eval_sql_group_expr(
-                            then_val, cols, grp, tables, source_row, overflow,
-                        );
+                        return eval_sql_group_expr(then_val, cols, grp, tables, source_row);
                     }
                 }
             }
@@ -28700,43 +28754,37 @@ fn eval_sql_group_expr(
                 let cond_up = cond_s.to_ascii_uppercase();
                 let cond_ok = if let Some(is_null_p) = cond_up.rfind(" IS NULL") {
                     let target_e = cond_s[..is_null_p].trim();
-                    let v = eval_sql_group_expr(target_e, cols, grp, tables, source_row, overflow);
+                    let v = eval_sql_group_expr(target_e, cols, grp, tables, source_row)?;
                     v == SQL_NULL
                 } else if let Some(is_not_null_p) = cond_up.rfind(" IS NOT NULL") {
                     let target_e = cond_s[..is_not_null_p].trim();
-                    let v = eval_sql_group_expr(target_e, cols, grp, tables, source_row, overflow);
+                    let v = eval_sql_group_expr(target_e, cols, grp, tables, source_row)?;
                     v != SQL_NULL
                 } else {
-                    eval_sql_having(cond_s, cols, grp, tables, source_row, overflow)
+                    eval_sql_having(cond_s, cols, grp, tables, source_row)?
                 };
                 if cond_ok {
-                    return eval_sql_group_expr(then_val, cols, grp, tables, source_row, overflow);
+                    return eval_sql_group_expr(then_val, cols, grp, tables, source_row);
                 }
             }
         }
-        return eval_sql_group_expr(
-            else_opt.unwrap_or("NULL"),
-            cols,
-            grp,
-            tables,
-            source_row,
-            overflow,
-        );
+        return eval_sql_group_expr(else_opt.unwrap_or("NULL"), cols, grp, tables, source_row);
     }
     if s.starts_with('(') && find_matching_paren(s) == Some(s.len() - 1) {
         let inner = s[1..s.len() - 1].trim();
         if !inner.to_ascii_uppercase().starts_with("SELECT ") {
-            return eval_sql_group_expr(inner, cols, grp, tables, source_row, overflow);
+            return eval_sql_group_expr(inner, cols, grp, tables, source_row);
         }
     }
     let empty_tables = tables;
     if let Some((base_agg, w_cond)) = split_sql_aggregate_filter(s) {
-        let filtered_grp: Vec<&Vec<String>> = grp
-            .iter()
-            .copied()
-            .filter(|r| eval_sql_where(w_cond, cols, &[], r, &empty_tables))
-            .collect();
-        return eval_sql_group_expr(base_agg, cols, &filtered_grp, tables, 0, overflow);
+        let mut filtered_grp = Vec::new();
+        for r in grp {
+            if eval_sql_where(w_cond, cols, &[], r, &empty_tables)? {
+                filtered_grp.push(*r);
+            }
+        }
+        return eval_sql_group_expr(base_agg, cols, &filtered_grp, tables, 0);
     }
     if upper.starts_with("PRINTF(") && s.ends_with(')') {
         let args = split_top_level_comma(&s[7..s.len() - 1]);
@@ -28744,95 +28792,92 @@ fn eval_sql_group_expr(
             let fmt_s = args[0].trim().trim_matches('\'').trim_matches('"');
             let eval_args: Vec<String> = args[1..]
                 .iter()
-                .map(|a| eval_sql_group_expr(a, cols, grp, tables, source_row, overflow))
-                .collect();
-            return eval_sql_printf(fmt_s, &eval_args);
+                .map(|a| eval_sql_group_expr(a, cols, grp, tables, source_row))
+                .collect::<Result<_, String>>()?;
+            return Ok(eval_sql_printf(fmt_s, &eval_args));
         }
     }
     if upper.starts_with("CAST(") && upper.ends_with(')') {
         let inner = &s[5..s.len() - 1];
         if let Some(as_pos) = inner.to_ascii_uppercase().rfind(" AS ") {
             let sub = inner[..as_pos].trim();
-            let val = eval_sql_group_expr(sub, cols, grp, tables, source_row, overflow);
+            let val = eval_sql_group_expr(sub, cols, grp, tables, source_row)?;
             if let Ok(n) = val.parse::<f64>() {
-                return (n as i64).to_string();
+                return Ok((n as i64).to_string());
             }
-            return val;
+            return Ok(val);
         }
     }
     if upper.starts_with("ROUND(") && upper.ends_with(')') {
         let args = split_top_level_comma(&s[6..s.len() - 1]);
         if let Some(first) = args.first() {
-            let raw_v = eval_sql_group_expr(first, cols, grp, tables, source_row, overflow);
+            let raw_v = eval_sql_group_expr(first, cols, grp, tables, source_row)?;
             if raw_v == SQL_NULL {
-                return SQL_NULL.to_string();
+                return Ok(SQL_NULL.to_string());
             }
             let n = raw_v.parse::<f64>().unwrap_or(0.0);
             let digits = args
                 .get(1)
-                .and_then(|d| {
-                    eval_sql_group_expr(d, cols, grp, tables, source_row, overflow)
-                        .parse::<i32>()
-                        .ok()
-                })
+                .map(|d| eval_sql_group_expr(d, cols, grp, tables, source_row))
+                .transpose()?
+                .and_then(|value| value.parse::<i32>().ok())
                 .unwrap_or(0);
             if digits <= 0 {
-                return format!("{:.1}", n.round());
+                return Ok(format!("{:.1}", n.round()));
             }
             let factor = 10f64.powi(digits);
             let r = (n * factor).round() / factor;
             if (r - r.round()).abs() < 1e-9 {
-                return format!("{r:.1}");
+                return Ok(format!("{r:.1}"));
             }
-            return r.to_string();
+            return Ok(r.to_string());
         }
     }
     if (upper.starts_with("COALESCE(") || upper.starts_with("IFNULL(")) && upper.ends_with(')') {
         let pfx = if upper.starts_with("IFNULL(") { 7 } else { 9 };
         for arg in split_top_level_comma(&s[pfx..s.len() - 1]) {
-            let v = eval_sql_group_expr(arg, cols, grp, tables, source_row, overflow);
+            let v = eval_sql_group_expr(arg, cols, grp, tables, source_row)?;
             if v != SQL_NULL {
-                return v;
+                return Ok(v);
             }
         }
-        return SQL_NULL.to_string();
+        return Ok(SQL_NULL.to_string());
     }
     if upper.starts_with("IIF(") && upper.ends_with(')') {
         let args = split_top_level_comma(&s[4..s.len() - 1]);
         if args.len() >= 2 {
-            if eval_sql_having(args[0], cols, grp, tables, source_row, overflow) {
-                return eval_sql_group_expr(args[1], cols, grp, tables, source_row, overflow);
+            if eval_sql_having(args[0], cols, grp, tables, source_row)? {
+                return eval_sql_group_expr(args[1], cols, grp, tables, source_row);
             }
             if let Some(f_arg) = args.get(2) {
-                return eval_sql_group_expr(f_arg, cols, grp, tables, source_row, overflow);
+                return eval_sql_group_expr(f_arg, cols, grp, tables, source_row);
             }
-            return SQL_NULL.to_string();
+            return Ok(SQL_NULL.to_string());
         }
     }
     if upper.starts_with("COUNT(") && upper.ends_with(')') {
         let inner = s[6..s.len() - 1].trim();
         if inner == "*" {
-            return grp.len().to_string();
+            return Ok(grp.len().to_string());
         }
         if inner.to_ascii_uppercase().starts_with("DISTINCT ") {
             let dist_expr = inner[9..].trim();
             let mut seen = std::collections::BTreeSet::new();
             for r in grp {
-                let v = eval_sql_row_expr(dist_expr, cols, r, &empty_tables);
+                let v = eval_sql_row_expr(dist_expr, cols, r, &empty_tables)?;
                 if v != SQL_NULL {
                     seen.insert(v);
                 }
             }
-            return seen.len().to_string();
+            return Ok(seen.len().to_string());
         }
-        let cnt = grp
-            .iter()
-            .filter(|r| {
-                let v = eval_sql_row_expr(inner, cols, r, &empty_tables);
-                v != SQL_NULL
-            })
-            .count();
-        return cnt.to_string();
+        let mut cnt = 0;
+        for r in grp {
+            if eval_sql_row_expr(inner, cols, r, &empty_tables)? != SQL_NULL {
+                cnt += 1;
+            }
+        }
+        return Ok(cnt.to_string());
     }
     if upper.starts_with("GROUP_CONCAT(") && s.ends_with(')') {
         let args = split_top_level_comma(&s[13..s.len() - 1]);
@@ -28849,65 +28894,65 @@ fn eval_sql_group_expr(
             .unwrap_or(",");
         let mut vals: Vec<String> = Vec::new();
         for r in grp {
-            let v = eval_sql_row_expr(col_expr, cols, r, &empty_tables);
+            let v = eval_sql_row_expr(col_expr, cols, r, &empty_tables)?;
             if v != SQL_NULL {
                 if !is_distinct || !vals.contains(&v) {
                     vals.push(v);
                 }
             }
         }
-        return if vals.is_empty() {
+        return Ok(if vals.is_empty() {
             SQL_NULL.to_string()
         } else {
             vals.join(gsep)
-        };
+        });
     }
     if upper.starts_with("JSON_OBJECT(") && s.ends_with(')') {
         let args = split_top_level_comma(&s[12..s.len() - 1]);
         let mut entries = Vec::new();
         let mut ai = 0usize;
         while ai + 1 < args.len() {
-            let k = eval_sql_group_expr(args[ai], cols, grp, tables, source_row, overflow);
-            let v_s = eval_sql_group_expr(args[ai + 1], cols, grp, tables, source_row, overflow);
+            let k = eval_sql_group_expr(args[ai], cols, grp, tables, source_row)?;
+            let v_s = eval_sql_group_expr(args[ai + 1], cols, grp, tables, source_row)?;
             let jv = parse_sql_arg_to_jval(&v_s, args[ai + 1]);
             entries.push((k, jv));
             ai += 2;
         }
-        return JVal::Object(entries).to_json_string(true, false, 0);
+        return Ok(JVal::Object(entries).to_json_string(true, false, 0));
     }
     if upper.starts_with("JSON_ARRAY(") && s.ends_with(')') {
         let args = split_top_level_comma(&s[11..s.len() - 1]);
         let items: Vec<JVal> = args
             .into_iter()
             .map(|a| {
-                let v_s = eval_sql_group_expr(a, cols, grp, tables, source_row, overflow);
-                parse_sql_arg_to_jval(&v_s, a)
+                let v_s = eval_sql_group_expr(a, cols, grp, tables, source_row)?;
+                Ok(parse_sql_arg_to_jval(&v_s, a))
             })
-            .collect();
-        return JVal::Array(items).to_json_string(true, false, 0);
+            .collect::<Result<_, String>>()?;
+        return Ok(JVal::Array(items).to_json_string(true, false, 0));
     }
     if upper.starts_with("JSON_GROUP_ARRAY(") && s.ends_with(')') {
         let inner = s[17..s.len() - 1].trim();
         let items: Vec<JVal> = grp
             .iter()
             .map(|r| {
-                let v = eval_sql_row_value(inner, cols, r, &empty_tables);
-                parse_sql_arg_to_jval(&v, inner)
+                let v = eval_sql_row_value(inner, cols, r, &empty_tables)?;
+                Ok(parse_sql_arg_to_jval(&v, inner))
             })
-            .collect();
-        return JVal::Array(items).to_json_string(true, false, 0);
+            .collect::<Result<_, String>>()?;
+        return Ok(JVal::Array(items).to_json_string(true, false, 0));
     }
     if upper.starts_with("JSON_GROUP_OBJECT(") && s.ends_with(')') {
         let args = split_top_level_comma(&s[18..s.len() - 1]);
         if args.len() >= 2 {
             let mut entries = Vec::new();
             for r in grp {
-                let k = eval_sql_row_expr(args[0], cols, r, &empty_tables);
-                let v = eval_sql_row_value(args[1], cols, r, &empty_tables);
+                let k = eval_sql_row_expr(args[0], cols, r, &empty_tables)?;
+                let v = eval_sql_row_value(args[1], cols, r, &empty_tables)?;
                 let jv = parse_sql_arg_to_jval(&v, args[1]);
                 entries.push((k, jv));
             }
-            return JVal::Object(entries).to_json_string(true, false, 0);
+            return Ok(JVal::Object(entries).to_json_string(true, false, 0));
         }
     }
     if (upper.starts_with("MAX(") || upper.starts_with("MIN(")) && upper.ends_with(')') {
@@ -28916,7 +28961,7 @@ fn eval_sql_group_expr(
         let mut best_num: Option<f64> = None;
         let mut best_str: Option<String> = None;
         for r in grp {
-            let v = eval_sql_row_expr(inner_expr, cols, r, &empty_tables);
+            let v = eval_sql_row_expr(inner_expr, cols, r, &empty_tables)?;
             if v == SQL_NULL {
                 continue;
             }
@@ -28946,27 +28991,25 @@ fn eval_sql_group_expr(
         }
         if let Some(n) = best_num {
             if (n - n.round()).abs() < 1e-9 {
-                return (n.round() as i64).to_string();
+                return Ok((n.round() as i64).to_string());
             }
-            return n.to_string();
+            return Ok(n.to_string());
         }
-        return best_str.unwrap_or_else(|| SQL_NULL.to_string());
+        return Ok(best_str.unwrap_or_else(|| SQL_NULL.to_string()));
     }
     if upper.starts_with("TOTAL(") && upper.ends_with(')') {
         let inner_expr = &s[6..s.len() - 1];
-        let sum: f64 = grp
-            .iter()
-            .filter_map(|r| {
-                eval_sql_row_expr(inner_expr, cols, r, &empty_tables)
-                    .parse::<f64>()
-                    .ok()
-            })
-            .sum();
+        let mut sum = 0.0;
+        for r in grp {
+            if let Ok(n) = eval_sql_row_expr(inner_expr, cols, r, &empty_tables)?.parse::<f64>() {
+                sum += n;
+            }
+        }
         let sum = if sum == 0.0 { 0.0 } else { sum };
         if (sum - sum.round()).abs() < 1e-9 {
-            return format!("{sum:.1}");
+            return Ok(format!("{sum:.1}"));
         }
-        return sum.to_string();
+        return Ok(sum.to_string());
     }
     if upper.starts_with("SUM(") && upper.ends_with(')') {
         let raw_inner = s[4..s.len() - 1].trim();
@@ -28981,7 +29024,7 @@ fn eval_sql_group_expr(
         let mut sum = 0.0;
         let mut has_number = false;
         for r in grp {
-            let v = eval_sql_row_expr(inner_expr, cols, r, &empty_tables);
+            let v = eval_sql_row_expr(inner_expr, cols, r, &empty_tables)?;
             if v == SQL_NULL {
                 continue;
             }
@@ -29001,21 +29044,18 @@ fn eval_sql_group_expr(
             }
         }
         if !has_number {
-            return SQL_NULL.to_string();
+            return Ok(SQL_NULL.to_string());
         }
         if !any_float {
             return match integer_sum {
-                Some(sum) => sum.to_string(),
-                None => {
-                    overflow.set(true);
-                    SQL_NULL.to_string()
-                }
+                Some(sum) => Ok(sum.to_string()),
+                None => Err("Runtime error: integer overflow\n".to_string()),
             };
         }
         if (sum - sum.round()).abs() < 1e-9 {
-            return format!("{sum:.1}");
+            return Ok(format!("{sum:.1}"));
         }
-        return sum.to_string();
+        return Ok(sum.to_string());
     }
     if upper.starts_with("AVG(") && upper.ends_with(')') {
         let raw_inner = s[4..s.len() - 1].trim();
@@ -29028,7 +29068,7 @@ fn eval_sql_group_expr(
         let mut count = 0usize;
         let mut seen_raw: std::collections::BTreeSet<String> = std::collections::BTreeSet::new();
         for r in grp {
-            let v = eval_sql_row_expr(inner_expr, cols, r, &empty_tables);
+            let v = eval_sql_row_expr(inner_expr, cols, r, &empty_tables)?;
             if v == SQL_NULL {
                 continue;
             }
@@ -29066,21 +29106,21 @@ fn eval_sql_group_expr(
             count += 1;
         }
         if count == 0 {
-            return SQL_NULL.to_string();
+            return Ok(SQL_NULL.to_string());
         }
         let avg = sum / count as f64;
         if (avg - avg.round()).abs() < 1e-9 {
-            return format!("{avg:.1}");
+            return Ok(format!("{avg:.1}"));
         }
-        return avg.to_string();
+        return Ok(avg.to_string());
     }
 
     if let Some(c_idx) = find_sql_col(cols, s) {
-        return grp
+        return Ok(grp
             .get(source_row)
             .and_then(|r| r.get(c_idx))
             .cloned()
-            .unwrap_or_default();
+            .unwrap_or_default());
     }
     if let Some(first_row) = grp.get(source_row) {
         return eval_sql_row_value(s, cols, first_row, &empty_tables);
@@ -29546,7 +29586,7 @@ fn eval_sql_where(
     metadata: &[SqlColumnMetadata],
     row: &[String],
     tables: &BTreeMap<String, SqlTable>,
-) -> bool {
+) -> Result<bool, String> {
     let trimmed = clause.trim();
     if trimmed.starts_with('(') && find_matching_paren(trimmed) == Some(trimmed.len() - 1) {
         return eval_sql_where(
@@ -29561,8 +29601,10 @@ fn eval_sql_where(
 
     // Top-level OR (lower precedence than AND)
     if let Some(or_p) = find_top_sql_bool_kw(&upper, " OR ") {
-        return eval_sql_where(&trimmed[..or_p], columns, metadata, row, tables)
-            || eval_sql_where(&trimmed[or_p + 4..], columns, metadata, row, tables);
+        return Ok(
+            eval_sql_where(&trimmed[..or_p], columns, metadata, row, tables)?
+                || eval_sql_where(&trimmed[or_p + 4..], columns, metadata, row, tables)?,
+        );
     }
 
     // Top-level AND (skipping the AND of BETWEEN ... AND ...)
@@ -29580,8 +29622,10 @@ fn eval_sql_where(
                 scan_from = and_p + 5;
                 continue;
             }
-            return eval_sql_where(&trimmed[..and_p], columns, metadata, row, tables)
-                && eval_sql_where(&trimmed[and_p + 5..], columns, metadata, row, tables);
+            return Ok(
+                eval_sql_where(&trimmed[..and_p], columns, metadata, row, tables)?
+                    && eval_sql_where(&trimmed[and_p + 5..], columns, metadata, row, tables)?,
+            );
         }
     }
 
@@ -29590,9 +29634,9 @@ fn eval_sql_where(
         let rest_b = &trimmed[nb_p + 13..];
         let rest_b_up = rest_b.to_ascii_uppercase();
         if let Some(and_p) = find_top_sql_bool_kw(&rest_b_up, " AND ") {
-            let lv = eval_sql_row_expr(lhs, columns, row, tables);
-            let low = eval_sql_row_expr(rest_b[..and_p].trim(), columns, row, tables);
-            let high = eval_sql_row_expr(rest_b[and_p + 5..].trim(), columns, row, tables);
+            let lv = eval_sql_row_expr(lhs, columns, row, tables)?;
+            let low = eval_sql_row_expr(rest_b[..and_p].trim(), columns, row, tables)?;
+            let high = eval_sql_row_expr(rest_b[and_p + 5..].trim(), columns, row, tables)?;
             let inside =
                 compare_sql_values((lhs, &lv), (&rest_b[..and_p], &low), columns, metadata)
                     != std::cmp::Ordering::Less
@@ -29602,7 +29646,7 @@ fn eval_sql_where(
                         columns,
                         metadata,
                     ) != std::cmp::Ordering::Greater;
-            return !inside;
+            return Ok(!inside);
         }
     }
 
@@ -29611,22 +29655,30 @@ fn eval_sql_where(
         let rest_b = &trimmed[b_p + 9..];
         let rest_b_up = rest_b.to_ascii_uppercase();
         if let Some(and_p) = find_top_sql_bool_kw(&rest_b_up, " AND ") {
-            let lv = eval_sql_row_expr(lhs, columns, row, tables);
-            let low = eval_sql_row_expr(rest_b[..and_p].trim(), columns, row, tables);
-            let high = eval_sql_row_expr(rest_b[and_p + 5..].trim(), columns, row, tables);
-            return compare_sql_values((lhs, &lv), (&rest_b[..and_p], &low), columns, metadata)
-                != std::cmp::Ordering::Less
-                && compare_sql_values(
-                    (lhs, &lv),
-                    (&rest_b[and_p + 5..], &high),
-                    columns,
-                    metadata,
-                ) != std::cmp::Ordering::Greater;
+            let lv = eval_sql_row_expr(lhs, columns, row, tables)?;
+            let low = eval_sql_row_expr(rest_b[..and_p].trim(), columns, row, tables)?;
+            let high = eval_sql_row_expr(rest_b[and_p + 5..].trim(), columns, row, tables)?;
+            return Ok(
+                compare_sql_values((lhs, &lv), (&rest_b[..and_p], &low), columns, metadata)
+                    != std::cmp::Ordering::Less
+                    && compare_sql_values(
+                        (lhs, &lv),
+                        (&rest_b[and_p + 5..], &high),
+                        columns,
+                        metadata,
+                    ) != std::cmp::Ordering::Greater,
+            );
         }
     }
 
     if upper.starts_with("NOT EXISTS") {
-        return !eval_sql_where(&trimmed[4..], columns, metadata, row, tables);
+        return Ok(!eval_sql_where(
+            &trimmed[4..],
+            columns,
+            metadata,
+            row,
+            tables,
+        )?);
     }
 
     if upper.starts_with("EXISTS") {
@@ -29635,7 +29687,7 @@ fn eval_sql_where(
             && let Some(close) = find_matching_paren(after_ex)
         {
             let sub_sql =
-                substitute_correlated_subquery(after_ex[1..close].trim(), columns, row, tables);
+                substitute_correlated_subquery(after_ex[1..close].trim(), columns, row, tables)?;
             let res = exec_sql_select(
                 &sub_sql,
                 tables,
@@ -29647,19 +29699,19 @@ fn eval_sql_where(
                 None,
                 false,
                 "|",
-            );
-            return !res.trim().is_empty();
+            )?;
+            return Ok(!res.trim().is_empty());
         }
     }
 
     if let Some(in_p) = find_top_sql_bool_kw(&upper, " NOT IN (") {
         let lhs = trimmed[..in_p].trim();
-        let lv = eval_sql_row_expr(lhs, columns, row, tables);
+        let lv = eval_sql_row_expr(lhs, columns, row, tables)?;
         let paren_s = trimmed[in_p + 8..].trim();
         if let Some(close) = find_matching_paren(paren_s) {
             let inner = paren_s[1..close].trim();
             if inner.to_ascii_uppercase().starts_with("SELECT ") {
-                let sub_sql = substitute_correlated_subquery(inner, columns, row, tables);
+                let sub_sql = substitute_correlated_subquery(inner, columns, row, tables)?;
                 let res = exec_sql_select_ext(
                     &sub_sql,
                     tables,
@@ -29673,32 +29725,37 @@ fn eval_sql_where(
                     false,
                     "|",
                     SQL_NULL,
-                );
-                return !res
+                )?;
+                return Ok(!res
                     .lines()
-                    .any(|value| lv == SQL_NULL || value == SQL_NULL || value.trim() == lv);
+                    .any(|value| lv == SQL_NULL || value == SQL_NULL || value.trim() == lv));
             }
             if inner.is_empty() {
-                return true;
+                return Ok(true);
             }
             // A NULL operand or candidate makes an unmatched NOT IN unknown,
             // which does not qualify a row for WHERE.
-            return lv != SQL_NULL
-                && !split_top_level_comma(inner).into_iter().any(|item| {
-                    let value = eval_sql_row_expr(item, columns, row, tables);
-                    value == SQL_NULL || value == lv
-                });
+            if lv == SQL_NULL {
+                return Ok(false);
+            }
+            for item in split_top_level_comma(inner) {
+                let value = eval_sql_row_expr(item, columns, row, tables)?;
+                if value == SQL_NULL || value == lv {
+                    return Ok(false);
+                }
+            }
+            return Ok(true);
         }
     }
 
     if let Some(in_p) = find_top_sql_bool_kw(&upper, " IN (") {
         let lhs = trimmed[..in_p].trim();
-        let lv = eval_sql_row_expr(lhs, columns, row, tables);
+        let lv = eval_sql_row_expr(lhs, columns, row, tables)?;
         let paren_s = trimmed[in_p + 4..].trim();
         if let Some(close) = find_matching_paren(paren_s) {
             let inner = paren_s[1..close].trim();
             if inner.to_ascii_uppercase().starts_with("SELECT ") {
-                let sub_sql = substitute_correlated_subquery(inner, columns, row, tables);
+                let sub_sql = substitute_correlated_subquery(inner, columns, row, tables)?;
                 let res = exec_sql_select(
                     &sub_sql,
                     tables,
@@ -29710,26 +29767,26 @@ fn eval_sql_where(
                     None,
                     false,
                     "|",
-                );
-                return res.lines().any(|l| l.trim() == lv);
+                )?;
+                return Ok(res.lines().any(|l| l.trim() == lv));
             }
             let items: Vec<String> = split_top_level_comma(inner)
                 .into_iter()
                 .map(|it| eval_sql_row_expr(it, columns, row, tables))
-                .collect();
-            return items.contains(&lv);
+                .collect::<Result<_, String>>()?;
+            return Ok(items.contains(&lv));
         }
     }
 
     if upper.ends_with(" IS NOT NULL") {
         let lhs = trimmed[..trimmed.len() - 12].trim();
-        let v = eval_sql_row_expr(lhs, columns, row, tables);
-        return v != SQL_NULL;
+        let v = eval_sql_row_expr(lhs, columns, row, tables)?;
+        return Ok(v != SQL_NULL);
     }
     if upper.ends_with(" IS NULL") {
         let lhs = trimmed[..trimmed.len() - 8].trim();
-        let v = eval_sql_row_expr(lhs, columns, row, tables);
-        return v == SQL_NULL;
+        let v = eval_sql_row_expr(lhs, columns, row, tables)?;
+        return Ok(v == SQL_NULL);
     }
 
     if let Some((position, keyword, negate)) = [(" NOT LIKE ", true), (" LIKE ", false)]
@@ -29738,38 +29795,48 @@ fn eval_sql_where(
             find_top_sql_bool_kw(&upper, keyword).map(|position| (position, keyword, negate))
         })
     {
-        let value = eval_sql_row_expr(&trimmed[..position], columns, row, tables);
+        let value = eval_sql_row_expr(&trimmed[..position], columns, row, tables)?;
         let rhs = &trimmed[position + keyword.len()..];
         let (pattern, escape) =
             if let Some(ep) = find_top_sql_bool_kw(&rhs.to_ascii_uppercase(), " ESCAPE ") {
-                let escape = eval_sql_row_expr(&rhs[ep + 8..], columns, row, tables);
+                let escape = eval_sql_row_expr(&rhs[ep + 8..], columns, row, tables)?;
                 let mut chars = escape.chars();
                 let first = chars.next();
                 if escape == SQL_NULL || first.is_none() || chars.next().is_some() {
-                    return false;
+                    return Ok(false);
                 }
                 (&rhs[..ep], first)
             } else {
                 (rhs, None)
             };
-        let pattern = eval_sql_row_expr(pattern, columns, row, tables);
-        return value != SQL_NULL
+        let pattern = eval_sql_row_expr(pattern, columns, row, tables)?;
+        return Ok(value != SQL_NULL
             && pattern != SQL_NULL
-            && (sql_like_match(&value, &pattern, escape) != negate);
+            && (sql_like_match(&value, &pattern, escape) != negate));
     }
     if let Some(ngp) = find_top_sql_bool_kw(&upper, " NOT GLOB ") {
-        let lv = eval_sql_row_expr(&trimmed[..ngp], columns, row, tables);
-        let pat = eval_sql_row_expr(&trimmed[ngp + 10..], columns, row, tables);
-        return !sql_wildcard_match(lv.as_bytes(), pat.as_bytes(), b'*', b'?');
+        let lv = eval_sql_row_expr(&trimmed[..ngp], columns, row, tables)?;
+        let pat = eval_sql_row_expr(&trimmed[ngp + 10..], columns, row, tables)?;
+        return Ok(!sql_wildcard_match(
+            lv.as_bytes(),
+            pat.as_bytes(),
+            b'*',
+            b'?',
+        ));
     }
     if let Some(gp) = find_top_sql_bool_kw(&upper, " GLOB ") {
-        let lv = eval_sql_row_expr(&trimmed[..gp], columns, row, tables);
-        let pat = eval_sql_row_expr(&trimmed[gp + 6..], columns, row, tables);
-        return sql_wildcard_match(lv.as_bytes(), pat.as_bytes(), b'*', b'?');
+        let lv = eval_sql_row_expr(&trimmed[..gp], columns, row, tables)?;
+        let pat = eval_sql_row_expr(&trimmed[gp + 6..], columns, row, tables)?;
+        return Ok(sql_wildcard_match(
+            lv.as_bytes(),
+            pat.as_bytes(),
+            b'*',
+            b'?',
+        ));
     }
     if let Some(mp) = find_top_sql_bool_kw(&upper, " MATCH ") {
         let lhs_name = trimmed[..mp].trim();
-        let pat = eval_sql_row_expr(&trimmed[mp + 7..], columns, row, tables);
+        let pat = eval_sql_row_expr(&trimmed[mp + 7..], columns, row, tables)?;
         let hay_text = if let Some(c_idx) = find_sql_col(columns, lhs_name) {
             row.get(c_idx).cloned().unwrap_or_default()
         } else {
@@ -29804,29 +29871,29 @@ fn eval_sql_where(
                     }
                 })
         };
-        return pat.split(" OR ").any(matches_all);
+        return Ok(pat.split(" OR ").any(matches_all));
     }
     if let Some(rp) = find_top_sql_bool_kw(&upper, " REGEXP ") {
-        let lv = eval_sql_row_expr(&trimmed[..rp], columns, row, tables);
-        let pat = eval_sql_row_expr(&trimmed[rp + 8..], columns, row, tables);
+        let lv = eval_sql_row_expr(&trimmed[..rp], columns, row, tables)?;
+        let pat = eval_sql_row_expr(&trimmed[rp + 8..], columns, row, tables)?;
         if let Some(rest) = pat.strip_prefix('^') {
-            return lv.starts_with(rest);
+            return Ok(lv.starts_with(rest));
         }
         if let Some(rest) = pat.strip_suffix('$') {
-            return lv.ends_with(rest);
+            return Ok(lv.ends_with(rest));
         }
-        return lv.contains(&pat);
+        return Ok(lv.contains(&pat));
     }
 
     for op in ["!=", "<>", ">=", "<=", "=", ">", "<"] {
         if let Some((lhs, rhs)) = trimmed.split_once(op) {
-            let lv = eval_sql_row_expr(lhs.trim(), columns, row, tables);
-            let rv = eval_sql_row_expr(rhs.trim(), columns, row, tables);
+            let lv = eval_sql_row_expr(lhs.trim(), columns, row, tables)?;
+            let rv = eval_sql_row_expr(rhs.trim(), columns, row, tables)?;
             if lv == SQL_NULL || rv == SQL_NULL {
-                return false;
+                return Ok(false);
             }
             let ord = compare_sql_values((lhs, &lv), (rhs, &rv), columns, metadata);
-            return match op {
+            return Ok(match op {
                 "=" => ord == std::cmp::Ordering::Equal,
                 "!=" | "<>" => ord != std::cmp::Ordering::Equal,
                 ">=" => ord != std::cmp::Ordering::Less,
@@ -29834,18 +29901,18 @@ fn eval_sql_where(
                 ">" => ord == std::cmp::Ordering::Greater,
                 "<" => ord == std::cmp::Ordering::Less,
                 _ => false,
-            };
+            });
         }
     }
     if trimmed.is_empty() {
-        return true;
+        return Ok(true);
     }
-    let v = eval_sql_row_expr(trimmed, columns, row, tables);
-    !v.is_empty()
+    let v = eval_sql_row_expr(trimmed, columns, row, tables)?;
+    Ok(!v.is_empty()
         && v != "0"
         && !v.eq_ignore_ascii_case("false")
         && v != SQL_NULL
-        && v.parse::<f64>().map(|n| n != 0.0).unwrap_or(true)
+        && v.parse::<f64>().map(|n| n != 0.0).unwrap_or(true))
 }
 
 fn cmd_csvsort(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> BuiltinOutcome {

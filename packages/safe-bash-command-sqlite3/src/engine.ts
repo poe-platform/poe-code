@@ -451,6 +451,34 @@ export function tokenizeSql(sql: string): Token[] {
   return tokens;
 }
 
+// Argument ranges include scalar, aggregate, and window functions. Validate at
+// parse time so empty results and short-circuit expressions cannot hide errors.
+const functionArgumentCounts: Record<string, number | readonly [number, number]> = {
+  TYPEOF: 1, LENGTH: 1, OCTET_LENGTH: 1, UPPER: 1, LOWER: 1,
+  TRIM: [1, 2], LTRIM: [1, 2], RTRIM: [1, 2], SUBSTR: [2, 3], SUBSTRING: [2, 3],
+  REPLACE: 3, INSTR: 2, PRINTF: [0, Infinity], FORMAT: [0, Infinity],
+  CONCAT: [1, Infinity], CONCAT_WS: [2, Infinity], REVERSE: 1, REPEAT: 2,
+  LPAD: [2, 3], RPAD: [2, 3], CHAR: [0, Infinity], UNICODE: 1, HEX: 1,
+  UNHEX: [1, 2], QUOTE: 1, ABS: 1, ROUND: [1, 2], CEIL: 1, CEILING: 1,
+  FLOOR: 1, TRUNC: 1, SIGN: 1, SQRT: 1, POW: 2, POWER: 2, EXP: 1, LN: 1,
+  LOG: [1, 2], LOG10: 1, LOG2: 1, SIN: 1, COS: 1, TAN: 1, ASIN: 1,
+  ACOS: 1, ATAN: 1, ATAN2: 2, PI: 0, DEGREES: 1, RADIANS: 1, MOD: 2,
+  MIN: [1, Infinity], MAX: [1, Infinity], RANDOM: 0, RANDOMBLOB: 1, ZEROBLOB: 1,
+  CHANGES: 0, TOTAL_CHANGES: 0, LAST_INSERT_ROWID: 0, SQLITE_VERSION: 0, SQLITE_SOURCE_ID: 0,
+  LIKELIHOOD: 2, LIKELY: 1, UNLIKELY: 1, GLOB: 2, LIKE: [2, 3],
+  DATE: [0, Infinity], TIME: [0, Infinity], DATETIME: [0, Infinity],
+  JULIANDAY: [0, Infinity], UNIXEPOCH: [0, Infinity], STRFTIME: [0, Infinity],
+  JSON: 1, JSON_VALID: [1, 2], JSON_QUOTE: 1,
+  JSON_ARRAY: [0, Infinity], JSON_OBJECT: [0, Infinity], JSON_EXTRACT: [0, Infinity],
+  JSON_TYPE: [1, 2], JSON_ARRAY_LENGTH: [1, 2], JSON_SET: [0, Infinity],
+  JSON_INSERT: [0, Infinity], JSON_REPLACE: [0, Infinity], JSON_REMOVE: [0, Infinity], JSON_PATCH: 2,
+  RAISE: [1, 2], COALESCE: [2, Infinity], IFNULL: 2, IIF: 3, NULLIF: 2,
+  COUNT: [0, 1], SUM: 1, TOTAL: 1, AVG: 1, GROUP_CONCAT: [1, 2], STRING_AGG: 2,
+  JSON_GROUP_ARRAY: 1, JSON_GROUP_OBJECT: 2,
+  ROW_NUMBER: 0, RANK: 0, DENSE_RANK: 0, NTILE: 1, PERCENT_RANK: 0, CUME_DIST: 0,
+  LAG: [1, 3], LEAD: [1, 3], FIRST_VALUE: 1, LAST_VALUE: 1, NTH_VALUE: 2
+};
+
 // --- Expression AST ---
 export type ExprNode =
   | { kind: "literal"; value: SqlValue; booleanLiteral?: true }
@@ -1084,6 +1112,13 @@ class ExprParser {
           } while (this.matchValue(","));
         }
         this.matchValue(")");
+
+        const count = functionArgumentCounts[name.toUpperCase()];
+        if (count === undefined) throw new Error(`in prepare, no such function: ${name}`);
+        const [min, max] = typeof count === "number" ? [count, count] : count;
+        if (args.length < min || args.length > max) {
+          throw new Error(`in prepare, wrong number of arguments to function ${name}()`);
+        }
 
         let filterWhere: ExprNode | undefined;
         if (this.matchWord("FILTER")) {

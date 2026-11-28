@@ -118,3 +118,35 @@ fn latex_rejects_recursive_macro_expansion() {
     assert_ne!(result.exit_code, 0);
     assert_eq!(result.stdout, "");
 }
+
+#[test]
+fn latex_macros_preserve_escaped_braces_and_command_boundaries() {
+    for (input, expected) in [
+        (
+            r"\newcommand{\project}{\{Orchid\}}The \project{} report.",
+            "The {Orchid} report.\n",
+        ),
+        (
+            r"\newcommand{\project}{Orchid}\projects{} and \project{}.",
+            "\\projects and Orchid.\n",
+        ),
+        (
+            r"\newcommand{\empty}{}Before\empty{}after.",
+            "Beforeafter.\n",
+        ),
+    ] {
+        let mut shell = Shell::new(Arc::new(MemoryVfs::new()), ShellOptions::default());
+        let result = shell
+            .exec_with_options(
+                "pandoc -f latex -t plain --wrap=none",
+                ExecOptions {
+                    stdin: Some(input.into()),
+                    ..Default::default()
+                },
+            )
+            .unwrap();
+        assert_eq!(result.exit_code, 0, "{input}: {}", result.stderr);
+        assert_eq!(result.stderr, "", "{input}");
+        assert_eq!(result.stdout, expected, "{input}");
+    }
+}

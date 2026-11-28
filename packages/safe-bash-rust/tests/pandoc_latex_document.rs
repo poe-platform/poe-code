@@ -54,6 +54,10 @@ fn latex_document_boundaries_preserve_body_and_fragments() {
             r"\documentclass{article}\texttt{\begin{document}}Ignored.\begin{document}Main body.\end{document}",
             "<p>Main body.</p>\n",
         ),
+        (
+            r"\documentclass{article}\newcommand{\project}{Orchid}\begin{document}The \project{} report.\end{document}",
+            "<p>The Orchid report.</p>\n",
+        ),
         (r"\begin{document}\end{document}", ""),
         (
             r"Use \verb|\begin{document}| here.",

@@ -37415,6 +37415,8 @@ fn parse_pandoc_html(input: &str) -> Option<Vec<PandocBlock>> {
 fn parse_pandoc_latex(input: &str) -> Option<Vec<PandocBlock>> {
     let mut text = String::with_capacity(input.len());
     let mut chars = input.chars();
+    let mut macros = Default::default();
+    let mut macro_budget = 16 * 1024 * 1024;
     let mut in_document = false;
     let mut group_depth = 0usize;
     while let Some(ch) = chars.next() {
@@ -37436,6 +37438,7 @@ fn parse_pandoc_latex(input: &str) -> Option<Vec<PandocBlock>> {
                             .and_then(|rest| rest.trim_start().strip_prefix("{document}"))
                     {
                         // The preamble configures the document; it is not body prose.
+                        pandoc_latex::expand_macros(&text, &mut macros, &mut macro_budget, 0)?;
                         text.clear();
                         in_document = true;
                         chars = body.chars();
@@ -37470,12 +37473,7 @@ fn parse_pandoc_latex(input: &str) -> Option<Vec<PandocBlock>> {
             _ => text.push(ch),
         }
     }
-    let text = pandoc_latex::expand_macros(
-        &text,
-        &mut Default::default(),
-        &mut (16 * 1024 * 1024),
-        0,
-    )?;
+    let text = pandoc_latex::expand_macros(&text, &mut macros, &mut macro_budget, 0)?;
     if text.contains("\\begin{tabular}") {
         let mut blocks = Vec::new();
         let mut rest = text.as_str();

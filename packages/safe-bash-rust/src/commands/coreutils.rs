@@ -6875,23 +6875,19 @@ fn big_pow(base: &[u8], mut exp: u32) -> Vec<u8> {
     result
 }
 
-fn big_sqrt_scaled(n: &[u8], scale: usize) -> String {
-    // Compute floor(sqrt(n * 10^(2 * scale))) via digit-by-digit / Newton in big_int
+fn big_sqrt_scaled(n: &[u8], input_scale: usize, scale: usize) -> Vec<u8> {
+    // Newton iteration on the coefficient scaled to the square of the output scale.
     let mut target = n.to_vec();
-    target.extend(std::iter::repeat_n(0u8, scale * 2));
+    target.extend(std::iter::repeat_n(0u8, scale * 2 - input_scale));
     big_trim(&mut target);
     if target.len() == 1 && target[0] == 0 {
-        return if scale == 0 {
-            "0".to_string()
-        } else {
-            format!(".{}", "0".repeat(scale))
-        };
+        return vec![0];
     }
     // Initial guess: 10^((target.len() + 1) / 2)
     let mut x = vec![1u8];
     x.extend(std::iter::repeat_n(0u8, target.len().div_ceil(2)));
     let two = vec![2u8];
-    for _ in 0..80 {
+    loop {
         let (q, _) = big_div_rem(&target, &x);
         let sum = big_add(&x, &q);
         let (nx, _) = big_div_rem(&sum, &two);
@@ -6900,7 +6896,7 @@ fn big_sqrt_scaled(n: &[u8], scale: usize) -> String {
         }
         x = nx;
     }
-    format_big_with_scale(&x, scale, false)
+    x
 }
 
 fn format_big_with_scale(digits: &[u8], scale: usize, neg: bool) -> String {
@@ -8032,20 +8028,27 @@ fn eval_bc_val(expr: &str, bc: &mut BcEnv, depth: usize) -> BcVal {
                     }
                     return BcVal::from_i64(0);
                 }
-                if bc.scale > 12
-                    && let Some(ref d) = first_val.coefficient
-                    && first_val.scale == 0
-                {
-                    bc.last_str_out = Some(big_sqrt_scaled(d, bc.scale));
+                let scale = bc.scale.max(first_val.scale);
+                if let Some(ref d) = first_val.coefficient {
+                    let digits = big_sqrt_scaled(d, first_val.scale, scale);
+                    let val = format_big_with_scale(&digits, scale, false)
+                        .parse::<f64>()
+                        .unwrap_or(0.0);
+                    return BcVal {
+                        val,
+                        coefficient: Some(digits),
+                        neg: false,
+                        scale,
+                    };
                 }
                 let rm = first_val.val.sqrt();
-                let out_v = if bc.scale > 0 && bc.scale <= 12 {
-                    let factor = 10f64.powi(bc.scale as i32);
+                let out_v = if scale > 0 && scale <= 12 {
+                    let factor = 10f64.powi(scale as i32);
                     ((rm + 1e-12 * rm.signum()) * factor).trunc() / factor
                 } else {
                     rm
                 };
-                return BcVal::from_f64_scaled(out_v, bc.scale);
+                return BcVal::from_f64_scaled(out_v, scale);
             }
             "s" | "c" | "a" | "l" | "e" | "j" => {
                 let rm = match fname {

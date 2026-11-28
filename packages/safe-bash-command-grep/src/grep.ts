@@ -1,4 +1,4 @@
-import { latin1Text } from "safe-bash-io-engine/byte-encoding";
+import { latin1Bytes, latin1Text } from "safe-bash-io-engine/byte-encoding";
 import { shellValueByteLength } from "safe-bash-contracts/value";
 import { PublicDiagnostic } from "safe-bash-contracts/public-diagnostic";
 import { tryReadMemoryFileViewSync } from "@poe-code/safe-fs/core";
@@ -738,13 +738,16 @@ inspect the resulting state before repeating the action.
       let effectiveExtended = parsed.flags.has("E") || parsed.flags.has("P");
       if ((limits.ergonomicRegex || parsed.flags.has("P")) && (!parsed.flags.has("F") || parsed.flags.has("a"))) {
         try {
-          const prepared = prepareErgonomicRegex(patterns, {
+          // The Unicode VM consumes scalars; delegated patterns remain byte strings.
+          const decoder = new TextDecoder("utf-8", { fatal: true, ignoreBOM: true });
+          const prepared = prepareErgonomicRegex(ignoreCase ? patterns.map(pattern => decoder.decode(latin1Bytes(pattern))) : patterns, {
             kind: "grep",
             fixed: parsed.flags.has("F"),
             binaryText: parsed.flags.has("a"),
             extended: effectiveExtended,
             perl: parsed.flags.has("P"),
             caseMode: ignoreCase ? "insensitive" : "sensitive",
+            forceVm: ignoreCase,
             whole: parsed.flags.has("x"),
             word: parsed.flags.has("w"),
             nullData: parsed.flags.has("z"),

@@ -1,5 +1,6 @@
 import type { Row } from "safe-bash-regex-engine/execution/protocol";
 import type { Match as MatchRange } from "safe-bash-regex-engine/execution/protocol";
+import { simpleCaseFold } from "safe-bash-regex-engine/text/rust-syntax";
 
 export interface Match extends MatchRange {
   readonly captures?: ReadonlyMap<string | number, MatchRange>;
@@ -72,6 +73,11 @@ function foldAsciiCp(cp: number): number {
   return cp >= 65 && cp <= 90 ? cp + 32 : cp;
 }
 
+function foldCp(cp: number): number {
+  // Keep ASCII and the decoder's invalid-byte sentinel on the fast path.
+  return cp < 128 ? foldAsciiCp(cp) : simpleCaseFold(String.fromCodePoint(cp)).codePointAt(0)!;
+}
+
 function matchPosixClass(name: string, cp: number, insensitive: boolean, unicode: boolean): boolean {
   if (unicode && cp >= 128) {
     // C.UTF-8 also classifies non-ASCII decimal digits as alphabetic.
@@ -124,21 +130,25 @@ function evalClassNode(
   if (!node.multiline && cp === 10 && node.negated) {
     return false;
   }
-  const target = node.insensitive ? foldAsciiCp(cp) : cp;
+  const target = node.insensitive ? foldCp(cp) : cp;
   let matched = false;
   for (let i = 0; i < node.items.length; i++) {
     const item = node.items[i]!;
     if (item.kind === "char") {
-      const icp = node.insensitive ? foldAsciiCp(item.cp) : item.cp;
+      const icp = node.insensitive ? foldCp(item.cp) : item.cp;
       if (target === icp) {
         matched = true;
         break;
       }
     } else if (item.kind === "range") {
       if (node.insensitive) {
-        const lo = foldAsciiCp(item.lo);
-        const hi = foldAsciiCp(item.hi);
-        if ((target >= lo && target <= hi) || (cp >= item.lo && cp <= item.hi)) {
+        // Case mappings need not preserve range order (for example [à-ā]).
+        const upper = String.fromCodePoint(target).toUpperCase();
+        const upperCp = upper.codePointAt(0)!;
+        if ((cp >= item.lo && cp <= item.hi)
+          || (target >= item.lo && target <= item.hi)
+          || (upper.length === String.fromCodePoint(upperCp).length && foldCp(upperCp) === target
+            && upperCp >= item.lo && upperCp <= item.hi)) {
           matched = true;
           break;
         }
@@ -953,7 +963,7 @@ export class ErgonomicVmMatcher {
     this.nlistPositions = new Int32Array(n);
     const lead = extractLeadingLiteral(rootAst);
     this.leadingLiteral = lead
-      ? { cp: lead.cp, foldedCp: foldAsciiCp(lead.cp), insensitive: lead.insensitive }
+      ? { cp: lead.cp, foldedCp: foldCp(lead.cp), insensitive: lead.insensitive }
       : undefined;
   }
 
@@ -1084,7 +1094,7 @@ export class ErgonomicVmMatcher {
         if (!lead.insensitive) {
           while (pos < length && cps[pos] !== lead.cp) pos++;
         } else {
-          while (pos < length && cps[pos] !== lead.cp && foldAsciiCp(cps[pos]!) !== lead.foldedCp) pos++;
+          while (pos < length && cps[pos] !== lead.cp && foldCp(cps[pos]!) !== lead.foldedCp) pos++;
         }
         if (pos > length) break;
       }
@@ -1134,7 +1144,7 @@ export class ErgonomicVmMatcher {
         } else if (cp < 0) {
           continue;
         } else if (inst.op === "literal") {
-          if (inst.insensitive ? foldAsciiCp(cp) === foldAsciiCp(inst.cp) : cp === inst.cp) nextOut = inst.out;
+          if (inst.insensitive ? foldCp(cp) === foldCp(inst.cp) : cp === inst.cp) nextOut = inst.out;
         } else if (inst.op === "dot") {
           if ((inst.dotall || cp !== 10) && (inst.nullData || this.binaryText || cp !== 0)) nextOut = inst.out;
         } else if (inst.op === "class") {

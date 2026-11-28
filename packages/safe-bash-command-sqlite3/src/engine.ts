@@ -5726,6 +5726,9 @@ export class SqliteDatabase {
       // With multiple extrema, any one of their supplying rows is permitted.
       const pending = selectTargets.map(target => target.expr);
       if (havingTokens?.length) pending.push(new ExprParser(havingTokens).parseExpression());
+      if (orderByTokens) {
+        pending.push(...this.splitTopLevelComma(orderByTokens).map(tokens => new ExprParser(tokens).parseExpression()));
+      }
       let extremum: Extract<ExprNode, { kind: "func" }> | undefined;
       while (pending.length > 0) {
         yield;

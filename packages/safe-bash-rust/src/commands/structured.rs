@@ -25466,10 +25466,7 @@ fn exec_sql_select_with_mode(
                             .get(1)
                             .and_then(|s| s.parse::<usize>().ok())
                             .unwrap_or(1);
-                        let default_expr = args
-                            .get(2)
-                            .map(|s| s.to_string())
-                            .unwrap_or_else(|| "NULL".to_string());
+                        let default_expr = args.get(2).copied().unwrap_or("NULL").to_string();
                         if is_lag {
                             SqlWinFn::Lag {
                                 col_idx,
@@ -25900,10 +25897,12 @@ fn exec_sql_select_with_mode(
                                     .get(1)
                                     .and_then(|s| s.parse::<usize>().ok())
                                     .unwrap_or(1);
-                                let default_val = args
-                                    .get(2)
-                                    .map(|s| eval_sql_row_expr(s, &tbl.columns, r, tables))
-                                    .unwrap_or_else(|| SQL_NULL.to_string());
+                                let default_val = eval_sql_value(
+                                    args.get(2).copied().unwrap_or("NULL"),
+                                    &tbl.columns,
+                                    r,
+                                    tables,
+                                );
                                 if is_lag {
                                     if my_pos >= offset {
                                         filtered[p_indices[my_pos - offset]]
@@ -26049,13 +26048,16 @@ fn exec_sql_select_with_mode(
                                 offset,
                                 default_expr,
                             } => {
+                                let default_val =
+                                    eval_sql_value(default_expr, &tbl.columns, r, tables);
                                 if my_pos >= *offset {
                                     let prev_i = p_indices[my_pos - *offset];
-                                    filtered[prev_i].get(*col_idx).cloned().unwrap_or_else(|| {
-                                        eval_sql_row_expr(default_expr, &tbl.columns, r, tables)
-                                    })
+                                    filtered[prev_i]
+                                        .get(*col_idx)
+                                        .cloned()
+                                        .unwrap_or(default_val)
                                 } else {
-                                    eval_sql_row_expr(default_expr, &tbl.columns, r, tables)
+                                    default_val
                                 }
                             }
                             SqlWinFn::Lead {
@@ -26063,13 +26065,16 @@ fn exec_sql_select_with_mode(
                                 offset,
                                 default_expr,
                             } => {
+                                let default_val =
+                                    eval_sql_value(default_expr, &tbl.columns, r, tables);
                                 if my_pos + *offset < p_indices.len() {
                                     let next_i = p_indices[my_pos + *offset];
-                                    filtered[next_i].get(*col_idx).cloned().unwrap_or_else(|| {
-                                        eval_sql_row_expr(default_expr, &tbl.columns, r, tables)
-                                    })
+                                    filtered[next_i]
+                                        .get(*col_idx)
+                                        .cloned()
+                                        .unwrap_or(default_val)
                                 } else {
-                                    eval_sql_row_expr(default_expr, &tbl.columns, r, tables)
+                                    default_val
                                 }
                             }
                             SqlWinFn::FirstValue { col_idx } => p_indices
@@ -27172,23 +27177,6 @@ fn find_sql_binary_operator(s: &str) -> Option<(usize, &str)> {
         }
         i += 1;
     }
-<<<<<<< HEAD
-    bitwise.or(additive).or(multiplicative).or(concat)
-}
-
-fn sql_bitwise_and(left: &str, right: &str) -> String {
-    if left == SQL_NULL || right == SQL_NULL {
-        return SQL_NULL.to_string();
-    }
-    let integer = |value: &str| {
-        value
-            .parse::<i64>()
-            .unwrap_or_else(|_| value.parse::<f64>().unwrap_or(0.0) as i64)
-    };
-    (integer(left) & integer(right)).to_string()
-||||||| parent of 08178d2 (fix(safe-bash): evaluate SQLite integer bit masks)
-    additive.or(multiplicative).or(concat)
-=======
     bitwise.or(additive).or(multiplicative).or(concat)
 }
 
@@ -27203,7 +27191,6 @@ fn sql_bitwise_and(left: &str, right: &str) -> String {
             .unwrap_or_else(|_| value.parse::<f64>().unwrap_or(0.0) as i64)
     };
     (integer(left) & integer(right)).to_string()
->>>>>>> 08178d2 (fix(safe-bash): evaluate SQLite integer bit masks)
 }
 
 fn eval_sql_row_expr(

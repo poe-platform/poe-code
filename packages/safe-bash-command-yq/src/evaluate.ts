@@ -2,6 +2,7 @@ import { utf8ByteLength, utf8Encoder, compareBytes } from "safe-bash-query-engin
 import type { Node, Pair, YAMLMap, YAMLSeq } from "yaml";
 import type { Expression } from "./expression.js";
 import { cloneNode, decodeDocuments, dereference, nodeTag, replace, scalar, truth, type Candidate, type YamlModule } from "./nodes.js";
+import { encodeNative } from "./native-encoder.js";
 import { MikeError, type NativeWork } from "./native-work.js";
 import { EreLedger } from "safe-bash-regex-engine/ere/limits";
 import { EreSyntaxError, EreUnsupportedError, EreProfileLimitError } from "safe-bash-regex-engine/ere/errors";
@@ -524,6 +525,28 @@ export class Evaluator {
       if (yaml.isScalar(node) && expression.source !== undefined) node.source = expression.source;
       return this.child(node, input);
     });
+    if (expression.kind === "interpolate") {
+      const output: Candidate[] = [];
+      for (const input of inputs) {
+        const fragments: string[] = [];
+        let bytes = 0;
+        for (const part of expression.parts) {
+          let text = part;
+          if (typeof text !== "string") {
+            const match = (await next(text, [input], false))[0];
+            const candidate = match && dereference(match, yaml, this.work);
+            text = !candidate ? "" : yaml.isScalar(candidate.node) ? scalarText(candidate.node, yaml)
+              : (await encodeNative(candidate, { format: "yaml", indent: 2, unwrap: true, compactSequence: false }, yaml, this.work)).trimEnd();
+          }
+          bytes += utf8ByteLength(text);
+          if (bytes > this.work.limits.maxScalarBytes) throw new MikeError("yq limit exceeded: maxScalarBytes");
+          { const t = this.work.tick(); if (t) await t; }
+          fragments.push(text);
+        }
+        output.push(this.child(scalar(yaml, this.work, fragments.join("")), input));
+      }
+      return output;
+    }
     if (expression.kind === "field") {
       const output: Candidate[] = [];
       for (const base of await next(expression.base)) for (const key of await next(expression.key, [base], false)) output.push(...await this.field(base, value(key.node, yaml), create, omitMissing));

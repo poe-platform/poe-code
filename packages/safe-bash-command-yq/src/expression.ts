@@ -5,6 +5,7 @@ export type Expression =
   | { kind: "identity" | "iterate" }
   | { kind: "recursive"; includeKeys?: boolean }
   | { kind: "literal"; value: string | boolean | bigint | number | null; source?: string }
+  | { kind: "interpolate"; parts: (string | Expression)[] }
   | { kind: "variable"; name: string }
   | { kind: "bind"; name: string; source: Expression; body: Expression }
   | { kind: "reduce"; name: string; source: Expression; initial: Expression; body: Expression }
@@ -37,7 +38,6 @@ export function compileExpression(source: string, security: { readonly disableEn
       let escaped = false;
       while (offset < source.length) { const next = source[offset++]!; if (!escaped && next === '"') break; if (!escaped && next === "\\") escaped = true; else escaped = false; }
       const text = source.slice(start, offset);
-      try { JSON.parse(text); } catch { throw new MikeError("bad expression, please check expression syntax"); }
       tokens.push({ text, offset: start, kind: "string" });
       continue;
     }
@@ -59,13 +59,40 @@ export function compileExpression(source: string, security: { readonly disableEn
   const take = () => tokens[position++]!;
   const expect = (text: string) => { if (take().text !== text) throw new MikeError("bad expression, please check expression syntax"); };
   const literal = (value: string | boolean | bigint | number | null): Expression => ({ kind: "literal", value });
+  const string = (text: string): Expression => {
+    const decode = (raw: string): string => {
+      try { return JSON.parse(`"${raw}"`) as string; }
+      catch { throw new MikeError("bad expression, please check expression syntax"); }
+    };
+    const parts: (string | Expression)[] = [];
+    let start = 1;
+    for (let index = 1; index < text.length - 1; index++) {
+      if (text[index] !== "\\") continue;
+      if (text[++index] !== "(") continue;
+      parts.push(decode(text.slice(start, index - 1)));
+      start = index + 1;
+      let brackets = 1;
+      while (++index < text.length - 1) {
+        if (text[index] === "(") brackets++;
+        if (text[index] === ")" && --brackets === 0) break;
+      }
+      if (brackets !== 0) throw new MikeError("bad expression, please check expression syntax");
+      parts.push(compileExpression(decode(text.slice(start, index)), {
+        ...security, maxExpressionDepth: (security.maxExpressionDepth ?? Infinity) - nesting,
+      }));
+      start = index + 1;
+    }
+    if (!text.endsWith('"') || text.length < 2) throw new MikeError("bad expression, please check expression syntax");
+    parts.push(decode(text.slice(start, -1)));
+    return parts.length === 1 ? literal(parts[0] as string) : { kind: "interpolate", parts };
+  };
   const parse = (minimum = 0): Expression => {
     if (++nesting > (security.maxExpressionDepth ?? Infinity)) throw new MikeError("yq limit exceeded: expression depth");
     const token = take();
     let result: Expression;
     if (token.text === ".") {
       result = { kind: "identity" };
-      if (peek().offset === token.offset + 1 && (peek().kind === "name" || peek().kind === "string")) { const key = take(); result = { kind: "field", base: result, key: literal(key.kind === "string" ? JSON.parse(key.text) as string : key.text) }; }
+      if (peek().offset === token.offset + 1 && (peek().kind === "name" || peek().kind === "string")) { const key = take(); result = { kind: "field", base: result, key: key.kind === "string" ? string(key.text) : literal(key.text) }; }
     } else if (token.text === "$") {
       const name = take();
       if (name.kind !== "name" || name.offset !== token.offset + 1) throw new MikeError("bad expression, please check expression syntax");
@@ -78,7 +105,7 @@ export function compileExpression(source: string, security: { readonly disableEn
       while (peek().text !== "}") {
         const key = take();
         if (key.kind !== "string" && key.kind !== "name") throw new MikeError("bad expression, please check expression syntax");
-        const field = literal(key.kind === "string" ? JSON.parse(key.text) as string : key.text);
+        const field = key.kind === "string" ? string(key.text) : literal(key.text);
         if (key.kind === "name" && (peek().text === "," || peek().text === "}")) {
           fields.push({ key: field, value: { kind: "field", base: { kind: "identity" }, key: field } });
         } else {
@@ -94,7 +121,7 @@ export function compileExpression(source: string, security: { readonly disableEn
         ? { kind: "literal", value: -right.value, source: `-${right.source}` }
         : { kind: "binary", operator: "*", left: literal(-1n), right };
     } else if (token.kind === "number") result = { kind: "literal", value: /[.eE]/u.test(token.text) ? Number(token.text) : BigInt(token.text), source: token.text };
-    else if (token.kind === "string") result = literal(JSON.parse(token.text) as string);
+    else if (token.kind === "string") result = string(token.text);
     else if (["true", "false", "null"].includes(token.text)) result = literal(JSON.parse(token.text) as boolean | null);
     else if (security.disableEnvOps && ["env", "strenv", "envsubst"].includes(token.text)) throw new MikeError("env operations have been disabled");
     else if (security.disableFileOps && ["load", "load_str", "load_xml", "load_props", "load_base64"].includes(token.text)) throw new MikeError("file operations have been disabled");
@@ -124,7 +151,7 @@ export function compileExpression(source: string, security: { readonly disableEn
       if (peek().text === ".") {
         take(); const key = take();
         if (key.kind !== "name" && key.kind !== "string") throw new MikeError("bad expression, please check expression syntax");
-        result = { kind: "field", base: result, key: literal(key.kind === "string" ? JSON.parse(key.text) as string : key.text) }; continue;
+        result = { kind: "field", base: result, key: key.kind === "string" ? string(key.text) : literal(key.text) }; continue;
       }
       if (peek().text === "[") {
         take();

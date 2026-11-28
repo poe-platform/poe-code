@@ -76,6 +76,7 @@ export function createLsCommand(configuration: LsCommandsOptions = {}): CommandD
       }
       if (!ended && argument === "--full-time") {
         timeStyle = "full-iso";
+        args.push("-l");
         layout = "long";
         continue;
       }

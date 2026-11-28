@@ -22223,6 +22223,7 @@ fn cmd_sqlite3(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> 
                     &mut tables,
                     &views,
                     &remaining_triggers,
+                    recursive_triggers_enabled,
                     true,
                     tx_snapshot.is_some() || !savepoints.is_empty(),
                     json_mode,
@@ -22643,7 +22644,6 @@ fn cmd_sqlite3(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> 
                         name
                     };
                     triggers.push(SqlTrigger {
-                        active: false,
                         active: false,
                         name: sql_trigger_name(name),
                         table: tname,

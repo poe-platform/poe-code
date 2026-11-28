@@ -26,6 +26,7 @@ export interface TarOptions {
   sort: "none" | "name";
   dereference: boolean;
   excludeCaches: boolean;
+  excludeVcsIgnores?: boolean;
   recursion: boolean;
   wildcards: boolean;
   occurrence?: number;
@@ -50,6 +51,7 @@ export async function parseOptions(context: CommandContext, limits: ArchiveLimit
   let sort: TarOptions["sort"] = "none";
   let dereference = false;
   let excludeCaches = false;
+  let excludeVcsIgnores = false;
   let recursion = true;
   let showTransformedNames = false;
   const transforms: NameTransform[] = [];
@@ -161,6 +163,13 @@ export async function parseOptions(context: CommandContext, limits: ArchiveLimit
       sort = value;
     }
     else if (flag === "h" || flag === "dereference") dereference = true;
+    else if (flag === "exclude-vcs") {
+      for (const pattern of ["CVS", "RCS", "SCCS", ".git", ".gitignore", ".gitmodules", ".gitattributes", ".cvsignore", ".svn", ".arch-ids", "{arch}", "=RELEASE-ID", "=meta-update", "=update", ".bzr", ".bzrignore", ".bzrtags", ".hg", ".hgignore", ".hgtags", "_darcs"]) exclude(pattern);
+    }
+    else if (flag === "exclude-backups") {
+      for (const pattern of [".#*", "*~", "#*#"]) exclude(pattern);
+    }
+    else if (flag === "exclude-vcs-ignores") excludeVcsIgnores = true;
     else if (flag === "exclude-caches") excludeCaches = true;
     else if (flag === "no-recursion") recursion = false;
     else if (flag === "recursion") recursion = true;
@@ -287,7 +296,7 @@ export async function parseOptions(context: CommandContext, limits: ArchiveLimit
       : archive.endsWith(".xz") || archive.endsWith(".txz") ? "xz"
       : archive.endsWith(".zst") || archive.endsWith(".tzst") ? "zstd" : undefined;
   }
-  return { mode, archive, ...(compression ? { compression } : {}), ...(compressionLevel !== undefined ? { compressionLevel } : {}), verbose, toStdout, utc, recordSize, ignoreZeros, totals, quotingStyle, showTransformedNames, transforms, strip, format, cwd, operands, excludes, sort, dereference, excludeCaches, recursion, wildcards, ...(occurrence !== undefined ? { occurrence } : {}), metadata, overwrite };
+  return { mode, archive, ...(compression ? { compression } : {}), ...(compressionLevel !== undefined ? { compressionLevel } : {}), verbose, toStdout, utc, recordSize, ignoreZeros, totals, quotingStyle, showTransformedNames, transforms, strip, format, cwd, operands, excludes, sort, dereference, excludeCaches, excludeVcsIgnores, recursion, wildcards, ...(occurrence !== undefined ? { occurrence } : {}), metadata, overwrite };
 }
 
 function unquoteFileName(name: string): string {
@@ -355,7 +364,7 @@ function tokenize(pattern: string): Token[] {
 export class Exclusions {
   private readonly patterns: Token[][];
   private work = 0;
-  constructor(patterns: readonly string[], readonly maxWork = Infinity, private readonly anchored = false) { this.patterns = patterns.map(pattern => tokenize(anchored ? pattern : exclusionName(pattern))); }
+  constructor(patterns: readonly string[], readonly maxWork: number | { remaining: number } = Infinity, private readonly anchored = false, private readonly pathname = false) { this.patterns = patterns.map(pattern => tokenize(anchored ? pattern : exclusionName(pattern))); }
   matches(name: string, count = this.patterns.length): boolean {
     const characters = Array.from(this.anchored ? name : exclusionName(name));
     for (let pattern = 0; pattern < count; pattern++) {
@@ -365,20 +374,25 @@ export class Exclusions {
       if (!this.anchored) for (let index = 0; index < characters.length; index++) if (characters[index] === "/") states[index + 1] = 1;
       for (const token of tokens) {
         this.work += characters.length + 1;
-        if (this.work > this.maxWork) fail("exclude pattern work limit exceeded");
+        if (typeof this.maxWork === "number") {
+          if (this.work > this.maxWork) fail("exclude pattern work limit exceeded");
+        } else {
+          this.maxWork.remaining -= characters.length + 1;
+          if (this.maxWork.remaining < 0) fail("exclude pattern work limit exceeded");
+        }
         const next = new Uint8Array(states.length);
         for (let index = 0; index < states.length; index++) {
-          if (token.kind === "star") next[index] = states[index]! || (index > 0 ? next[index - 1]! : 0);
+          if (token.kind === "star") next[index] = states[index]! || (index > 0 && (!this.pathname || characters[index - 1] !== "/") ? next[index - 1]! : 0);
           else if (states[index] && index < characters.length) {
             const character = characters[index]!;
             const matches = token.kind === "any" || (token.kind === "literal" ? token.value === character
               : token.ranges.some(([first, last]) => character.codePointAt(0)! >= first && character.codePointAt(0)! <= last) !== token.negative);
-            if (matches) next[index + 1] = 1;
+            if (matches && (!this.pathname || character !== "/" || token.kind === "literal")) next[index + 1] = 1;
           }
         }
         states = next;
       }
-      for (let index = 0; index < states.length; index++) if (states[index] && (index === characters.length || characters[index] === "/")) return true;
+      for (let index = 0; index < states.length; index++) if (states[index] && (index === characters.length || (!this.pathname && characters[index] === "/"))) return true;
     }
     return false;
   }

@@ -7,6 +7,74 @@ import { createCommandArguments, toByteSource, type CommandDefinition, type File
 import { createTarCommand, createTarCommands, tarCommands } from "./index.js";
 import { headerBytes, paxRecord, parseHeader } from "./format.js";
 
+test("tar excludes VCS metadata and backup files from a source tree", async () => {
+  const fs = createMemoryFileSystem();
+  for (const dir of ["/s/.git", "/s/src"]) await fs.mkdir(dir, { recursive: true });
+  for (const name of [".gitignore", ".git/c", "src/f", "x~", ".#lock", "#autosave#"]) await fs.writeFile(`/s/${name}`, new Uint8Array());
+  const created = await run(createTarCommand(), ["cf", "t.tar", "--exclude-vcs", "--exclude-backups", "s"], "", fs);
+  assert.deepEqual(created, { exitCode: 0, stdout: "", stderr: "" });
+  const listed = await run(createTarCommand(), ["tf", "t.tar"], "", fs);
+  assert.equal(listed.exitCode, 0, listed.stderr);
+  assert.equal(listed.stdout.trimEnd().split("\n").sort().join("\n"), "s/\ns/src/\ns/src/f");
+});
+
+for (const [file, contents, excluded, retained] of [
+  [".gitignore", "# comment\n*.log\n\\#secret\n", ["a.log", "#secret", "sub/a.log"], ["keep", "sub/keep"]],
+  [".cvsignore", "*.log *.tmp\n", ["a.log", "a.tmp"], ["sub/a.log", "keep"]],
+  [".bzrignore", "*.log\n!keep.log\nRE:.*[.]tmp$\n", ["a.log", "a.tmp", "sub/a.log"], ["keep.log", "sub/keep.log"]],
+  [".hgignore", "# comment\n.*[.]tmp$\nsyntax: glob\n*.log\n", ["a.tmp", "sub/a.tmp", "a.log"], ["keep", "sub/keep"]],
+] as const) test(`tar reads ${file} with --exclude-vcs-ignores`, async () => {
+  const fs = createMemoryFileSystem();
+  await fs.mkdir("/s/sub", { recursive: true });
+  await fs.mkdir("/other");
+  await fs.writeFile(`/s/${file}`, new TextEncoder().encode(contents));
+  for (const name of [...excluded, ...retained]) await fs.writeFile(`/s/${name}`, new Uint8Array());
+  await fs.writeFile("/other/a.log", new Uint8Array());
+  const created = await run(createTarCommand(), ["cf", "t.tar", "--exclude-vcs-ignores", "s", "other"], "", fs);
+  assert.equal(created.exitCode, 0, created.stderr);
+  const listed = await run(createTarCommand(), ["tf", "t.tar"], "", fs);
+  assert.equal(listed.exitCode, 0, listed.stderr);
+  const names = listed.stdout.trimEnd().split("\n");
+  for (const name of excluded) assert.ok(!names.includes(`s/${name}`), name);
+  for (const name of [...retained, file]) assert.ok(names.includes(`s/${name}`), name);
+  assert.ok(names.includes("other/a.log"));
+});
+
+test("tar honors trailing slashes in Mercurial directory ignores", async () => {
+  const fs = createMemoryFileSystem();
+  await fs.mkdir("/s/build", { recursive: true });
+  await fs.writeFile("/s/build/output", new Uint8Array());
+  await fs.writeFile("/s/.hgignore", new TextEncoder().encode("syntax: glob\nbuild/\n"));
+  const result = await run(createTarCommand(), ["cf", "t.tar", "--exclude-vcs-ignores", "s"], "", fs);
+  assert.equal(result.exitCode, 0, result.stderr);
+  assert.equal((await run(createTarCommand(), ["tf", "t.tar"], "", fs)).stdout, "s/\ns/.hgignore\n");
+});
+
+test("tar reads nested ignore files even when excluding VCS metadata", async () => {
+  const fs = createMemoryFileSystem();
+  await fs.mkdir("/s/sub", { recursive: true });
+  await fs.mkdir("/s/other");
+  await fs.writeFile("/s/sub/.gitignore", new TextEncoder().encode("hidden\n"));
+  for (const name of ["sub/hidden", "sub/keep", "other/hidden"]) await fs.writeFile(`/s/${name}`, new Uint8Array());
+  const result = await run(createTarCommand(), ["cf", "t.tar", "--sort=name", "--exclude-vcs", "--exclude-vcs-ignores", "s"], "", fs);
+  assert.equal(result.exitCode, 0, result.stderr);
+  assert.equal((await run(createTarCommand(), ["tf", "t.tar"], "", fs)).stdout, "s/\ns/other/\ns/other/hidden\ns/sub/\ns/sub/keep\n");
+});
+
+for (const [limits, contents, diagnostic] of [
+  [{ maxFilesFromBytes: 4 }, "abc\n", "VCS ignore file byte limit"],
+  [{ maxMembers: 8 }, "a\nb\nc\nd\ne\n", "exclude pattern limit"],
+  [{ maxPatternSteps: 2 }, "*.log\n", "exclude pattern work limit"],
+] as const) test(`tar bounds VCS ignores: ${diagnostic}`, async () => {
+  const fs = createMemoryFileSystem();
+  await fs.mkdir("/s/sub", { recursive: true });
+  for (const dir of ["/s", "/s/sub"]) await fs.writeFile(`${dir}/.gitignore`, new TextEncoder().encode(contents));
+  const result = await run(createTarCommand({ limits }), ["cf", "t.tar", "--exclude-vcs-ignores", "s"], "", fs);
+  assert.equal(result.exitCode, 2);
+  assert.ok(result.stderr.includes(diagnostic), result.stderr);
+  await assert.rejects(fs.stat("/t.tar"));
+});
+
 for (const trailing of ["junk", "padding", "archive"] as const) {
   for (const mode of ["tf", "xOf"]) test(`tar ${mode} ignores trailing ${trailing} after the end marker`, async () => {
     const fs = createMemoryFileSystem();
@@ -334,7 +402,7 @@ for (const mode of ["c", "r", "u"]) test(`tar ${mode} applies exclusions positio
   assert.equal((await run(createTarCommand(), ["-tf", "/out.tar"], "", fs)).stdout, "pkg1/\npkg1/a.tmp\npkg1/b.txt\npkg2/\npkg2/b.txt\n");
 });
 
-for (const exclusion of [["--exclude=*.tmp"], ["--exclude", "*.tmp"], ["-X", "/excludes"], ["--exclude-from=/excludes"]]) {
+for (const exclusion of [["--exclude=*.tmp"], ["--exclude", "*.tmp"], ["-X", "/excludes"], ["--exclude-from=/excludes"], ["--exclude-backups"], ["--exclude-vcs"]]) {
   for (const position of [0, 1, 2]) test(`tar scopes ${exclusion[0]} at operand position ${position}`, async () => {
     const fs = createMemoryFileSystem();
     await fs.writeFile("/excludes", new TextEncoder().encode("*.tmp\n"));
@@ -343,6 +411,8 @@ for (const exclusion of [["--exclude=*.tmp"], ["--exclude", "*.tmp"], ["-X", "/e
       await fs.writeFile(`/${dir}/a.tmp`, new Uint8Array([1]));
       await fs.writeFile(`/${dir}/b.txt`, new Uint8Array([2]));
     }
+    const omitted = exclusion[0] === "--exclude-backups" ? "a~" : exclusion[0] === "--exclude-vcs" ? ".gitignore" : "a.tmp";
+    if (omitted !== "a.tmp") for (const dir of ["one", "two"]) await fs.rename(`/${dir}/a.tmp`, `/${dir}/${omitted}`);
     const operands = ["one", "two"];
     operands.splice(position, 0, ...exclusion);
     const created = await run(createTarCommand(), ["-cf", "/out.tar", "--sort=name", ...operands], "", fs);
@@ -350,7 +420,7 @@ for (const exclusion of [["--exclude=*.tmp"], ["--exclude", "*.tmp"], ["-X", "/e
     const listed = await run(createTarCommand(), ["-tf", "/out.tar"], "", fs);
     assert.equal(listed.exitCode, 0, listed.stderr);
     assert.equal(listed.stdout, ["one", "two"].flatMap((dir, index) => [
-      `${dir}/`, ...(index < position ? [`${dir}/a.tmp`] : []), `${dir}/b.txt`,
+      `${dir}/`, ...(index < position ? [`${dir}/${omitted}`] : []), `${dir}/b.txt`,
     ]).join("\n") + "\n");
   });
 }

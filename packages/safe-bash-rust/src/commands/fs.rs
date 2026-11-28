@@ -1351,6 +1351,7 @@ struct CopyReport<'a> {
     stdout: String,
     stderr: String,
     declined: bool,
+    destinations: BTreeMap<String, Option<EntryIdentity>>,
 }
 
 fn display_operand(path: &str) -> String {
@@ -1565,6 +1566,22 @@ fn copy_entry(
         && !report.confirm(display.1)?
     {
         return Ok(());
+    }
+    // Only top-level operands collide: recursive directory operands may merge.
+    if !directory
+        && ancestors.is_empty()
+        && !matches!(settings.backup, Some((BackupMode::Numbered, _)))
+        && let CopyPass::Publish(report) = &pass
+        && report
+            .destinations
+            .get(dst)
+            .is_some_and(|prior| prior.is_none() || *prior != st.identity)
+    {
+        return Err(format!(
+            "will not overwrite just-created {} with {}",
+            shell_quoted_operand(display.1),
+            shell_quoted_operand(display.0)
+        ));
     }
     if preserve_link && settings.timestamps && !settings.archive {
         return Err(format!("ENOTSUP: operation not supported, utimes '{dst}'"));
@@ -1851,6 +1868,9 @@ fn copy_entry(
         links.targets.insert(target, id);
     }
     if let CopyPass::Publish(report) = pass {
+        if !directory && ancestors.is_empty() {
+            report.destinations.insert(dst.to_owned(), st.identity);
+        }
         report.copied(display);
     }
     Ok(())
@@ -2138,6 +2158,7 @@ fn cmd_cp(
         stdout: String::new(),
         stderr: String::new(),
         declined: false,
+        destinations: BTreeMap::new(),
     };
     let mut code = 0;
     settings.links = preserve_links.then(CopyLinks::default);

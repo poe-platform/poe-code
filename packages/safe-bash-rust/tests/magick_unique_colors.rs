@@ -1,4 +1,4 @@
-use safe_bash_rust::{BackendMode, ExecOptions, MemoryVfs, Shell, ShellOptions};
+use safe_bash_rust::{BackendMode, ExecOptions, MemoryVfs, SafeBashFs, Shell, ShellOptions};
 use std::sync::Arc;
 
 #[test]
@@ -34,15 +34,11 @@ fn unique_colors_preserves_distinct_samples_and_operation_order() {
             "010101ff000000ff\n",
         ),
         (
-            "xc:#ff0000ff xc:#ff000000 xc:#ff000080 xc:#ff000000 +append",
+            "/alpha.png",
             "-unique-colors -unique-colors",
             "ff000000ff000080ff0000ff\n",
         ),
-        (
-            "xc:#ff0000ff xc:#ff000000 +append",
-            "-alpha off -unique-colors",
-            "ff0000ff\n",
-        ),
+        ("/alpha.png", "-alpha off -unique-colors", "ff0000ff\n"),
         (
             "-size 3x2 xc:#808080",
             "-colorspace Gray -unique-colors",
@@ -64,7 +60,19 @@ fn unique_colors_preserves_distinct_samples_and_operation_order() {
             "ff0000ff0000ffff\n",
         ),
     ] {
-        let (mut shell, _) = Shell::with_memory_fs();
+        let (mut shell, fs) = Shell::with_memory_fs();
+        if input == "/alpha.png" {
+            fs.write_file(
+                input,
+                &terminal_png_rust::png::encode(
+                    4,
+                    1,
+                    &[255, 0, 0, 255, 255, 0, 0, 0, 255, 0, 0, 128, 255, 0, 0, 0],
+                )
+                .unwrap(),
+            )
+            .unwrap();
+        }
         let result = shell
             .exec(&format!(
                 "magick {input} {operations} -depth 8 rgba:/out && xxd -p /out"

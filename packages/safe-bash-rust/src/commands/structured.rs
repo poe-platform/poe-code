@@ -37415,6 +37415,8 @@ fn parse_pandoc_html(input: &str) -> Option<Vec<PandocBlock>> {
 fn parse_pandoc_latex(input: &str) -> Option<Vec<PandocBlock>> {
     let mut text = String::with_capacity(input.len());
     let mut chars = input.chars();
+    let mut in_document = false;
+    let mut group_depth = 0usize;
     while let Some(ch) = chars.next() {
         match ch {
             '%' => {
@@ -37426,8 +37428,28 @@ fn parse_pandoc_latex(input: &str) -> Option<Vec<PandocBlock>> {
                 }
             }
             '\\' => {
-                text.push(ch);
                 let rest = chars.as_str();
+                if group_depth == 0 {
+                    if !in_document
+                        && let Some(body) = rest
+                            .strip_prefix("begin")
+                            .and_then(|rest| rest.trim_start().strip_prefix("{document}"))
+                    {
+                        // The preamble configures the document; it is not body prose.
+                        text.clear();
+                        in_document = true;
+                        chars = body.chars();
+                        continue;
+                    }
+                    if in_document
+                        && rest
+                            .strip_prefix("end")
+                            .is_some_and(|rest| rest.trim_start().starts_with("{document}"))
+                    {
+                        break;
+                    }
+                }
+                text.push(ch);
                 if let Some(after) = rest.strip_prefix("verb")
                     && let Some((_, consumed)) = pandoc_latex::verbatim(after)
                 {
@@ -37436,6 +37458,14 @@ fn parse_pandoc_latex(input: &str) -> Option<Vec<PandocBlock>> {
                 } else if let Some(escaped) = chars.next() {
                     text.push(escaped);
                 }
+            }
+            '{' => {
+                group_depth += 1;
+                text.push(ch);
+            }
+            '}' => {
+                group_depth = group_depth.saturating_sub(1);
+                text.push(ch);
             }
             _ => text.push(ch),
         }

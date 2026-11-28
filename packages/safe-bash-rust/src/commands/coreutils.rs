@@ -7701,6 +7701,27 @@ fn apply_bc_binop(l: &BcVal, r: &BcVal, op: &str, bc: &mut BcEnv) -> BcVal {
             scale,
         };
     }
+    if op == "^"
+        && r.val >= 0.0
+        && let Some(la) = &l.coefficient
+    {
+        let exp = r.val.trunc() as u32;
+        let raw_scale = l.scale * exp as usize;
+        let scale = raw_scale.min(bc.scale.max(l.scale));
+        let mut digits = big_pow(la, exp);
+        digits.truncate(digits.len().saturating_sub(raw_scale - scale));
+        big_trim(&mut digits);
+        let neg = l.neg && exp % 2 == 1 && digits != [0];
+        let val = format_big_with_scale(&digits, scale, neg)
+            .parse::<f64>()
+            .unwrap_or(0.0);
+        return BcVal {
+            val,
+            coefficient: Some(digits),
+            neg,
+            scale,
+        };
+    }
     if let (Some(la), Some(ra)) = (&l.coefficient, &r.coefficient)
         && l.scale == 0
         && r.scale == 0
@@ -7745,21 +7766,6 @@ fn apply_bc_binop(l: &BcVal, r: &BcVal, op: &str, bc: &mut BcEnv) -> BcVal {
                     scale: 0,
                 };
             }
-            "^" => {
-                let exp = r.val.round().max(0.0) as u32;
-                let digits = big_pow(la, exp);
-                let neg = l.neg && (exp % 2 == 1);
-                let is_zero = digits.len() == 1 && digits[0] == 0;
-                let f = digits
-                    .iter()
-                    .fold(0.0f64, |acc, &d| acc * 10.0 + f64::from(d));
-                return BcVal {
-                    val: if neg && !is_zero { -f } else { f },
-                    coefficient: Some(digits),
-                    neg: neg && !is_zero,
-                    scale: 0,
-                };
-            }
             _ => {}
         }
     }
@@ -7793,7 +7799,15 @@ fn apply_bc_binop(l: &BcVal, r: &BcVal, op: &str, bc: &mut BcEnv) -> BcVal {
             let quotient = apply_bc_binop(l, r, "/", bc);
             BcVal::from_f64_scaled(lv - quotient.val * rv, l.scale.max(bc.scale + r.scale))
         }
-        "^" => BcVal::from_f64_scaled(lv.powf(rv), if l.scale == 0 { 0 } else { bc.scale }),
+        "^" => {
+            let exp = rv.trunc();
+            let scale = if exp < 0.0 {
+                bc.scale
+            } else {
+                (l.scale * exp as usize).min(bc.scale.max(l.scale))
+            };
+            BcVal::from_f64_scaled(lv.powf(exp), scale)
+        }
         _ => BcVal::default(),
     }
 }

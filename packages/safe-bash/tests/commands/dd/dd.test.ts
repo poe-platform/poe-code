@@ -6,7 +6,31 @@ import { createDeviceFileSystem } from "../../../src/fs/devices/index.js";
 import { Shell, ShellLimitError } from "../../../src/shell/index.js";
 import { streamCommands } from "../../../src/commands/streams.js";
 import { printfCommand } from "../../../src/commands/basic.js";
+import { agentCommands } from "../../../src/plugins/index.js";
 import { bytes, run } from "./helpers.js";
+
+for (const [script, stdout, output, size] of [
+  ["dd if=/dev/zero of=z bs=1M count=2 status=none; stat -c %s z", "2097152\n", "/work/z", 2097152],
+  ["dd if=/dev/urandom bs=1M count=1 status=none | wc -c", "1048576\n", undefined, undefined],
+  ["dd if=/dev/zero of=y bs=100k count=3 2>&1 | head -2", "3+0 records in\n3+0 records out\n", "/work/y", 307200],
+] as const) {
+  test(`dd fills large device blocks: ${script}`, async () => {
+    const fs = createMemoryFileSystem();
+    await fs.mkdir("/work");
+    const shell = new Shell({ fs, cwd: "/work" }).use(agentCommands());
+    try {
+      const result = await shell.exec(script);
+      assert.equal(result.exitCode, 0, result.stderr);
+      assert.equal(result.stderr, "");
+      assert.equal(result.stdout, stdout);
+      if (output !== undefined) {
+        const data = await fs.readFile(output);
+        assert.equal(data.byteLength, size);
+        assert.ok(data.every(byte => byte === 0));
+      }
+    } finally { await shell.dispose(); }
+  });
+}
 
 test("dd remains opt-in and executes through a real Shell", async () => {
   assert.equal(createDdCommand().name, "dd");

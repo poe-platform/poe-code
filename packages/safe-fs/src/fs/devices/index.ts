@@ -403,10 +403,12 @@ export class DeviceFileSystem implements FileSystem {
         stat: async stat => ({ ...stat }),
         read: async (_stat, buffer, _position, forwarded) => {
           if (resolved === nullPath) return 0;
-          const length = Math.min(buffer.byteLength, 65536);
-          await yieldAfterWrite(length, forwarded.signal);
-          buffer.set(readDeviceBytes(resolved, length));
-          return length;
+          for (let offset = 0; offset < buffer.byteLength; offset += 65536) {
+            const chunk = buffer.subarray(offset, offset + 65536);
+            await yieldAfterWrite(chunk.byteLength, forwarded.signal);
+            chunk.set(readDeviceBytes(resolved, chunk.byteLength));
+          }
+          return buffer.byteLength;
         },
         write: async (_stat, buffer, _position, forwarded) => {
           await yieldAfterWrite(buffer.byteLength, forwarded.signal);

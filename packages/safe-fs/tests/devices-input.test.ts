@@ -49,7 +49,34 @@ for (const name of ["zero", "random", "urandom"]) {
       await expect(fs.stat(invalid)).rejects.toMatchObject({ code: "ENOTDIR" });
     }
   });
+
+  it(`${name} fills large descriptor buffers through device aliases`, async () => {
+    const random = vi.spyOn(globalThis.crypto, "getRandomValues").mockImplementation(buffer => {
+      expect(buffer!.byteLength).toBeLessThanOrEqual(65536);
+      (buffer as Uint8Array).fill(37);
+      return buffer;
+    });
+    const backing = new MemoryFileSystem();
+    await backing.symlink(`/dev/${name}`, "/alias");
+    const descriptor = await createDeviceFileSystem(backing).open("/alias", { access: "read" });
+    try {
+      for (const size of [65536, 65537, 102400, 1048576]) {
+        const buffer = new Uint8Array(size).fill(255);
+        expect(await descriptor.read(buffer, null)).toBe(size);
+        expect(buffer.every(byte => byte === (name === "zero" ? 0 : 37))).toBe(true);
+      }
+    } finally { await descriptor.close(); random.mockRestore(); }
+  });
 }
+
+it("large device descriptor reads yield to timer cancellation", async () => {
+  const descriptor = await createDeviceFileSystem(new MemoryFileSystem()).open("/dev/zero", { access: "read" });
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(false), 0);
+  try {
+    await expect(descriptor.read(new Uint8Array(1048576), null, { signal: controller.signal })).rejects.toBe(false);
+  } finally { clearTimeout(timer); await descriptor.close(); }
+});
 
 it("lists all devices without duplicates and accounts for directory limits", async () => {
   const fs = createDeviceFileSystem(new MemoryFileSystem());

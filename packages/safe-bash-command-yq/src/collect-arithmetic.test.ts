@@ -5,6 +5,9 @@ import { createCommandArguments, toByteSource } from "safe-bash-contracts";
 import { createYqCommand } from "./index.js";
 
 for (const [expression, input, expected] of [
+  ['{"k": .[]}', "- 1\n- 2\n", "k: 1\nk: 2\n"],
+  ['{"n": .a[], "b": .b}', "a: [x, y]\nb: 1\n", "n: x\nb: 1\nn: y\nb: 1\n"],
+  ['{"a": .a[], "b": .b[]}', "a: [1, 2]\nb: [x, y]\n", "a: 1\nb: x\na: 1\nb: y\na: 2\nb: x\na: 2\nb: y\n"],
   ["[.[] | . * 2]", "- 1\n- 2\n", "- 2\n- 4\n"],
   ["[.a[] | . + 1]", "a: [1, 2, 3]\n", "- 2\n- 3\n- 4\n"],
   ["[.[] | . + .]", "[1, 2]\n", "- 2\n- 4\n"],
@@ -15,7 +18,7 @@ for (const [expression, input, expected] of [
   ["[(.a[], .b[]) + 1]", "a: [1, 2]\nb: [3, 4]\n", "- 2\n- 3\n- 4\n- 5\n"],
   ["[.a[] + .b[]]", "a: [1, 2]\nb: [10, 20]\n", "- 11\n- 21\n- 12\n- 22\n"],
 ] as const) {
-  test(`yq collects arithmetic results once: ${expression} on ${input.trim()}`, async () => {
+  test(`yq collects expression results: ${expression} on ${input.trim()}`, async () => {
     let stdout = "", stderr = "";
     const result = await createYqCommand().execute({
       command: "yq", ...createCommandArguments([expression]), cwd: "/work", env: {},

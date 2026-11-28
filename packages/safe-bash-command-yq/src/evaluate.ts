@@ -611,13 +611,20 @@ export class Evaluator {
       const output: Candidate[] = [];
       for (const input of inputs) {
         this.work.node();
-        const node = new yaml.YAMLMap();
+        let nodes = [new yaml.YAMLMap()];
         for (const field of expression.fields) {
           const key = (await next(field.key, [input], false))[0];
-          const candidate = (await next(field.value, [input], false))[0];
-          if (key && candidate) node.items.push(new yaml.Pair(await cloneNode(key.node, yaml, this.work), await cloneNode(candidate.node, yaml, this.work)));
+          const candidates = await next(field.value, [input], false);
+          if (!key || !candidates.length) continue;
+          const expanded: YAMLMap[] = [];
+          for (const node of nodes) for (const candidate of candidates) {
+            const result = await cloneNode(node, yaml, this.work) as YAMLMap;
+            result.items.push(new yaml.Pair(await cloneNode(key.node, yaml, this.work), await cloneNode(candidate.node, yaml, this.work)));
+            expanded.push(result);
+          }
+          nodes = expanded;
         }
-        if (node.items.length || !expression.fields.length) output.push(this.child(node, input));
+        for (const node of nodes) if (node.items.length || !expression.fields.length) output.push(this.child(node, input));
       }
       return output;
     }

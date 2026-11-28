@@ -26,6 +26,18 @@ test("standalone awk works with only portable filesystem and command contracts",
   assert.equal(result.stdout, "right\n");
 });
 
+for (const [name, program] of [
+  ["function parameters", "function f(x,\n   y) { return x + y }\nBEGIN { print f(1, 2) }"],
+  ["call arguments", "function f(x, y) { return x + y }\nBEGIN { print f(1,\n  2) }"],
+  ["parameters and arguments", "function f(x,\n   y) { return x + y }\nBEGIN { print f(1,\n  2) }"],
+  ["local parameters with comments and blank lines", "function f(x, # locals\n\n   y,\n   z) { y = 1; z = 2; return x + y + z }\nBEGIN { print f(0) }"],
+] as const) test(`awk allows newlines after commas in ${name}`, async () => {
+  const result = await run(createAwkCommand(), [program]);
+  assert.equal(result.exitCode, 0, result.stderr);
+  assert.equal(result.stdout, "3\n");
+  assert.equal(result.stderr, "");
+});
+
 for (const [args, input, expected] of [
   [["{ print $1 + 0 }"], "0x10\n", "0\n"],
   [["-v", "m=0x10", "BEGIN { print m + 0 }"], "", "0\n"],

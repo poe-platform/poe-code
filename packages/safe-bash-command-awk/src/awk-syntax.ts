@@ -165,7 +165,7 @@ export class AwkParser {
         if (program.functions.has(name) || Object.hasOwn(this.arities, name)) throw new ProgramError(`duplicate or reserved function '${name}'`);
         this.expect("(");
         const parameters: string[] = [];
-        if (!this.at(")")) do { parameters.push(this.name()); } while (this.accept(","));
+        if (!this.at(")")) do { parameters.push(this.name()); } while (this.accept(",") && (this.newlines(), true));
         this.expect(")"); this.newlines();
         if (new Set(parameters).size !== parameters.length) throw new ProgramError("duplicate function parameter");
         if (parameters.some(parameter => Object.hasOwn(this.arities, parameter))) throw new ProgramError("reserved function parameter");

@@ -303,9 +303,9 @@ function formatDecimalInBase(val: DecimalValue, obase: bigint): string {
 }
 
 interface Token {
-  type: "number" | "string" | "id" | "op" | "punct" | "semi" | "eof";
   line: number;
   newline?: boolean;
+  type: "number" | "string" | "id" | "op" | "punct" | "semi" | "eof";
   raw?: string;
   value?: string;
   name?: string;
@@ -313,14 +313,24 @@ interface Token {
 
 function tokenizeBc(source: string): Token[] {
   // A continued line joins tokens and comments, but belongs to a quoted string until print interprets it.
+  const continuations: number[] = [];
+  let removed = 0;
   const clean = source.includes("\\\n") || source.includes("\\\r\n")
     ? source.replace(/"[^"]*(?:"|$)|\/\*[\s\S]*?(?:\*\/|$)|#(?:\\\r?\n|[^\n])*|\\\r?\n/gu,
-        span => span.startsWith('"') ? span : span.replace(/\\\r?\n/gu, ""))
+        (span, offset: number) => span.startsWith('"') ? span : span.replace(/\\\r?\n/gu, (continuation, innerOffset: number) => {
+          continuations.push(offset + innerOffset - removed);
+          removed += continuation.length;
+          return "";
+        }))
     : source;
   const tokens: Token[] = [];
   let i = 0;
+  let scanned = 0;
+  let continued = 0;
   let line = 1;
   while (i < clean.length) {
+    for (; scanned < i; scanned++) if (clean[scanned] === "\n") line++;
+    while (continued < continuations.length && continuations[continued]! <= i) { line++; continued++; }
     const ch = clean[i]!;
     if (ch === " " || ch === "\t" || ch === "\r") {
       i++;
@@ -329,7 +339,6 @@ function tokenizeBc(source: string): Token[] {
     if (ch === "/" && clean[i + 1] === "*") {
       const end = clean.indexOf("*/", i + 2);
       if (end < 0) throw new Error("unterminated comment");
-      for (let j = i; j < end + 2; j++) if (clean[j] === "\n") line++;
       i = end + 2;
       continue;
     }
@@ -339,14 +348,13 @@ function tokenizeBc(source: string): Token[] {
       continue;
     }
     if (ch === "\n" || ch === ";") {
-      tokens.push({ type: "punct", value: ";", line: ch === "\n" ? ++line : line, newline: ch === "\n" });
+      tokens.push({ line: ch === "\n" ? line + 1 : line, newline: ch === "\n", type: "punct", value: ";" });
       i++;
       continue;
     }
     if (ch === '"') {
       const end = clean.indexOf('"', i + 1);
-      tokens.push({ type: "string", value: clean.slice(i + 1, end < 0 ? clean.length : end), line });
-      for (let j = i; j < (end < 0 ? clean.length : end); j++) if (clean[j] === "\n") line++;
+      tokens.push({ line, type: "string", value: clean.slice(i + 1, end < 0 ? clean.length : end) });
       i = end < 0 ? clean.length : end + 1;
       continue;
     }
@@ -366,7 +374,7 @@ function tokenizeBc(source: string): Token[] {
           break;
         }
       }
-      tokens.push({ type: "number", raw, line });
+      tokens.push({ line, type: "number", raw });
       continue;
     }
     if ((ch >= "a" && ch <= "z") || ch === "_") {
@@ -374,23 +382,23 @@ function tokenizeBc(source: string): Token[] {
       while (i < clean.length && ((clean[i]! >= "a" && clean[i]! <= "z") || (clean[i]! >= "0" && clean[i]! <= "9") || clean[i] === "_")) {
         name += clean[i++]!;
       }
-      tokens.push({ type: "id", name, line });
+      tokens.push({ line, type: "id", name });
       if (name === "quit") break;
       continue;
     }
     const two = clean.slice(i, i + 2);
     if (["++", "--", "+=", "-=", "*=", "/=", "%=", "^=", "==", "!=", "<=", ">=", "&&", "||"].includes(two)) {
-      tokens.push({ type: "op", value: two, line });
+      tokens.push({ line, type: "op", value: two });
       i += 2;
       continue;
     }
     if ("+-*/%^=<>!".includes(ch)) {
-      tokens.push({ type: "op", value: ch, line });
+      tokens.push({ line, type: "op", value: ch });
       i++;
       continue;
     }
     if ("(){}[],.".includes(ch)) {
-      tokens.push({ type: "punct", value: ch, line });
+      tokens.push({ line, type: "punct", value: ch });
       i++;
       continue;
     }
@@ -410,7 +418,6 @@ type Expr =
   | { kind: "call"; name: string; args: Expr[] };
 
 type Stmt =
-  | { kind: "syntax-error"; line: number }
   | { kind: "expr"; expr: Expr }
   | { kind: "print"; items: Expr[] }
   | { kind: "block"; stmts: Stmt[] }
@@ -426,14 +433,19 @@ type Stmt =
 
 class BcParser {
   private pos = 0;
+  private errorLine = 1;
   constructor(private readonly tokens: readonly Token[]) {}
 
   private peek(): Token | undefined {
-    return this.tokens[this.pos];
+    const token = this.tokens[this.pos];
+    if (token) this.errorLine = token.line;
+    return token;
   }
 
   private next(): Token | undefined {
-    return this.tokens[this.pos++];
+    const token = this.peek();
+    this.pos++;
+    return token;
   }
 
   private matchPunct(v: string): boolean {
@@ -454,25 +466,39 @@ class BcParser {
     return false;
   }
 
-  *parseProgram(): Generator<Stmt> {
+  *parseProgram(): Generator<Stmt | { kind: "syntaxError"; line: number }> {
+    let pending: Stmt[] = [];
     while (this.pos < this.tokens.length) {
       while (this.matchPunct(";")) { /* Consume statement separators. */ }
       if (this.pos >= this.tokens.length) break;
-      let stmt: Stmt;
+      const start = this.pos;
       try {
-        stmt = this.parseStmt();
+        pending.push(this.parseStmt());
       } catch (error) {
-        if (!(error instanceof Error) || error instanceof RangeError) throw error;
-        const token = this.tokens[Math.min(this.pos, this.tokens.length) - 1];
-        stmt = { kind: "syntax-error", line: token?.line ?? 1 };
-        // A consumed newline already is the recovery boundary.
-        if (!token?.newline) {
-          while (this.pos < this.tokens.length && !this.next()?.newline) { /* Discard the malformed line. */ }
+        if (!(error instanceof SyntaxError)) throw error;
+        pending = [];
+        const line = this.errorLine;
+        const failedAt = this.pos;
+        this.pos = start;
+        let braces = 0;
+        // Skip the failed line and any enclosing block, including a consumed newline.
+        while (this.pos < this.tokens.length) {
+          const token = this.tokens[this.pos++]!;
+          if (token.type === "punct" && token.value === "{") braces++;
+          if (token.type === "punct" && token.value === "}") braces = Math.max(0, braces - 1);
+          if (this.pos >= failedAt && token.newline && braces === 0) break;
         }
+        yield { kind: "syntaxError", line };
+        continue;
       }
-      yield stmt;
-      while (this.matchPunct(";")) { /* Consume statement separators. */ }
+      let newline = this.tokens[this.pos - 1]?.newline;
+      while (this.matchPunct(";")) newline ||= this.tokens[this.pos - 1]?.newline;
+      if (newline) {
+        yield* pending;
+        pending = [];
+      }
     }
+    yield* pending;
   }
 
   private parseStmt(): Stmt {
@@ -488,18 +514,18 @@ class BcParser {
     }
     if (this.matchId("define")) {
       const nameTok = this.next();
-      if (nameTok?.type !== "id") throw new Error("expected function name after define");
-      if (!this.matchPunct("(")) throw new Error("expected '(' after function name");
+      if (nameTok?.type !== "id") throw new SyntaxError("expected function name after define");
+      if (!this.matchPunct("(")) throw new SyntaxError("expected '(' after function name");
       const params: { name: string; array: boolean }[] = [];
       if (!this.matchPunct(")")) {
         while (true) {
           const p = this.next();
-          if (p?.type !== "id") throw new Error("expected parameter name");
+          if (p?.type !== "id") throw new SyntaxError("expected parameter name");
           const array = this.matchPunct("[");
-          if (array && !this.matchPunct("]")) throw new Error("expected ']' in parameter list");
+          if (array && !this.matchPunct("]")) throw new SyntaxError("expected ']' in parameter list");
           params.push({ name: p.name ?? "", array });
           if (this.matchPunct(")")) break;
-          if (!this.matchPunct(",")) throw new Error("expected ',' or ')' in parameter list");
+          if (!this.matchPunct(",")) throw new SyntaxError("expected ',' or ')' in parameter list");
         }
       }
       while (this.matchPunct(";")) { /* Consume statement separators. */ }
@@ -510,18 +536,18 @@ class BcParser {
       const names: { name: string; array: boolean }[] = [];
       while (true) {
         const p = this.next();
-        if (p?.type !== "id") throw new Error("expected variable name in auto");
+        if (p?.type !== "id") throw new SyntaxError("expected variable name in auto");
         const array = this.matchPunct("[");
-        if (array && !this.matchPunct("]")) throw new Error("expected ']' in auto");
+        if (array && !this.matchPunct("]")) throw new SyntaxError("expected ']' in auto");
         names.push({ name: p.name ?? "", array });
         if (!this.matchPunct(",")) break;
       }
       return { kind: "auto", names };
     }
     if (this.matchId("if")) {
-      if (!this.matchPunct("(")) throw new Error("expected '(' after if");
+      if (!this.matchPunct("(")) throw new SyntaxError("expected '(' after if");
       const cond = this.parseExpr();
-      if (!this.matchPunct(")")) throw new Error("expected ')' after if condition");
+      if (!this.matchPunct(")")) throw new SyntaxError("expected ')' after if condition");
       while (this.matchPunct(";")) { /* Consume statement separators. */ }
       const thenBranch = this.parseStmt();
       while (this.matchPunct(";")) { /* Consume statement separators. */ }
@@ -533,21 +559,21 @@ class BcParser {
       return { kind: "if", cond, thenBranch, ...(elseBranch ? { elseBranch } : {}) };
     }
     if (this.matchId("while")) {
-      if (!this.matchPunct("(")) throw new Error("expected '(' after while");
+      if (!this.matchPunct("(")) throw new SyntaxError("expected '(' after while");
       const cond = this.parseExpr();
-      if (!this.matchPunct(")")) throw new Error("expected ')' after while condition");
+      if (!this.matchPunct(")")) throw new SyntaxError("expected ')' after while condition");
       while (this.matchPunct(";")) { /* Consume statement separators. */ }
       const body = this.parseStmt();
       return { kind: "while", cond, body };
     }
     if (this.matchId("for")) {
-      if (!this.matchPunct("(")) throw new Error("expected '(' after for");
+      if (!this.matchPunct("(")) throw new SyntaxError("expected '(' after for");
       const init = this.peek()?.type === "punct" && this.peek()?.value === ";" ? undefined : this.parseExpr();
-      if (!this.matchPunct(";")) throw new Error("expected ';' in for");
+      if (!this.matchPunct(";")) throw new SyntaxError("expected ';' in for");
       const cond = this.peek()?.type === "punct" && this.peek()?.value === ";" ? undefined : this.parseExpr();
-      if (!this.matchPunct(";")) throw new Error("expected ';' in for");
+      if (!this.matchPunct(";")) throw new SyntaxError("expected ';' in for");
       const update = this.peek()?.type === "punct" && this.peek()?.value === ")" ? undefined : this.parseExpr();
-      if (!this.matchPunct(")")) throw new Error("expected ')' after for clauses");
+      if (!this.matchPunct(")")) throw new SyntaxError("expected ')' after for clauses");
       while (this.matchPunct(";")) { /* Consume statement separators. */ }
       const body = this.parseStmt();
       return {
@@ -587,7 +613,7 @@ class BcParser {
     const left = this.parseOr();
     const t = this.peek();
     if (t?.type === "op" && ["=", "+=", "-=", "*=", "/=", "%=", "^="].includes((t.value ?? ""))) {
-      if (left.kind !== "var") throw new Error("invalid assignment target");
+      if (left.kind !== "var") throw new SyntaxError("invalid assignment target");
       this.pos++;
       const right = this.parseAssign();
       return { kind: "assign", op: (t.value ?? ""), target: { name: ("name" in left ? left.name : ""), ...(left.index ? { index: left.index } : {}) }, right };
@@ -671,13 +697,13 @@ class BcParser {
 
   private parsePrimary(): Expr {
     const t = this.next();
-    if (!t) throw new Error("unexpected end of expression");
+    if (!t) throw new SyntaxError("unexpected end of expression");
     if (t.type === "number") return { kind: "num", raw: (t.raw ?? "") };
     if (t.type === "string") return { kind: "str", value: (t.value ?? "") };
     if (t.type === "punct" && (t.value ?? "") === ".") return { kind: "var", name: "last" };
     if (t.type === "punct" && (t.value ?? "") === "(") {
       const expr = this.parseExpr();
-      if (!this.matchPunct(")")) throw new Error("expected ')'");
+      if (!this.matchPunct(")")) throw new SyntaxError("expected ')'");
       return expr.kind === "assign" ? { ...expr, parenthesized: true } : expr;
     }
     if (t.type === "id") {
@@ -687,7 +713,7 @@ class BcParser {
           while (true) {
             args.push(this.parseExpr());
             if (this.matchPunct(")")) break;
-            if (!this.matchPunct(",")) throw new Error("expected ',' or ')' in function call");
+            if (!this.matchPunct(",")) throw new SyntaxError("expected ',' or ')' in function call");
           }
         }
         return { kind: "call", name: (t.name ?? ""), args };
@@ -695,12 +721,12 @@ class BcParser {
       if (this.matchPunct("[")) {
         if (this.matchPunct("]")) return { kind: "array", name: t.name ?? "" };
         const index = this.parseExpr();
-        if (!this.matchPunct("]")) throw new Error("expected ']'");
+        if (!this.matchPunct("]")) throw new SyntaxError("expected ']'");
         return { kind: "var", name: (t.name ?? ""), index };
       }
       return { kind: "var", name: (t.name ?? "") };
     }
-    throw new Error(`unexpected token '${"value" in t ? (t.value ?? "") : "raw" in t ? (t.raw ?? "") : (t.name ?? "")}'`);
+    throw new SyntaxError(`unexpected token '${"value" in t ? (t.value ?? "") : "raw" in t ? (t.raw ?? "") : (t.name ?? "")}'`);
   }
 }
 
@@ -1044,10 +1070,6 @@ export function createBcCommand(options: BcCommandsOptions = {}): CommandDefinit
     const execStmt = async (stmt: Stmt): Promise<void> => {
       { const p = tick(); if (p) await p; }
       switch (stmt.kind) {
-        case "syntax-error":
-          await writeText(context.stderr, `(standard_in) ${stmt.line}: syntax error\n`);
-          context.signal.throwIfAborted();
-          return;
         case "define":
           funcs.set(stmt.name, { params: stmt.params, body: stmt.body });
           return;
@@ -1148,6 +1170,12 @@ export function createBcCommand(options: BcCommandsOptions = {}): CommandDefinit
 
     const executeProgram = async (program: string): Promise<void> => {
       for (const s of new BcParser(tokenizeBc(program)).parseProgram()) {
+        if (s.kind === "syntaxError") {
+          context.signal.throwIfAborted();
+          await writeText(context.stderr, `(standard_in) ${s.line}: syntax error\n`);
+          context.signal.throwIfAborted();
+          continue;
+        }
         try {
           await execStmt(s);
         } catch (error) {

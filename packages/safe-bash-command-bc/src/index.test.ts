@@ -683,3 +683,22 @@ for (const [program, stdout] of [
     assert.deepEqual(await evaluate(program), { exitCode: 0, stdout, stderr: "" });
   });
 }
+
+for (const [program, stdout, line] of [
+  ["1+\n2+2\n3+3\n", "4\n6\n", 2],
+  ["1 +* 2\n3\n", "3\n", 1],
+  ["x=7\nx\nx=9; 1+*2; 99\nx\n", "7\n7\n", 3],
+  ["1+*2\ndefine f(x) {\nreturn x+1;\n}\nf(4)\n", "5\n", 1],
+  ["/* comment\ncomment */\n1+*2\n4\n", "4\n", 3],
+  ["1+\\\n*2\n3\n", "3\n", 2],
+  ["1+", "", 1],
+  ["x=7\nif(0) {\n1+*2\nx=9\n}\nx\n", "7\n", 3],
+  ["define f() {\n1+*2\nreturn 9\n}\n4\n", "4\n", 2],
+  ["x=7\n{\n1+\nx=9\n}\nx\n", "7\n", 4],
+] as const) {
+  test(`bc recovers from a syntax error in ${JSON.stringify(program)}`, async () => {
+    assert.deepEqual(await evaluate(program), {
+      exitCode: 0, stdout, stderr: `(standard_in) ${line}: syntax error\n`,
+    });
+  });
+}

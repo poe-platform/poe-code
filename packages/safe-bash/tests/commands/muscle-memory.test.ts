@@ -51,6 +51,22 @@ echo "s=0; for (i=1; i<=100; i++) s += i; s" | bc
   }
 });
 
+for (const prefix of ["", "set -e; "]) {
+  test(`bc syntax errors preserve pipeline status and following results with ${prefix || "default options"}`, async () => {
+    const fs = createMemoryFileSystem();
+    await fs.mkdir("/work", { recursive: true });
+    const shell = new Shell({ fs, cwd: "/work" }).use(agentCommands());
+    try {
+      const result = await shell.exec(prefix + String.raw`printf '1+\n2+2\n3+3\n' | bc; echo "st=$?"; printf '1 +* 2\n3\n' | bc; echo "st=$?"`);
+      assert.equal(result.stdout, "4\n6\nst=0\n3\nst=0\n");
+      assert.equal(result.stderr, "(standard_in) 2: syntax error\n(standard_in) 1: syntax error\n");
+      assert.equal(result.exitCode, 0);
+    } finally {
+      await shell.dispose();
+    }
+  });
+}
+
 test("sponge soaks all stdin before modifying target file in-place and supports -a", async () => {
   const fs = createMemoryFileSystem();
   const shell = new Shell({ fs, cwd: "/work" }).use(agentCommands({ muscleMemory: true }));

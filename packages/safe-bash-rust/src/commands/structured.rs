@@ -18602,29 +18602,41 @@ fn split_sql_aggregate_filter(expr: &str) -> Option<(&str, &str)> {
 
 fn sql_window_distribution(
     indices: &[usize],
-    position: usize,
-    cumulative: bool,
+    pos: usize,
+    percent_rank: bool,
     compare: impl Fn(usize, usize) -> std::cmp::Ordering,
 ) -> String {
-    let current = indices[position];
-    // Distribution functions use the entire partition, regardless of frame bounds.
-    let (numerator, denominator) = if cumulative {
-        (
-            indices.partition_point(|&row| compare(row, current) != std::cmp::Ordering::Greater),
-            indices.len(),
-        )
+    // The peer boundaries use the entire partition, regardless of the frame.
+    let count = indices.partition_point(|&row| {
+        let order = compare(row, indices[pos]);
+        if percent_rank {
+            order.is_lt()
+        } else {
+            !order.is_gt()
+        }
+    });
+    let denominator = indices.len() - usize::from(percent_rank);
+    let value = if denominator == 0 {
+        0.0
     } else {
-        (
-            indices.partition_point(|&row| compare(row, current) == std::cmp::Ordering::Less),
-            indices.len().saturating_sub(1).max(1),
-        )
+        count as f64 / denominator as f64
     };
-    let value = numerator as f64 / denominator as f64;
-    if value.fract() == 0.0 {
-        format!("{value:.1}")
-    } else {
-        value.to_string()
+    if value == 0.0 || value == 1.0 {
+        return format!("{value:.1}");
     }
+    // SQLite prints real values with 15 significant digits.
+    let exponent = value.log10().floor() as i32;
+    if exponent < -4 {
+        let scientific = format!("{value:.14e}");
+        let (mantissa, exponent) = scientific.split_once('e').unwrap();
+        let mantissa = mantissa.trim_end_matches('0');
+        let suffix = if mantissa.ends_with('.') { "0" } else { "" };
+        return format!("{mantissa}{suffix}e-{:0>2}", &exponent[1..]);
+    }
+    let precision = (14 - exponent) as usize;
+    format!("{value:.precision$}")
+        .trim_end_matches('0')
+        .to_string()
 }
 
 fn strip_sql_comments(sql: &str) -> String {
@@ -25780,7 +25792,7 @@ fn exec_sql_select_with_mode(
                                 sql_window_distribution(
                                     &p_indices,
                                     my_pos,
-                                    fn_up.starts_with("CUME_DIST("),
+                                    fn_up.starts_with("PERCENT_RANK("),
                                     cmp_rows,
                                 )
                             } else if fn_up.starts_with("RANK(") {
@@ -25995,7 +26007,7 @@ fn exec_sql_select_with_mode(
                             SqlWinFn::CumeDist | SqlWinFn::PercentRank => sql_window_distribution(
                                 &p_indices,
                                 my_pos,
-                                matches!(func, SqlWinFn::CumeDist),
+                                matches!(func, SqlWinFn::PercentRank),
                                 cmp_rows,
                             ),
                             SqlWinFn::Rank => {
@@ -26390,11 +26402,8 @@ fn exec_sql_aggregate_select(
         }
         let fn_part = e[..over_pos].trim();
         let fn_up = fn_part.to_ascii_uppercase();
-        let over_spec = e[over_pos + 5..]
-            .trim()
-            .trim_start_matches('(')
-            .trim_end_matches(')')
-            .trim();
+        let over_spec = e[over_pos + 5..].trim();
+        let over_spec = over_spec[1..over_spec.len() - 1].trim();
         let over_up = over_spec.to_ascii_uppercase();
         let part_expr: Option<String> = if let Some(pp) = over_up.find("PARTITION BY ") {
             let after_p = &over_spec[pp + 13..];
@@ -26408,7 +26417,14 @@ fn exec_sql_aggregate_select(
         };
         let mut order_exprs: Vec<(String, bool)> = Vec::new();
         if let Some(op) = over_up.find("ORDER BY ") {
-            let after_o = over_spec[op + 9..].trim();
+            let mut after_o = over_spec[op + 9..].trim();
+            let after_o_up = after_o.to_ascii_uppercase();
+            for frame_kw in [" ROWS ", " RANGE ", " GROUPS "] {
+                if let Some(fp) = after_o_up.find(frame_kw) {
+                    after_o = after_o[..fp].trim();
+                    break;
+                }
+            }
             for item in split_top_level_comma(after_o) {
                 let it = item.trim();
                 let it_up = it.to_ascii_uppercase();
@@ -26477,9 +26493,7 @@ fn exec_sql_aggregate_select(
             for (pos, &row_i) in p_indices.iter().enumerate() {
                 if pos > 0 && !order_exprs.is_empty() {
                     let prev_i = p_indices[pos - 1];
-                    let same = order_exprs
-                        .iter()
-                        .all(|(oe, _)| eval_grp_key(row_i, oe) == eval_grp_key(prev_i, oe));
+                    let same = cmp_rows(row_i, prev_i).is_eq();
                     if !same {
                         cur_rank = pos + 1;
                         cur_dense += 1;
@@ -26496,6 +26510,13 @@ fn exec_sql_aggregate_select(
                     )
                 } else if fn_up.starts_with("DENSE_RANK(") {
                     cur_dense.to_string()
+                } else if fn_up.starts_with("CUME_DIST(") || fn_up.starts_with("PERCENT_RANK(") {
+                    sql_window_distribution(
+                        &p_indices,
+                        pos,
+                        fn_up.starts_with("PERCENT_RANK("),
+                        cmp_rows,
+                    )
                 } else {
                     cur_rank.to_string()
                 };

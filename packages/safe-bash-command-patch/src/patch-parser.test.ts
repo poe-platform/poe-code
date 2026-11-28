@@ -8,6 +8,19 @@ const context = `${contextHeader}*** 1 ****\n! old\n--- 1 ----\n! new\n`;
 const unified = "--- target\n+++ target\n@@ -1 +1 @@\n-old\n+new\n";
 
 const formats = { normal, context, unified };
+for (const args of [["-p1"], ["--atomic", "-p1"]]) {
+  test(`git format-patch mail separator and diffstat ${args.join(" ")}`, async () => {
+    const input = "From abc Mon Sep 17 00:00:00 2001\nFrom: X <x@y>\nSubject: [PATCH] t\n\n"
+      + "---\n f | 2 +-\n 1 file changed\n\ndiff --git a/f b/f\nindex 1..2 100644\n"
+      + "--- a/f\n+++ b/f\n@@ -1 +1 @@\n-a\n+b\n-- \n2.40\n";
+    const result = await run("patch", args, { files: { f: "a\n" }, input });
+    assert.equal(result.stderr, "");
+    assert.equal(result.exitCode, 0);
+    assert.equal(result.stdout, "patching file f\n");
+    assert.equal(await contents(result.fs, "f"), "b\n");
+  });
+}
+
 for (const sequence of [
   ["normal", "context"], ["context", "unified"], ["unified", "normal"], ["context", "normal", "unified"],
 ] as const) {

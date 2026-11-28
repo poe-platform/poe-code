@@ -242,7 +242,7 @@ export async function parsePatchWith<Lines, Hunks = Hunk<Lines>[]>(text: string 
       if (!progress && patches.length && (await reader.peek(8))!.startsWith("-") && !(await reader.peek(8))!.startsWith("---")) {
         throw new ToolError("unexpected deletion outside a patch hunk");
       }
-      if (!/^(?:Index: |diff |index |---|\*\*\*|@@|[+\\<>]|\d)/u.test((await reader.peek(8))!)) {
+      if ((await reader.peek(8)) === "---" || !/^(?:Index: |diff |index |---|\*\*\*|@@|[+\\<>]|\d)/u.test((await reader.peek(8))!)) {
         await reader.take(8);
         skippedText = true;
         continue;

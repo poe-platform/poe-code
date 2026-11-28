@@ -29,6 +29,7 @@ fn sqlite_strict_failed_writes_preserve_persisted_rows() {
         "INSERT OR IGNORE INTO t VALUES(2,'wrong')",
         "INSERT OR REPLACE INTO t VALUES(1,'wrong')",
         "UPDATE t SET n='wrong' RETURNING n",
+        "WITH x(v) AS (SELECT 1) UPDATE t SET n='wrong' RETURNING n",
         "INSERT INTO t VALUES(1,2) ON CONFLICT(id) DO UPDATE SET n='wrong'",
         "CREATE TRIGGER bad AFTER INSERT ON source BEGIN INSERT INTO t VALUES(2,'wrong'); END; INSERT INTO source VALUES(1)",
         "CREATE TRIGGER bad AFTER UPDATE ON t BEGIN INSERT INTO t VALUES(2,'wrong'); END; UPDATE t SET n=2",

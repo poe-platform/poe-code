@@ -48,7 +48,7 @@ export async function manifest(context: CommandContext, options: TarOptions, bud
     let stat = options.mode === "c" ? await maybeStat(context, path) : await operation(context, () => context.fs.lstat(path, { signal: context.signal }));
     if (!stat) {
       missingMembers = true;
-      await budget.output(`tar: ${escapeText(display(name), "diagnostic")}: Cannot stat: No such file or directory\n`, true);
+      await budget.output(`tar: ${escapeText(display(name), "diagnostic")}: ${options.ignoreFailedRead ? "Warning: " : ""}Cannot stat: No such file or directory\n`, true);
       return;
     }
     if (stat.type === "symlink" && options.dereference) {

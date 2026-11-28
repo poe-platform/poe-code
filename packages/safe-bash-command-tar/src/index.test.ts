@@ -92,6 +92,18 @@ for (const trailing of ["junk", "padding", "archive"] as const) {
   });
 }
 
+for (const members of [["a", "nope"], ["nope", "a"], ["nope"]]) test(`tar --ignore-failed-read warns and succeeds: ${members.join(" ")}`, async () => {
+  const fs = createMemoryFileSystem();
+  await fs.writeFile("/a", new TextEncoder().encode("hi\n"));
+  const created = await run(createTarCommand(), ["cf", "t.tar", "--ignore-failed-read", ...members], "", fs);
+  assert.deepEqual(created, { exitCode: 0, stdout: "", stderr: "tar: nope: Warning: Cannot stat: No such file or directory\n" });
+  const listed = await run(createTarCommand(), ["tf", "t.tar"], "", fs);
+  assert.deepEqual(listed, { exitCode: 0, stdout: members.includes("a") ? "a\n" : "", stderr: "" });
+  if (members.includes("a")) {
+    assert.deepEqual(await run(createTarCommand(), ["xOf", "t.tar", "a"], "", fs), { exitCode: 0, stdout: "hi\n", stderr: "" });
+  }
+});
+
 for (const members of [["f", "nope"], ["nope", "f"], ["nope"]]) test(`tar publishes valid members despite missing inputs: ${members.join(" ")}`, async () => {
   const fs = createMemoryFileSystem();
   await fs.writeFile("/f", new TextEncoder().encode("1\n"));

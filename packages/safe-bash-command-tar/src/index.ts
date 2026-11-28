@@ -52,7 +52,7 @@ export function createTarCommand(options: ArchiveCommandsOptions = {}): CommandD
         } else {
           for await (const chunk of readBytes(source, signal)) await writeBytes(context.stdout, chunk, signal);
         }
-        if (prepared.missingMembers) {
+        if (prepared.missingMembers && !parsed.ignoreFailedRead) {
           await budget.output("tar: Exiting with failure status due to previous errors\n", true);
           return { exitCode: 2 };
         }
@@ -94,6 +94,7 @@ Create, read or modify USTAR/PAX archives in the virtual filesystem.
   -b, --blocking-factor=N  Use N 512-byte blocks per output record
       --record-size=SIZE  Set output record bytes (multiple of 512; K/M/G suffixes)
   -B, --read-full-records  Join short reads (always enabled for VFS streams)
+      --ignore-failed-read Warn instead of failing for missing creation inputs
   -i, --ignore-zeros       Read past zero blocks, including concatenated archives
   -n, --seek               Accept seekable input; VFS reads remain sequential
       --no-seek           Read sequentially

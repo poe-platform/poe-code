@@ -16,6 +16,7 @@ export interface TarOptions {
   utc: boolean;
   recordSize: number;
   ignoreZeros: boolean;
+  ignoreFailedRead: boolean;
   totals: boolean;
   quotingStyle: "literal" | "escape" | "c";
   showTransformedNames: boolean;
@@ -49,6 +50,7 @@ export async function parseOptions(context: CommandContext, limits: ArchiveLimit
   let utc = false;
   let recordSize = 512;
   let ignoreZeros = false;
+  let ignoreFailedRead = false;
   let totals = false;
   let quotingStyle: TarOptions["quotingStyle"] = "escape";
   let sort: TarOptions["sort"] = "none";
@@ -140,6 +142,7 @@ export async function parseOptions(context: CommandContext, limits: ArchiveLimit
     else if (flag === "utc") { utc = true; verbose = true; }
     else if (flag === "totals") totals = true;
     else if (flag === "i") ignoreZeros = true;
+    else if (flag === "ignore-failed-read") ignoreFailedRead = true;
     else if (flag === "B" || flag === "n" || flag === "no-seek" || flag === "force-local") {
       // VFS archives are always local byte streams; Reader already joins short reads
       // and consumes member bodies sequentially without requiring device seeking.
@@ -313,7 +316,7 @@ export async function parseOptions(context: CommandContext, limits: ArchiveLimit
     oneTopLevel = basename.slice(0, -suffix.length);
   }
   if (oneTopLevel !== undefined) checkPath(oneTopLevel, limits);
-  return { mode, archive, ...(oneTopLevel !== undefined ? { oneTopLevel } : {}), ...(compression ? { compression } : {}), ...(compressionLevel !== undefined ? { compressionLevel } : {}), verbose, toStdout, utc, recordSize, ignoreZeros, totals, quotingStyle, showTransformedNames, transforms, strip, format, cwd, operands, excludes, sort, dereference, excludeCaches, excludeVcsIgnores, recursion, wildcards, ...(occurrence !== undefined ? { occurrence } : {}), metadata, overwrite };
+  return { mode, archive, ...(oneTopLevel !== undefined ? { oneTopLevel } : {}), ...(compression ? { compression } : {}), ...(compressionLevel !== undefined ? { compressionLevel } : {}), verbose, toStdout, utc, recordSize, ignoreZeros, ignoreFailedRead, totals, quotingStyle, showTransformedNames, transforms, strip, format, cwd, operands, excludes, sort, dereference, excludeCaches, excludeVcsIgnores, recursion, wildcards, ...(occurrence !== undefined ? { occurrence } : {}), metadata, overwrite };
 }
 
 function unquoteFileName(name: string): string {

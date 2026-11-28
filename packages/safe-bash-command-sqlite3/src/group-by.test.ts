@@ -63,6 +63,20 @@ test("GROUP BY uses each joined column's declared collation", async () => {
   assert.deepEqual(JSON.parse(result.stdout), [{ a: "a", b: "X", n: 2 }, { a: "a", b: "x", n: 4 }]);
 });
 
+for (const { query, stdout } of [
+  { query: "SELECT a AS n, b FROM t WHERE n > 1", stdout: "2|y\n3|z\n" },
+  { query: "SELECT a + 1 AS n FROM t GROUP BY n HAVING n > 2", stdout: "3\n4\n" },
+  { query: "SELECT a + 1 AS N FROM t WHERE n > 2", stdout: "3\n4\n" },
+  { query: "SELECT a + 1 AS a FROM t WHERE a > 2", stdout: "4\n" },
+  { query: "SELECT a AS n, b FROM t WHERE n > 1; SELECT a + 1 AS n FROM t GROUP BY n HAVING n > 2", stdout: "2|y\n3|z\n3\n4\n" }
+]) {
+  test(`result aliases: ${query}`, async () => {
+    const result = await runSqlite3(createMemoryFileSystem(), [":memory:",
+      `CREATE TABLE t(a, b); INSERT INTO t VALUES(1,'x'),(2,'y'),(3,'z'); ${query};`]);
+    assert.deepEqual(result, { code: 0, stdout, stderr: "" });
+  });
+}
+
 async function runSqlite3(
   fs: FileSystem,
   args: string[]

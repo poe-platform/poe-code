@@ -5543,8 +5543,25 @@ export class SqliteDatabase {
 
     // Evaluate WHERE after resolving identifiers
     if (whereExpr) {
+      // Expand aliases into their expressions so affinity and collation survive.
+      // Keep the cached WHERE tree intact, and prefer source columns to aliases.
+      const predicate = structuredClone(whereExpr);
+      const pending = [predicate];
+      const sourceNames = new Set(Object.keys(bindings).map(name => name.toLowerCase()));
+      while (pending.length > 0) {
+        yield;
+        const expr = pending.pop()!;
+        if (expr.kind === "column" && !expr.table && !sourceNames.has(expr.name.toLowerCase())) {
+          const target = selectTargets.find(target => target.alias.toLowerCase() === expr.name.toLowerCase());
+          if (target) {
+            Object.assign(expr, target.expr);
+            continue;
+          }
+        }
+        pending.push(...expressionChildren(expr));
+      }
       workingRows = yield* stepFilter(workingRows, function* (row) {
-        return isTruthy(yield* this.evalExprSteps(whereExpr, row, positionalParams, cteScope));
+        return isTruthy(yield* this.evalExprSteps(predicate, row, positionalParams, cteScope));
       }, this);
     }
 

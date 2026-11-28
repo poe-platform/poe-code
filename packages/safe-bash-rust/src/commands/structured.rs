@@ -37387,8 +37387,29 @@ fn parse_pandoc_html(input: &str) -> Option<Vec<PandocBlock>> {
 }
 
 fn parse_pandoc_latex(input: &str) -> Option<Vec<PandocBlock>> {
+    let mut text = String::with_capacity(input.len());
+    let mut chars = input.chars();
+    while let Some(ch) = chars.next() {
+        match ch {
+            '%' => {
+                // A comment consumes its newline, allowing text and commands to continue.
+                for ch in chars.by_ref() {
+                    if ch == '\n' {
+                        break;
+                    }
+                }
+            }
+            '\\' => {
+                text.push(ch);
+                if let Some(escaped) = chars.next() {
+                    text.push(escaped);
+                }
+            }
+            _ => text.push(ch),
+        }
+    }
     let mut md_lines = Vec::new();
-    for line in input.lines() {
+    for line in text.lines() {
         let mut s = line.trim().to_string();
         if let Some(rest) = s.strip_prefix("\\section{")
             && let Some(end) = rest.find('}')

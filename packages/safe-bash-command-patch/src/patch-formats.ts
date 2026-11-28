@@ -279,6 +279,6 @@ export async function parsePatchWith<Lines, Hunks = Hunk<Lines>[]>(text: string 
       break;
     }
   }
-  if (skippedText && !patches.length && !progress?.error) throw new ToolError("no patch found");
+  if (skippedText && !patches.length && !progress?.error) throw new ToolError("**** Only garbage was found in the patch input.");
   return patches;
 }

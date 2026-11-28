@@ -25248,24 +25248,7 @@ fn exec_sql_select_with_mode(
         }
     }
 
-    // Find top-level FROM
-    let mut from_pos = None;
-    {
-        let mut depth = 0i32;
-        let bytes = upper.as_bytes();
-        let mut idx = 0usize;
-        while idx + 6 <= bytes.len() {
-            if bytes[idx] == b'(' {
-                depth += 1;
-            } else if bytes[idx] == b')' {
-                depth -= 1;
-            } else if depth == 0 && &bytes[idx..idx + 6] == b" FROM " {
-                from_pos = Some(idx);
-                break;
-            }
-            idx += 1;
-        }
-    }
+    let from_pos = split_top_level_sql_cmp(&upper, " FROM ").map(|(select, _)| select.len());
 
     let Some(from_pos) = from_pos else {
         let raw_exprs = split_top_level_comma(&stmt[6..]);
@@ -25478,12 +25461,11 @@ fn exec_sql_select_with_mode(
                 let expr_up = expr_s.to_ascii_uppercase();
                 if let Some(over_pos) = expr_up.find(" OVER")
                     && expr_s[over_pos + 5..].trim_start().starts_with('(')
-                    && expr_s[..over_pos].chars().filter(|&c| c == '(').count()
-                        == expr_s[..over_pos].chars().filter(|&c| c == ')').count()
                     && expr_s.trim_end().ends_with(')')
                     && is_matching_outer_delim(expr_s[over_pos + 5..].trim(), '(', ')')
                     && split_sql_aggregate_filter(expr_s[..over_pos].trim())
-                        .map_or(expr_s[..over_pos].trim(), |(base, _)| base)
+                        .map(|(aggregate, _)| aggregate)
+                        .unwrap_or(expr_s[..over_pos].trim())
                         .split_once('(')
                         .is_some_and(|(fname, rest)| {
                             !fname.is_empty()
@@ -25774,50 +25756,35 @@ fn exec_sql_select_with_mode(
                             if !before_trim.ends_with(')') {
                                 break;
                             }
-                            let fn_close = before_trim.len() - 1;
-                            let mut fdepth = 0i32;
-                            let mut fn_open = None;
-                            for idx in (0..=fn_close).rev() {
-                                if bytes[idx] == b')' {
-                                    fdepth += 1;
-                                } else if bytes[idx] == b'(' {
-                                    fdepth -= 1;
-                                    if fdepth == 0 {
-                                        fn_open = Some(idx);
-                                        break;
-                                    }
+                            let mut fn_close = before_trim.len() - 1;
+                            let fn_start = loop {
+                                let fn_open = (0..fn_close).find(|&idx| {
+                                    bytes[idx] == b'('
+                                        && find_matching_paren(&expanded_e[idx..=fn_close])
+                                            == Some(fn_close - idx)
+                                });
+                                let Some(fn_open) = fn_open else { break None };
+                                let name_end = expanded_e[..fn_open].trim_end().len();
+                                let mut fn_start = name_end;
+                                while fn_start > 0
+                                    && (bytes[fn_start - 1].is_ascii_alphanumeric()
+                                        || bytes[fn_start - 1] == b'_')
+                                {
+                                    fn_start -= 1;
                                 }
-                            }
-                            let Some(fn_open) = fn_open else { break };
-                            let mut fn_start = fn_open;
-                            while fn_start > 0
-                                && (bytes[fn_start - 1].is_ascii_alphanumeric()
-                                    || bytes[fn_start - 1] == b'_')
-                            {
-                                fn_start -= 1;
-                            }
-                            if expanded_e[fn_start..fn_open].eq_ignore_ascii_case("FILTER") {
-                                let aggregate_end = expanded_e[..fn_start].trim_end().len();
-                                let mut depth = 0;
-                                for idx in (0..aggregate_end).rev() {
-                                    if bytes[idx] == b')' {
-                                        depth += 1;
-                                    } else if bytes[idx] == b'(' {
-                                        depth -= 1;
-                                        if depth == 0 {
-                                            fn_start = idx;
-                                            while fn_start > 0
-                                                && (bytes[fn_start - 1].is_ascii_alphanumeric()
-                                                    || bytes[fn_start - 1] == b'_')
-                                            {
-                                                fn_start -= 1;
-                                            }
-                                            break;
-                                        }
-                                    }
+                                if expanded_e[fn_start..name_end].eq_ignore_ascii_case("FILTER") {
+                                    let Some(close) =
+                                        expanded_e[..fn_start].trim_end().len().checked_sub(1)
+                                    else {
+                                        break None;
+                                    };
+                                    fn_close = close;
+                                } else {
+                                    break Some(fn_start);
                                 }
-                            }
-                            let fn_part = expanded_e[fn_start..=fn_close].trim();
+                            };
+                            let Some(fn_start) = fn_start else { break };
+                            let fn_part = expanded_e[fn_start..before_trim.len()].trim();
                             let fn_up = fn_part.to_ascii_uppercase();
                             let over_spec = expanded_e[over_open + 1..over_close].trim();
                             let over_up = over_spec.to_ascii_uppercase();
@@ -25908,9 +25875,16 @@ fn exec_sql_select_with_mode(
                             let wval = if split_sql_aggregate_filter(fn_part).is_some() {
                                 let frame: Vec<&Vec<String>> = p_indices[start_pos..=end_pos]
                                     .iter()
-                                    .map(|&i| filtered[i])
+                                    .map(|&index| filtered[index])
                                     .collect();
-                                eval_sql_group_expr(fn_part, &tbl.columns, &frame, tables, 0, &overflow)
+                                eval_sql_group_expr(
+                                    fn_part,
+                                    &tbl.columns,
+                                    &frame,
+                                    tables,
+                                    0,
+                                    &overflow,
+                                )
                             } else if fn_up.starts_with("ROW_NUMBER(") {
                                 (my_pos + 1).to_string()
                             } else if fn_up.starts_with("CUME_DIST(")
@@ -26123,14 +26097,21 @@ fn exec_sql_select_with_mode(
                             (0, ep)
                         };
                         let wval = match func {
-                            SqlWinFn::FilteredAggregate(expr) => {
+                            SqlWinFn::FilteredAggregate(expression) => {
                                 let frame: Vec<&Vec<String>> = p_indices
+                                    .get(start_pos..=end_pos)
+                                    .unwrap_or_default()
                                     .iter()
-                                    .take(end_pos + 1)
-                                    .skip(start_pos)
-                                    .map(|&i| filtered[i])
+                                    .map(|&index| filtered[index])
                                     .collect();
-                                eval_sql_group_expr(expr, &tbl.columns, &frame, tables, 0, &overflow)
+                                eval_sql_group_expr(
+                                    expression,
+                                    &tbl.columns,
+                                    &frame,
+                                    tables,
+                                    0,
+                                    &overflow,
+                                )
                             }
                             SqlWinFn::RowNumber => (my_pos + 1).to_string(),
                             SqlWinFn::CumeDist | SqlWinFn::PercentRank => sql_window_distribution(
@@ -26370,6 +26351,9 @@ fn exec_sql_select_with_mode(
         .take(limit)
         .map(|(_, vals)| vals)
         .collect();
+    if overflow.get() {
+        return "\x00RAISE_ERR:integer overflow".to_string();
+    }
     format_sql_result_rows(
         &proj_headers,
         &only_rows,
@@ -28538,6 +28522,26 @@ fn split_sql_case_branches(inner: &str) -> (Option<&str>, Vec<(&str, &str)>, Opt
         if b.is_empty() { None } else { Some(b) }
     });
     (base_expr, branches, else_branch)
+}
+
+fn split_sql_aggregate_filter(expression: &str) -> Option<(&str, &str)> {
+    let open = expression.find('(')?;
+    let close = open + find_matching_paren(&expression[open..])?;
+    let suffix = expression[close + 1..].trim();
+    if !suffix.get(..6)?.eq_ignore_ascii_case("FILTER") {
+        return None;
+    }
+    let filter = suffix[6..].trim();
+    if !filter.starts_with('(') || find_matching_paren(filter)? != filter.len() - 1 {
+        return None;
+    }
+    let predicate = filter[1..filter.len() - 1].trim();
+    if !predicate.get(..5)?.eq_ignore_ascii_case("WHERE")
+        || !(predicate[5..].starts_with(char::is_whitespace) || predicate[5..].starts_with('('))
+    {
+        return None;
+    }
+    Some((&expression[..=close], predicate[5..].trim()))
 }
 
 fn eval_sql_group_expr(

@@ -11,6 +11,7 @@ export interface CompressionOptions {
   xzFlushTimeout?: number;
   xzList?: boolean;
   gzipList?: boolean;
+  zstdList?: boolean;
   xzRobot?: boolean;
   xzVerbose?: number;
   bzip2Verbose?: boolean;
@@ -280,9 +281,10 @@ export function createOptionsParser(profiles: readonly CompressionProfile[]): (c
           break;
         case "l":
           if (profile.format === "gzip") { result.gzipList = true; result.decompress = true; result.stdout = true; break; }
+          if (profile.format === "zstd") { result.zstdList = true; result.test = false; break; }
           if (profile.format !== "xz") throw new UsageError(`invalid option -- '${flag}'`);
           result.xzList = true; result.test = false; break;
-        case "d": result.decompress = true; delete result.xzList; break;
+        case "d": result.decompress = true; delete result.xzList; delete result.zstdList; break;
         case "z":
           if (profile.format !== "bzip2" && profile.format !== "xz" && profile.format !== "zstd") {
             throw new UsageError(`invalid option -- '${flag}'`);
@@ -290,6 +292,7 @@ export function createOptionsParser(profiles: readonly CompressionProfile[]): (c
           result.decompress = false;
           result.test = false;
           delete result.xzList;
+          delete result.zstdList;
           break;
         case "s":
           if (profile.format !== "bzip2") throw new UsageError(`invalid option -- '${flag}'`);
@@ -297,7 +300,7 @@ export function createOptionsParser(profiles: readonly CompressionProfile[]): (c
           break;
         case "k": result.keep = true; break;
         case "f": result.force = true; break;
-        case "t": result.test = true; result.decompress = true; delete result.xzList; break;
+        case "t": result.test = true; result.decompress = true; delete result.xzList; delete result.zstdList; break;
         case "h": result.help = true; break;
         case "q":
           result.quiet = profile.format === "gzip" || profile.format === "bzip2" ? 1 : result.quiet + 1;
@@ -327,7 +330,7 @@ export function createOptionsParser(profiles: readonly CompressionProfile[]): (c
     throw new UsageError("the LZMA format supports only --check=none");
   }
   if (!result.operands.length) result.operands.push("-");
-  if (result.xzList || command === profile.names[2] && !(profile.format === "bzip2" && result.test)) result.stdout = true;
+  if (result.xzList || result.zstdList || command === profile.names[2] && !(profile.format === "bzip2" && result.test)) result.stdout = true;
   if (result.xzList && result.xzFormat !== undefined && result.xzFormat !== "auto" && result.xzFormat !== "xz") throw new UsageError("--list works only on .xz files (--format=xz or --format=auto)");
   if (result.xzRobot && !result.xzList) throw new UsageError("robot mode is only supported for --list");
   return result;

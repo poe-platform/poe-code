@@ -1,4 +1,4 @@
-import { commandRuntimeIdentity, withInputByteBudget, type CommandDefinition, type VirtualShellPlugin } from "safe-bash-contracts";
+import { commandRuntimeIdentity, createBufferedOutput, withInputByteBudget, type CommandDefinition, type VirtualShellPlugin } from "safe-bash-contracts";
 import { PublicDiagnostic, publicDiagnosticMessage } from "safe-bash-contracts/diagnostics";
 import { writeDiagnostic } from "safe-bash-contracts/escaping";
 import { define } from "safe-bash-io-engine/internal";
@@ -7,6 +7,7 @@ import { planOperands, verifyOperandDestinations } from "safe-bash-compression-e
 import { createOptionsParser, formats } from "safe-bash-compression-engine/options";
 import { runOperand } from "safe-bash-compression-engine/operand";
 import { DecodedBudget, type CompressionCommandOptions } from "safe-bash-compression-engine/stream";
+import { formatZstdListing, inspectZstd, type ZstdListing } from "./list.js";
 
 export type { CompressionCommandOptions } from "safe-bash-compression-engine/stream";
 export interface ZstdLimits { readonly maxDecodedBytes: number; }
@@ -25,7 +26,7 @@ export function createZstdCommand(config: ZstdCommandsOptions = {}, name: typeof
   const command = define(name, async (context) => {
     const options = parseZstdOptions(name, context.args);
     if (options.help) {
-      await output(context, `Usage: ${name} [OPTION]... [FILE]...\n-c, --stdout, --to-stdout\n-d, --decompress, --uncompress\n-o FILE (use - for stdout)\n-k, --keep\n-f, --force\n-t, --test\n-1..-9, --best\nHigher levels and --fast[=NUM] are unsupported by the bounded codec.\n-q, --quiet (repeat to suppress errors)\nDefault compression level: ${options.level}.\n-h, --help\nNo FILE or FILE '-' uses stdin; file output uses private VFS staging.\n`);
+      await output(context, `Usage: ${name} [OPTION]... [FILE]...\n-c, --stdout, --to-stdout\n-d, --decompress, --uncompress\n-o FILE (use - for stdout)\n-k, --keep\n-f, --force\n-t, --test\n-l, --list (frame and size information; named files only)\n-1..-9, --best\nHigher levels and --fast[=NUM] are unsupported by the bounded codec.\n-q, --quiet (repeat to suppress errors)\nDefault compression level: ${options.level}.\n-h, --help\nNo FILE or FILE '-' uses stdin; file output uses private VFS staging.\n`);
       return { exitCode: 0 };
     }
     let plans;
@@ -56,8 +57,27 @@ export function createZstdCommand(config: ZstdCommandsOptions = {}, name: typeof
     let testedFiles = 0;
     let testedBytes = 0;
     const multipleFiles = options.operands.length > 1 || plans.length > 1;
+    let listedFiles = 0;
+    const totals: ZstdListing = { frames: 0, skips: 0, compressed: 0, uncompressed: 0n, knownSize: true, checksummed: true };
+    const listingOutput = options.zstdList ? createBufferedOutput(context.stdout, context.signal) : undefined;
+    const listingContext = listingOutput ? { ...context, stdout: listingOutput } : context;
+    if (options.zstdList && plans.some(plan => plan.source !== "-")) {
+      await output(listingContext, "Frames  Skips  Compressed  Uncompressed  Ratio  Check  Filename\n");
+    }
     for (const plan of plans) {
       try {
+        if (options.zstdList) {
+          const listing = await inspectZstd(context, plan);
+          await output(listingContext, formatZstdListing(listing, plan.name ?? plan.source));
+          totals.frames += listing.frames;
+          totals.skips += listing.skips;
+          totals.compressed += listing.compressed;
+          totals.uncompressed += listing.uncompressed;
+          totals.knownSize &&= listing.knownSize;
+          totals.checksummed &&= listing.checksummed;
+          listedFiles++;
+          continue;
+        }
         const before = decodedBudget.size;
         const warned = await runOperand(context, plan, options, decodedBudget);
         if (options.test && !warned) {
@@ -81,6 +101,10 @@ export function createZstdCommand(config: ZstdCommandsOptions = {}, name: typeof
         if (decodedBudget.exceeded) break;
       }
     }
+    if (options.zstdList && multipleFiles && listedFiles > 0) {
+      await output(listingContext, "----------------------------------------------------------------- \n" + formatZstdListing(totals, `${listedFiles} files`, totals.checksummed));
+    }
+    await listingOutput?.flush();
     if (options.test && !options.quiet && multipleFiles && testedFiles > 0) {
       await writeDiagnostic(context.stderr, `${testedFiles} files decompressed :   ${testedBytes} bytes total \n`, context.signal);
     }

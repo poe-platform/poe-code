@@ -431,6 +431,8 @@ accepts a positive safe integer, a positive `bigint`, or `Infinity` (the default
 `zstd`, `unzstd`, and `zstdcat` accept `-q` / `--quiet`, including combined
 short options such as `-qc`. Repeating quiet suppresses processing errors on
 stderr while preserving failure exit codes and validation.
+Use `zstd -l FILE` / `--list` to inspect frame counts and compressed/original sizes
+without decoding or changing files; unknown original sizes are left blank.
 For explicit SDK registration, import `createZstdCommands` or `zstdCommands`
 from `@poe-platform/safe-bash/commands/zstd`; `limits.maxDecodedBytes` bounds
 decoded output across operands while the default remains unlimited.

@@ -14,7 +14,8 @@ await shell.dispose();
 ```
 
 Use `-o FILE` to select the output filename, `-c` (or `-o -`) for stdout,
-`-d` for decompression, `-t` for integrity checks, and
+`-d` for decompression, `-t` for integrity checks, `-l`/`--list` for frame counts
+and compressed/original sizes of named files without decoding or changing them, and
 `-k`/`-f` for file retention/replacement. The existing bounded codec supports
 levels 1–9, checksum and frame/window controls; unsupported capabilities fail
 option validation. Decompressing `release.tzst` produces `release.tar`. Files are

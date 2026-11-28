@@ -24065,6 +24065,11 @@ fn exec_sql_update(
     };
     let is_or_replace = upper.starts_with("UPDATE OR REPLACE ");
     let is_or_ignore = upper.starts_with("UPDATE OR IGNORE ");
+    let not_null_action = if is_or_replace {
+        Some("REPLACE")
+    } else {
+        is_or_ignore.then_some("IGNORE")
+    };
     let table_start = if is_or_replace {
         "UPDATE OR REPLACE ".len()
     } else if is_or_ignore {
@@ -24238,7 +24243,7 @@ fn exec_sql_update(
             }
         }
         if !tables_snap[&tname]
-            .check_not_null(&mut ur, &tname, is_or_ignore.then_some("IGNORE"))
+            .check_not_null(&mut ur, &tname, not_null_action)
             .inspect_err(|_| *tables = tables_snap.clone())?
         {
             continue 'rows;

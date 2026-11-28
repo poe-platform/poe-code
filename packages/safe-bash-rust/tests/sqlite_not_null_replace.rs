@@ -142,3 +142,23 @@ fn sqlite_not_null_replace_survives_schema_reconstruction() {
         "{schema:?}"
     );
 }
+
+#[test]
+fn sqlite_update_conflict_mode_overrides_not_null_column_policy() {
+    for (policy, update, expected) in [
+        ("ON CONFLICT REPLACE", "UPDATE OR IGNORE", "kept|text\n"),
+        ("", "UPDATE OR REPLACE", "unknown|text\n"),
+    ] {
+        let (mut shell, _) = Shell::with_memory_fs();
+        let setup = shell.exec(&format!("sqlite3 /db \"CREATE TABLE t(v TEXT NOT NULL {policy} DEFAULT 'unknown'); INSERT INTO t VALUES('kept');\"")).unwrap();
+        assert_eq!(setup.exit_code, 0, "{setup:?}");
+        let result = shell
+            .exec(&format!("sqlite3 /db '{update} t SET v=NULL'"))
+            .unwrap();
+        assert_eq!(result.exit_code, 0, "{result:?}");
+        let stored = shell
+            .exec("sqlite3 /db 'SELECT v,typeof(v) FROM t'")
+            .unwrap();
+        assert_eq!(stored.stdout, expected, "{update}");
+    }
+}

@@ -95,12 +95,12 @@ export async function compileFindExpression(context: CommandContext, execute: Co
         if (token === "-maxdepth") maxDepth = number; else minDepth = number;
         return () => true;
       }
-      if (token === "-newer" || token.length === 8 && token.startsWith("-newer")
+      if (token === "-newer" || token === "-anewer" || token === "-cnewer" || token.length === 8 && token.startsWith("-newer")
         && timeFields[token[6]!] && (timeFields[token[7]!] || token[7] === "t")) {
         const operand = args[offset++];
         if (operand === undefined) throw new UsageError(`${token} requires an argument`);
         needsStat = true;
-        const field = timeFields[token[6] ?? "m"]!;
+        const field = timeFields[token === "-anewer" ? "a" : token === "-cnewer" ? "c" : token[6] ?? "m"]!;
         if (token[7] === "t") {
           const timestamp = touchTimes(operand, undefined, context.env.TZ ?? "UTC", { atimeMs: startedAt, mtimeMs: startedAt }).mtimeMs;
           return entry => entry.stat[field] !== undefined && entry.stat[field]! > timestamp;
@@ -111,7 +111,7 @@ export async function compileFindExpression(context: CommandContext, execute: Co
         references.set(operand, reference);
         return entry => entry.stat[field] !== undefined && entry.stat[field]! > reference.stat![referenceField]!;
       }
-      if (["-name", "-iname", "-path", "-ipath", "-wholename", "-iwholename", "-regex", "-iregex", "-type", "-perm", "-links", "-size", "-mtime", "-mmin", "-amin", "-cmin"].includes(token)) {
+      if (["-name", "-iname", "-path", "-ipath", "-wholename", "-iwholename", "-regex", "-iregex", "-type", "-perm", "-links", "-size", "-mtime", "-atime", "-ctime", "-mmin", "-amin", "-cmin"].includes(token)) {
         const operand = args[offset++];
         if (operand === undefined) throw new UsageError(`${token} requires an argument`);
         if (token === "-regex" || token === "-iregex") {
@@ -121,19 +121,20 @@ export async function compileFindExpression(context: CommandContext, execute: Co
           catch { throw new UsageError(`invalid regular expression '${operand}'`); }
           return entry => regex.test(entry.display);
         }
-        if (token === "-mtime" || token === "-mmin" || token === "-amin" || token === "-cmin") {
+        if (token === "-mtime" || token === "-atime" || token === "-ctime" || token === "-mmin" || token === "-amin" || token === "-cmin") {
           needsStat = true;
           const match = /^([+-]?)([0-9]+)$/u.exec(operand);
           if (!match) throw new UsageError(`invalid time '${operand}'`);
           const amount = integer(match[2]!);
-          const unit = token === "-mtime" ? 86_400_000 : 60_000;
-          const origin = startedAt - (token === "-mtime" ? match[1] === "-" ? 1000 : unit : 0);
+          const days = token.endsWith("time");
+          const unit = days ? 86_400_000 : 60_000;
+          const origin = startedAt - (days ? match[1] === "-" ? 1000 : unit : 0);
           const reference = origin - amount * unit;
           if (!Number.isSafeInteger(amount * unit) || !Number.isSafeInteger(reference) || !Number.isSafeInteger(reference + unit)) {
             throw new UsageError(`invalid time '${operand}': comparison is out of range`);
           }
           return async entry => {
-            const stamp = token === "-amin" ? (entry.stat.atimeMs ?? entry.stat.mtimeMs) : token === "-cmin" ? (entry.stat.ctimeMs ?? entry.stat.mtimeMs) : entry.stat.mtimeMs;
+            const stamp = (token === "-amin" || token === "-atime") ? (entry.stat.atimeMs ?? entry.stat.mtimeMs) : (token === "-cmin" || token === "-ctime") ? (entry.stat.ctimeMs ?? entry.stat.mtimeMs) : entry.stat.mtimeMs;
             const delta = stamp - reference;
             return match[1] === "+" ? delta < 0 : match[1] === "-" ? delta > 0 : delta > 0 && delta <= unit;
           };

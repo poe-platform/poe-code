@@ -93,3 +93,46 @@ test("find treats missing candidate birth time as false and rejects missing refe
   assert.equal(result.stdout, "");
   assert.deepEqual(await fs.readdir("/"), [{ name: "file", type: "file" }]);
 });
+
+for (const [predicate, field] of [["-atime", "atimeMs"], ["-ctime", "ctimeMs"]] as const) {
+  test(`find ${predicate} uses day intervals and the selected timestamp`, async context => {
+    const now = Date.UTC(2026, 10, 27);
+    const day = 86_400_000;
+    context.mock.method(Date, "now", () => now);
+    const fs = createMemoryFileSystem();
+    context.mock.method(fs, "lstat", async (path: string) => ({
+      type: "file", size: 0, mode: 0o644, mtimeMs: 0, atimeMs: 0, ctimeMs: 0,
+      [field]: now - (path === "/recent" ? 0 : path === "/yesterday" ? 1.5 : 8.5) * day,
+    }));
+    for (const [operand, expected] of [["0", "recent\n"], ["-1", "recent\n"], ["1", "yesterday\n"], ["+7", "old\n"], ["+30", ""]]) {
+      assert.deepEqual(await run(fs, ["recent", "yesterday", "old", predicate, operand!]),
+        { exitCode: 0, stdout: expected, stderr: "" });
+    }
+  });
+}
+
+for (const [predicate, field] of [["-anewer", "atimeMs"], ["-cnewer", "ctimeMs"]] as const) {
+  test(`find ${predicate} compares strictly against reference modification time`, async context => {
+    const fs = createMemoryFileSystem();
+    context.mock.method(fs, "lstat", async (path: string) => path === "/reference"
+      ? { type: "file", size: 0, mode: 0o644, mtimeMs: 100, atimeMs: 1000, ctimeMs: 1000 }
+      : { type: "file", size: 0, mode: 0o644, mtimeMs: 1000, atimeMs: 0, ctimeMs: 0,
+        [field]: path === "/older" ? 99 : path === "/equal" ? 100 : 101 });
+    assert.deepEqual(await run(fs, ["older", "equal", "newer", predicate, "reference"]),
+      { exitCode: 0, stdout: "newer\n", stderr: "" });
+  });
+}
+
+test("find access and change predicates support the cleanup sequence", async () => {
+  const fs = createMemoryFileSystem();
+  await fs.writeFile("/a", new Uint8Array());
+  for (const args of [["-atime", "0", "-name", "a"], ["-ctime", "0", "-name", "a"], ["-ctime", "-1", "-type", "f"]]) {
+    assert.deepEqual(await run(fs, [".", ...args]), { exitCode: 0, stdout: "./a\n", stderr: "" });
+  }
+  await fs.writeFile("/old", new Uint8Array());
+  await fs.utimes("/old", Date.UTC(2001, 0, 1), Date.UTC(2001, 0, 1));
+  for (const [predicate, expected] of [["-anewer", "./a\n"], ["-cnewer", "./a\n./old\n"]]) {
+    assert.deepEqual(await run(fs, [".", "-type", "f", predicate!, "old"]),
+      { exitCode: 0, stdout: expected, stderr: "" });
+  }
+});

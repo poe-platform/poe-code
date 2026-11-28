@@ -2,7 +2,9 @@
 
 Select files modified after a date with `find . -type f -newermt '2020-06-01'`.
 `-newerXY` compares access (`a`), change (`c`), modification (`m`), or birth (`B`)
-times; `Y=t` accepts a date instead of a reference file. Dates use `TZ`, defaulting
+times; `-anewer` and `-cnewer` compare access and change times against a reference
+file’s modification time. `-atime`, `-ctime`, and `-mtime` select by age in days,
+with `+n` for older and `-n` for newer. `Y=t` accepts a date instead of a reference file. Dates use `TZ`, defaulting
 to UTC, and support explicit offsets, `@` epoch seconds, and relative dates such
 as `1 day ago`. Comparisons are strictly newer. Missing candidate birth times do
 not match; missing reference birth times report an error before any actions run.

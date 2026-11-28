@@ -6944,6 +6944,7 @@ struct BcEnv {
     last_str_out: Option<String>,
     last: BcVal,
     runtime_err: Option<String>,
+    halted: bool,
 }
 
 fn format_bc_base(digits: &[u8], scale: usize, obase: u32) -> String {
@@ -7143,6 +7144,7 @@ fn cmd_bc(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Built
         last_str_out: None,
         last: BcVal::default(),
         runtime_err: None,
+        halted: false,
     };
     let mut no_comments = String::with_capacity(input.len());
     let mut chars = input.chars().peekable();
@@ -7184,7 +7186,7 @@ fn cmd_bc(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Built
     let mut out = String::new();
     for stmt in split_bc_top_stmts(&body) {
         let flow = exec_bc_stmt(&stmt, &mut bc, &mut out, 0);
-        if matches!(flow, BcFlow::Halt) || bc.runtime_err.is_some() {
+        if matches!(flow, BcFlow::Halt) || bc.halted || bc.runtime_err.is_some() {
             break;
         }
     }
@@ -7364,11 +7366,15 @@ fn format_bc_val_line(v: &BcVal, expr_s: &str, bc: &BcEnv) -> String {
 }
 
 fn exec_bc_stmt(raw: &str, bc: &mut BcEnv, out: &mut String, depth: usize) -> BcFlow {
+    if bc.halted {
+        return BcFlow::Halt;
+    }
     let s = raw.trim();
     if s.is_empty() || s.starts_with("auto ") || s == "auto" {
         return BcFlow::None;
     }
     if s == "halt" || s == "quit" {
+        bc.halted = true;
         return BcFlow::Halt;
     }
     if s == "break" {
@@ -7435,7 +7441,7 @@ fn exec_bc_stmt(raw: &str, bc: &mut BcEnv, out: &mut String, depth: usize) -> Bc
             } else {
                 bc.last_str_out = None;
                 let v = eval_bc_val(t, bc, depth + 1);
-                if bc.runtime_err.is_some() {
+                if bc.halted || bc.runtime_err.is_some() {
                     return BcFlow::Halt;
                 }
                 bc.last = v.clone();
@@ -7604,7 +7610,7 @@ fn exec_bc_stmt(raw: &str, bc: &mut BcEnv, out: &mut String, depth: usize) -> Bc
     }
     bc.last_str_out = None;
     let val = eval_bc_val(s, bc, depth + 1);
-    if bc.runtime_err.is_some() {
+    if bc.halted || bc.runtime_err.is_some() {
         return BcFlow::Halt;
     }
     bc.last = val.clone();
@@ -7715,6 +7721,9 @@ fn split_bc_args(s: &str) -> Vec<String> {
 }
 
 fn apply_bc_binop(l: &BcVal, r: &BcVal, op: &str, bc: &mut BcEnv) -> BcVal {
+    if bc.halted {
+        return BcVal::default();
+    }
     if (matches!(op, "/" | "%") && (r.val == 0.0 || r.coefficient.as_deref() == Some(&[0])))
         || (op == "^" && r.val.trunc() < 0.0 && !l.is_truthy())
     {
@@ -7939,6 +7948,9 @@ fn eval_bc_func(
             ret_val = v;
             break;
         }
+        if bc.halted {
+            break;
+        }
     }
     bc.vars.retain(|key, _| !is_local(key));
     bc.vars.extend(saved);
@@ -7962,6 +7974,9 @@ fn bc_expr_decimal_places(s: &str) -> usize {
 }
 
 fn eval_bc_val(expr: &str, bc: &mut BcEnv, depth: usize) -> BcVal {
+    if bc.halted {
+        return BcVal::default();
+    }
     let s = expr.trim();
     if s.is_empty() {
         return BcVal::default();
@@ -8085,6 +8100,9 @@ fn eval_bc_val(expr: &str, bc: &mut BcEnv, depth: usize) -> BcVal {
             .iter()
             .map(|a| eval_bc_val(a, bc, depth + 1))
             .collect();
+        if bc.halted {
+            return BcVal::default();
+        }
         let first_val = arg_vals.first().cloned().unwrap_or_default();
         match fname {
             "length" => {

@@ -324,13 +324,13 @@ function parseAbsoluteDate(value: string, zone: TimeZone, now: () => bigint): { 
   if (epoch !== undefined) return { instant: epoch, zone };
   const monthFirst = /^([A-Za-z]+)\s+(\d{1,2}),?\s+(\d{4})(?=\s|$)(.*)$/.exec(value);
   const dayFirst = /^(\d{1,2})(?:\s+|-)([A-Za-z]+)(?:\s+|-)(\d{4})(?=\s|$)(.*)$/.exec(value);
-  const defaultOutput = /^(Sun|Mon|Tue|Wed|Thu|Fri|Sat)\s+([A-Za-z]+)\s+(\d{1,2})\s+(\d{2}:\d{2}:\d{2})\s+(\S+)\s+(\d{4})$/i.exec(value);
+  const defaultOutput = /^(Sun|Mon|Tue|Wed|Thu|Fri|Sat)\s+([A-Za-z]+)\s+(\d{1,2})\s+(\d{2}:\d{2}:\d{2})\s+(?:(\S+)\s+)?(\d{4})$/i.exec(value);
   if (monthFirst || dayFirst || defaultOutput) {
     const monthText = (monthFirst?.[1] ?? dayFirst?.[2] ?? defaultOutput![2]!).toLowerCase();
     const month = monthNames.findIndex(name => name.toLowerCase() === monthText || name.slice(0, 3).toLowerCase() === monthText) + 1;
     const day = monthFirst?.[2] ?? dayFirst?.[1] ?? defaultOutput![3]!;
     const year = monthFirst?.[3] ?? dayFirst?.[3] ?? defaultOutput![6]!;
-    const timeText = monthFirst?.[4] ?? dayFirst?.[4] ?? ` ${defaultOutput![4]} ${defaultOutput![5]}`;
+    const timeText = monthFirst?.[4] ?? dayFirst?.[4] ?? ` ${defaultOutput![4]} ${defaultOutput![5] ?? ""}`;
     const parsed = parseAbsoluteDate(`${year}-${month}-${day}${timeText}`, zone, now);
     if (defaultOutput && weekdayNames[new Date(utcMilliseconds(parsed.zone.fields(parsed.instant))).getUTCDay()]!.slice(0, 3).toLowerCase() !== defaultOutput[1]!.toLowerCase()) {
       throw new CommandFailure("weekday does not match calendar date");

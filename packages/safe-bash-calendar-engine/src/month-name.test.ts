@@ -7,6 +7,8 @@ import { settings } from "./time-env/shared.js";
 const zone = new TimeZone("UTC");
 for (const [input, format, expected] of [
   ["Jan 5 2024", "%F", "2024-01-05"],
+  ["Tue Nov 14 22:13:20 2023", "%s", "1700000000"],
+  ["Fri Jan  5 10:20:30 2024", "%s", "1704450030"],
   ["5 Jan 2024", "%F", "2024-01-05"],
   ["5-Jan-2024", "%F", "2024-01-05"],
   ["January 5, 2024 3pm", "%FT%T", "2024-01-05T15:00:00"],
@@ -42,6 +44,7 @@ for (const [input, expected] of [
 
 test("month-name dates use virtual TZ unless an explicit zone is supplied", () => {
   const zone = new TimeZone("America/New_York");
+  assert.equal(parseDate("Tue Nov 14 22:13:20 2023", zone, () => 0n), 1700018000000000000n);
   assert.equal(parseDate("Jan 5 2024", zone, () => 0n), 1704430800000000000n);
   assert.equal(parseDate("Jan 5 2024 00:00 UTC", zone, () => 0n), 1704412800000000000n);
   assert.throws(() => parseDate("March 10 2024 02:30", zone, () => 0n), /nonexistent local time/);
@@ -49,6 +52,7 @@ test("month-name dates use virtual TZ unless an explicit zone is supplied", () =
 });
 
 for (const input of ["Feb 30 2024", "February 29 2023", "Jan 0 2024", "Jan 32 2024", "Janu 5 2024",
+  "Mon Nov 14 22:13:20 2023", "Tue Nov 14 25:13:20 2023", "Fri Feb 30 22:13:20 2024",
   "Jan 5 2024 0am", "Jan 5 2024 13pm", "Jan 5 2024 24:00", "Jan 5 2024 10:60", "Jan 5 2024 10:20:60",
   "Jan 5 2024 junk", "Fri Jan 5 10:20:30 UTC 2024 junk", "Thu Jan 5 10:20:30 UTC 2024"]) {
   test(`rejects invalid month-name date ${input}`, () => {

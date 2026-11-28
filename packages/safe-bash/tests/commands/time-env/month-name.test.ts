@@ -4,6 +4,21 @@ import { createMemoryFileSystem } from "../../../src/fs/memory/index.js";
 import { agentCommands } from "../../../src/plugins/index.js";
 import { Shell } from "../../../src/shell/index.js";
 
+for (const [script, expected] of [
+  ["date -u -d 'Tue Nov 14 22:13:20 2023' +%s", "1700000000\n"],
+  ['date -u -d "$(date -u -d @1700000000 \'+%c\')" +%F', "2023-11-14\n"],
+] as const) {
+  test(`Shell date parses asctime layout: ${script}`, async () => {
+    const shell = new Shell({ fs: createMemoryFileSystem(), cwd: "/work" }).use(agentCommands());
+    try {
+      const result = await shell.exec(script);
+      assert.equal(result.stdout, expected);
+      assert.equal(result.stderr, "");
+      assert.equal(result.exitCode, 0);
+    } finally { await shell.dispose(); }
+  });
+}
+
 test("Shell date accepts month-name dates and its default UTC output", async () => {
   const shell = new Shell({ fs: createMemoryFileSystem(), cwd: "/work" }).use(agentCommands());
   try {

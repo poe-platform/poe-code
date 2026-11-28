@@ -740,7 +740,8 @@
     "safe-bash-command-enable": "*",
     "safe-bash-command-basenc": "*",
     "safe-bash-command-col": "*",
-    "safe-bash-command-colrm": "*"
+    "safe-bash-command-colrm": "*",
+    "safe-bash-command-stdbuf": "*"
   },
   "version": "0.0.0-dev",
   "repository": {

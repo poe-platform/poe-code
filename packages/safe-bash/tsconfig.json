@@ -1431,6 +1431,9 @@
       ],
       "safe-bash-command-colrm": [
         "../safe-bash-command-colrm/src/index.ts"
+      ],
+      "safe-bash-command-stdbuf": [
+        "../safe-bash-command-stdbuf/src/index.ts"
       ]
     },
     "baseUrl": "."

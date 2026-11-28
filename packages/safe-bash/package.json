@@ -2275,6 +2275,15 @@
             "safe-bash-command-fold": "*"
           },
           "portable": true
+        },
+        "safe-bash-command-stdbuf": {
+          "version": "0.0.1",
+          "dependencies": {},
+          "devDependencies": {
+            "safe-bash-contracts": "*",
+            "@poe-code/safe-fs": "*"
+          },
+          "portable": true
         }
       },
       "peerProfile": "checkout-root"
@@ -3630,6 +3639,12 @@
       "workerd": "./dist/commands/colrm/index.js",
       "browser": "./dist/commands/colrm/index.js",
       "import": "./dist/commands/colrm/index.js"
+    },
+    "./commands/stdbuf": {
+      "types": "./dist/commands/stdbuf/index.d.ts",
+      "workerd": "./dist/commands/stdbuf/index.js",
+      "browser": "./dist/commands/stdbuf/index.js",
+      "import": "./dist/commands/stdbuf/index.js"
     }
   },
   "sideEffects": [
@@ -3907,7 +3922,8 @@
     "safe-bash-command-enable": "*",
     "safe-bash-command-basenc": "*",
     "safe-bash-command-col": "*",
-    "safe-bash-command-colrm": "*"
+    "safe-bash-command-colrm": "*",
+    "safe-bash-command-stdbuf": "*"
   },
   "main": "./dist/index.js",
   "imports": {

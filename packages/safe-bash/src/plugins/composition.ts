@@ -1,3 +1,4 @@
+import { createStdbufCommands } from "../commands/stdbuf/index.js";
 import { createColCommands, type ColCommandsOptions } from "../commands/col/index.js";
 import { createColrmCommands, type ColrmCommandsOptions } from "../commands/colrm/index.js";
 import type { GhCommandOptions } from "../lazy-gh.js";
@@ -177,6 +178,7 @@ function getDefaultStatelessFamilies() {
     ]),
     beforeCsplit: Object.freeze([
       ...createWhichCommands({}),
+      ...createStdbufCommands(),
       ...createTimeoutCommands(undefined),
       ...createApplyPatchCommands({}),
       ...createXmlCommands({}),
@@ -299,6 +301,7 @@ export function composeRawAgentCommands(options: AgentCommandsOptions, executors
     ...createDuCommands({ ...options.du }),
     createExprCommandWithExecutor(executors.expr, exprLimits === undefined ? {} : { limits: exprLimits }),
     ...createWhichCommands(whichLimits === undefined ? {} : { limits: whichLimits }),
+    ...createStdbufCommands(),
     ...createTimeoutCommands(timeoutOptions === undefined ? undefined : {
       ...timeoutOptions,
     }),

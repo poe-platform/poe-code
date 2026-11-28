@@ -28,6 +28,7 @@ export interface Arguments {
   mode: "lines" | "files" | "with" | "without" | "count" | "matches" | "json";
   case: "sensitive" | "insensitive" | "smart";
   fixed: boolean;
+  perl?: boolean;
   invert: boolean;
   word: boolean;
   whole: boolean;
@@ -102,6 +103,7 @@ export class ParsedArguments implements Arguments {
   declare mode: "lines" | "files" | "with" | "without" | "count" | "matches" | "json";
   declare case: "sensitive" | "insensitive" | "smart";
   declare fixed: boolean;
+  declare perl: boolean;
   declare invert: boolean;
   declare word: boolean;
   declare whole: boolean;
@@ -155,6 +157,7 @@ export class ParsedArguments implements Arguments {
     this.mode = "lines";
     this.case = "sensitive";
     this.fixed = false;
+    this.perl = false;
     this.invert = false;
     this.word = false;
     this.whole = false;
@@ -214,6 +217,7 @@ export class ParsedArguments implements Arguments {
       mode: "lines",
       case: "sensitive",
       fixed: false,
+      perl: false,
       invert: false,
       word: false,
       whole: false,
@@ -422,7 +426,8 @@ export function parse(args: readonly string[], target?: ParsedArguments): Argume
         case "no-multiline": result.multiline = false; break;
         case "multiline-dotall": result.multilineDotall = true; break;
         case "no-multiline-dotall": result.multilineDotall = false; break;
-        case "P": case "pcre2": case "no-pcre2": break;
+        case "P": case "pcre2": result.perl = true; break;
+        case "no-pcre2": result.perl = false; break;
         case "j": case "threads": count(((tookValue = true), inline !== undefined ? ((_tmpVal = inline), (inline = undefined), _tmpVal) : (!long && position + 1 < flagsLen ? ((_tmpVal = flags!.slice(position + 1).join("")), (position = flagsLen), _tmpVal) : ((_tmpVal = args[++index]!), _tmpVal === undefined ? throwMissingFlagValue(long, flag) : _tmpVal))), flag); break;
         case "sort": if (((tookValue = true), inline !== undefined ? ((_tmpVal = inline), (inline = undefined), _tmpVal) : (!long && position + 1 < flagsLen ? ((_tmpVal = flags!.slice(position + 1).join("")), (position = flagsLen), _tmpVal) : ((_tmpVal = args[++index]!), _tmpVal === undefined ? throwMissingFlagValue(long, flag) : _tmpVal))) !== "path") throw new SearchError("only --sort=path is supported"); break;
         case "color": if (((tookValue = true), inline !== undefined ? ((_tmpVal = inline), (inline = undefined), _tmpVal) : (!long && position + 1 < flagsLen ? ((_tmpVal = flags!.slice(position + 1).join("")), (position = flagsLen), _tmpVal) : ((_tmpVal = args[++index]!), _tmpVal === undefined ? throwMissingFlagValue(long, flag) : _tmpVal))) !== "never") throw new SearchError("only --color=never is supported"); break;

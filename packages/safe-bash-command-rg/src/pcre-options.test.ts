@@ -4,16 +4,18 @@ import { createMemoryFileSystem } from "@poe-code/safe-fs";
 import { createCommandArguments, toByteSource } from "safe-bash-contracts";
 import { createRgCommand } from "./index.js";
 
-for (const flag of ["-P", "--pcre2", "-iP", "--no-pcre2"]) {
+for (const flags of [["-P"], ["--pcre2"], ["-iP"], ["-oP"], ["--no-pcre2", "-P"], ["--no-pcre2"], ["-P", "--no-pcre2"]]) {
+  const perl = flags.at(-1) !== "--no-pcre2";
   for (const [pattern, expectedCode, expectedOutput] of [
     ["^a+$", 0, "aa\n"],
     ["^z+$", 1, ""],
-    ["(?<!b)a", 2, ""],
-    ["a(?=b)", 2, ""],
-    ["(a)\\1", 2, ""],
+    ["(?<!a)a", perl ? 0 : 2, perl ? "a\na\n" : ""],
+    ["(?<=a)b", perl ? 0 : 2, perl ? "b\n" : ""],
+    ["a(?=b)", perl ? 0 : 2, perl ? "a\n" : ""],
+    ["(a)\\1", perl ? 0 : 2, perl ? "aa\n" : ""],
   ] as const) {
-    test(`${flag} preserves portable matching and rejects unsupported syntax: ${pattern}`, async () => {
-      const values = createCommandArguments([flag, pattern, "-"]);
+    test(`${flags.join(" ")} selects the regex dialect: ${pattern}`, async () => {
+      const values = createCommandArguments([...flags, "-o", pattern, "-"]);
       let stdout = "", stderr = "";
       const result = await createRgCommand().execute({
         command: "rg", args: values.args, argumentValues: values, cwd: "/", env: {},

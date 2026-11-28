@@ -58,6 +58,7 @@ export class Matcher {
       let vm: ErgonomicVmMatcher | undefined;
       const config = {
         kind: "rg" as const, fixed: args.fixed, caseMode: args.case,
+        perl: args.perl ?? false,
         whole: args.whole, word: args.word, nullData: args.nullData,
         multiline: args.multiline, multilineDotall: args.multilineDotall,
         captures: args.replacement?.includes("$") ?? false,
@@ -126,6 +127,7 @@ export class Matcher {
       ? prepareErgonomicRegex(patterns, {
           kind: "rg",
           fixed: args.fixed,
+          perl: args.perl ?? false,
           caseMode: args.case,
           whole: args.whole,
           word: args.word,

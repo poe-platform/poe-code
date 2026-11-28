@@ -45,6 +45,7 @@ type ClassItem =
 type AstNode =
   | { readonly type: "empty" }
   | { readonly type: "reset" }
+  | { readonly type: "backref"; readonly index: number; readonly insensitive: boolean }
   | { readonly type: "look"; readonly child: AstNode; readonly negative: boolean; readonly behind: number | undefined }
   | { readonly type: "literal"; readonly cp: number; readonly insensitive: boolean }
   | { readonly type: "dot"; readonly dotall: boolean; readonly nullData: boolean }
@@ -509,7 +510,7 @@ function parsePattern(
         }
         pos++;
         if (inner.node.type === "empty") needsVm = true;
-        atomNode = captures && capturing ? { type: "capture", child: inner.node, index } : inner.node;
+        atomNode = (captures || perl) && capturing ? { type: "capture", child: inner.node, index } : inner.node;
         if (look) {
           const behind = look.behind ? fixedScalarLength(inner.node) : undefined;
           if (look.behind && behind === undefined) throw new SearchError("unsupported PCRE variable-length lookbehind");
@@ -532,9 +533,13 @@ function parsePattern(
         if (pos >= pattern.length) throw new SearchError("invalid ERE: trailing backslash");
         const esc = pattern[pos++]!;
         if (esc >= "1" && esc <= "9") {
-          throw new SearchError("unsupported ERE backreference");
-        }
-        if (bre && esc === "(") {
+          if (!perl) throw new SearchError("unsupported ERE backreference");
+          const index = Number(esc);
+          if (index > captureCount) throw new SearchError("invalid PCRE backreference");
+          needsVm = true;
+          atomNode = { type: "backref", index, insensitive };
+          atomEre = "";
+        } else if (bre && esc === "(") {
           const inner = parseAlternation(true);
           if (pos + 1 >= pattern.length || pattern[pos] !== "\\" || pattern[pos + 1] !== ")") {
             throw new SearchError("invalid BRE: unclosed '\\('");
@@ -729,7 +734,7 @@ function parsePattern(
 function fixedScalarLength(node: AstNode): number | undefined {
   switch (node.type) {
     case "empty": case "assert": case "look": return 0;
-    case "reset": return undefined;
+    case "reset": case "backref": return undefined;
     case "literal": case "dot": case "class": return 1;
     case "capture": return fixedScalarLength(node.child);
     case "seq": {
@@ -753,6 +758,7 @@ function fixedScalarLength(node: AstNode): number | undefined {
 }
 
 type NfaInst =
+  | { readonly op: "backref"; readonly index: number; readonly insensitive: boolean; readonly out: number }
   | { readonly op: "look"; readonly node: Extract<AstNode, { type: "look" }>; readonly out: number }
   | { readonly op: "reset"; readonly out: number }
   | { readonly op: "accept" }
@@ -775,6 +781,8 @@ function compileAstToNfa(root: AstNode): NfaInst[] {
 
   function build(node: AstNode, next: number): number {
     switch (node.type) {
+      case "backref":
+        return emit({ op: "backref", index: node.index, insensitive: node.insensitive, out: next });
       case "empty":
         return next;
       case "look":
@@ -845,6 +853,7 @@ function compileAstToNfa(root: AstNode): NfaInst[] {
         case "accept":
           reordered.push(inst);
           break;
+        case "backref":
         case "look":
           reordered.push({ ...inst, out: inst.out + 1 });
           break;
@@ -945,10 +954,12 @@ export class ErgonomicVmMatcher {
   private readonly nlistPositions: Int32Array;
   private readonly leadingLiteral: { cp: number; foldedCp: number; insensitive: boolean } | undefined;
   private stepStamp = 1;
+  private readonly hasBackreferences: boolean;
   private readonly lookMatchers = new Map<number, ErgonomicVmMatcher>();
 
   constructor(rootAst: AstNode, multiline: boolean, private readonly captureCount = 0, private readonly captureNames: ReadonlyMap<string, number> = new Map(), private readonly binaryText = false, private readonly unicodeWord = false) {
     this.insts = compileAstToNfa(rootAst);
+    this.hasBackreferences = this.insts.some(inst => inst.op === "backref");
     this.multiline = multiline;
     this.insts.forEach((inst, index) => {
       if (inst.op === "look") this.lookMatchers.set(index, new ErgonomicVmMatcher(inst.node.child, multiline, captureCount, captureNames, binaryText, unicodeWord));
@@ -998,12 +1009,92 @@ export class ErgonomicVmMatcher {
     }
   }
 
+  private findNextBackreference(
+    subject: DecodedSubject, from: number, anchored: boolean, requiredEnd?: number,
+  ): { start: number; end: number; slots: readonly number[] | undefined } | undefined {
+    const { cps, widths, length } = subject;
+    // Capture-dependent states cannot use the NFA's state-only deduplication.
+    // Bound all backtracking and scalar comparisons across the entire search.
+    let remaining = 100_000;
+    for (let start = from; start <= length; start++) {
+      const stack = [{ state: 0, pos: start, start, slots: [] as number[] }];
+      const visited = new Set<string>();
+      while (stack.length) {
+        if (--remaining < 0) throw new SearchError("PCRE backreference execution limit exceeded");
+        const thread = stack.pop()!;
+        let { pos } = thread;
+        const { state, slots } = thread;
+        const key = `${state}:${pos}:${thread.start}:${slots.join(",")}`;
+        if (visited.has(key)) continue;
+        visited.add(key);
+        const inst = this.insts[state]!;
+        if (inst.op === "accept") {
+          if (requiredEnd === undefined || pos === requiredEnd) return { start: thread.start, end: pos, slots };
+          continue;
+        }
+        if (inst.op === "split") {
+          stack.push({ ...thread, state: inst.out2 }, { ...thread, state: inst.out1 });
+          continue;
+        }
+        let saved = slots;
+        let matchStart = thread.start;
+        if (inst.op === "save") {
+          saved = [...slots];
+          saved[inst.slot] = pos;
+        } else if (inst.op === "reset") {
+          matchStart = pos;
+        } else if (inst.op === "assert") {
+          if (!this.evalAssertion(inst.kind, subject, pos, inst.multiline)) continue;
+        } else if (inst.op === "look") {
+          let lookStart = pos;
+          if (inst.node.behind !== undefined) {
+            for (let n = inst.node.behind; n > 0 && lookStart >= 0; n--) {
+              lookStart--;
+              while (lookStart >= 0 && cps[lookStart]! < 0) lookStart--;
+            }
+          }
+          const found = lookStart >= 0
+            ? this.lookMatchers.get(state)!.findNext(subject, lookStart, true, inst.node.behind === undefined ? undefined : pos)
+            : undefined;
+          if (Boolean(found) === inst.node.negative) continue;
+          if (found?.slots) {
+            saved = [...slots];
+            found.slots.forEach((value, index) => { if (value !== undefined) saved[index] = value; });
+          }
+        } else if (inst.op === "backref") {
+          const begin = slots[inst.index * 2], end = slots[inst.index * 2 + 1];
+          if (begin === undefined || end === undefined) continue;
+          let cursor = begin;
+          while (cursor < end && pos < length) {
+            if (--remaining < 0) throw new SearchError("PCRE backreference execution limit exceeded");
+            const a = cps[cursor]!, b = cps[pos]!;
+            if (a < 0 || b < 0 || (inst.insensitive ? foldAsciiCp(a) !== foldAsciiCp(b) : a !== b)) break;
+            cursor += widths[cursor]!;
+            pos += widths[pos]!;
+          }
+          if (cursor !== end) continue;
+        } else if (inst.op !== "jump") {
+          const cp = cps[pos];
+          if (cp === undefined || cp < 0) continue;
+          if (inst.op === "literal" && (inst.insensitive ? foldAsciiCp(cp) !== foldAsciiCp(inst.cp) : cp !== inst.cp)) continue;
+          if (inst.op === "dot" && ((!inst.dotall && cp === 10) || (!inst.nullData && !this.binaryText && cp === 0))) continue;
+          if (inst.op === "class" && !evalClassNode(inst.node, cp, this.unicodeWord)) continue;
+          pos += widths[pos]!;
+        }
+        stack.push({ state: inst.out, pos, start: matchStart, slots: saved });
+      }
+      if (anchored) break;
+    }
+    return undefined;
+  }
+
   private findNext(
     subject: DecodedSubject,
     from: number,
     anchored = false,
     requiredEnd?: number,
   ): { start: number; end: number; slots: readonly number[] | undefined } | undefined {
+    if (this.hasBackreferences) return this.findNextBackreference(subject, from, anchored, requiredEnd);
     const { cps, widths, length } = subject;
     const insts = this.insts;
     const visited = this.visited;
@@ -1308,7 +1399,7 @@ export function prepareErgonomicRegex(
     }
     result = {
       mode: "vm",
-      vm: new ErgonomicVmMatcher(root, multiline, config.captures ? captureCount : 0, captureNames, Boolean(config.binaryText), config.kind === "rg"),
+      vm: new ErgonomicVmMatcher(root, multiline, config.captures || config.perl ? captureCount : 0, captureNames, Boolean(config.binaryText), config.kind === "rg"),
       crossLine: multiline && anyCrossLine,
     };
   }

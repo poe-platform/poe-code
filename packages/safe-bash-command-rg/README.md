@@ -42,10 +42,11 @@ for each invocation before command-line arguments, so later command-line options
 take precedence. `--no-config` skips the file. Configuration reads obey the
 filesystem and input-byte limits.
 
-`-P` and `--pcre2` accept the portable subset supported by the bounded regex
-dialect, such as `^a+$`. They do not enable a PCRE2 engine: unsupported syntax
-(including lookaround and backreferences) fails with exit status 2. The same
-bounded dialect applies with an injected provider.
+`-P` and `--pcre2` enable lookahead, lookbehind and backreferences in the
+bounded regex interpreter, for example `rg -oP '(?<=key=)\w+' file.txt`.
+`--no-pcre2` restores the default dialect; the last flag takes precedence.
+This is a supported subset of PCRE2 syntax, not a full PCRE2 engine. An injected
+regex provider remains authoritative for matching.
 Hex escapes work with or without `-P`: `\x61` and `\x{61}` match `a`, and
 `\x09` matches a tab. They also work in character classes and ranges; malformed
 escapes and invalid Unicode scalar values fail with exit status 2.

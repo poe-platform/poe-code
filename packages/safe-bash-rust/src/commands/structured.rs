@@ -37497,11 +37497,11 @@ fn parse_pandoc_rtf(input: &str) -> Option<Vec<PandocBlock>> {
     let mut row = None::<Vec<pandoc_table::Cell>>;
     let mut cell = Vec::new();
     let mut text = String::new();
-    let mut style = (false, false, None);
+    let mut style = (false, false, None, false);
     let mut stack = Vec::new();
     let mut space = false;
     let flush = |text: &mut String,
-                 (bold, italic, superscript),
+                 (bold, italic, superscript, _),
                  paragraph: &mut Vec<PandocInline>,
                  space: &mut bool| {
         let mut words = text.split_ascii_whitespace();
@@ -37537,6 +37537,9 @@ fn parse_pandoc_rtf(input: &str) -> Option<Vec<PandocBlock>> {
         text.clear();
     };
     for event in events {
+        if style.3 && matches!(event, RtfEvent::Text { .. }) {
+            continue;
+        }
         if let RtfEvent::Text {
             text: value,
             boundary: None,
@@ -37601,7 +37604,8 @@ fn parse_pandoc_rtf(input: &str) -> Option<Vec<PandocBlock>> {
                 "sub" => style.2 = Some(false),
                 "super" => style.2 = Some(true),
                 "nosupersub" => style.2 = None,
-                "plain" => style = (false, false, None),
+                "v" => style.3 = parameter != Some(0),
+                "plain" => style = (false, false, None, false),
                 "trowd" => {
                     if !paragraph.is_empty() {
                         blocks.push(PandocBlock::Para(std::mem::take(&mut paragraph)));

@@ -21918,6 +21918,11 @@ fn cmd_sqlite3(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> 
                 if let Some(pos) = savepoints.iter().rposition(|(name, _)| name == &sp_name) {
                     (tables, indexes) = savepoints[pos].1.clone();
                     savepoints.truncate(pos + 1);
+                } else {
+                    errors.push_str(&format!("Error: stepping, no such savepoint: {sp_name}\n"));
+                    if bail || positional.len() >= 2 {
+                        break;
+                    }
                 }
             } else {
                 if let Some(snap) = tx_snapshot
@@ -45187,6 +45192,86 @@ mod tests {
                 assert_eq!(fs.read_file("/result").unwrap(), b"existing output");
             }
         }
+    }
+
+    #[test]
+    fn sqlite_missing_rollback_savepoint_preserves_reopened_database() {
+        for begin in ["BEGIN", "SAVEPOINT outer"] {
+            for rollback in [
+                "ROLLBACK TO nonexistent",
+                "ROLLBACK TO SAVEPOINT nonexistent",
+            ] {
+                let fs = MemoryVfs::new();
+                let run = |sql: &str| cmd_sqlite3(&args(&["ledger.db", sql]), "", "/", &fs);
+                let setup = run(
+                    "CREATE TABLE t(id INTEGER PRIMARY KEY,k INT UNIQUE,v INT CHECK(v>=0)); INSERT INTO t VALUES(1,1,10),(2,2,20),(3,3,30);",
+                );
+                assert_eq!(setup.exit_code, 0, "{}", setup.stderr);
+                let schema = run(".schema").stdout;
+                let failed = run(&format!(
+                    "{begin}; DELETE FROM t WHERE id=1; CREATE TABLE pending(x); {rollback}; COMMIT; SELECT 'continued';"
+                ));
+                let reopened = run("SELECT id,k,v FROM t ORDER BY id;");
+                assert_eq!(reopened.exit_code, 0, "{}", reopened.stderr);
+                assert_eq!(
+                    reopened.stdout, "1|1|10\n2|2|20\n3|3|30\n",
+                    "{begin}; {rollback}"
+                );
+                assert_eq!(run(".schema").stdout, schema);
+                assert_eq!(failed.exit_code, 1);
+                assert_eq!(failed.stdout, "");
+                assert_eq!(
+                    failed.stderr,
+                    "Error: stepping, no such savepoint: nonexistent\n"
+                );
+            }
+        }
+    }
+
+    #[test]
+    fn sqlite_missing_rollback_savepoint_obeys_stdin_bail() {
+        for bail in [false, true] {
+            let fs = MemoryVfs::new();
+            let setup = cmd_sqlite3(
+                &args(&["ledger.db", "CREATE TABLE t(id); INSERT INTO t VALUES(1);"]),
+                "",
+                "/",
+                &fs,
+            );
+            assert_eq!(setup.exit_code, 0, "{}", setup.stderr);
+            let argv = if bail {
+                args(&["-bail", "ledger.db"])
+            } else {
+                args(&["ledger.db"])
+            };
+            let failed = cmd_sqlite3(
+                &argv,
+                "BEGIN;\nDELETE FROM t;\nROLLBACK TO nonexistent;\nCOMMIT;\n",
+                "/",
+                &fs,
+            );
+            assert_eq!(failed.exit_code, 1);
+            assert_eq!(
+                failed.stderr,
+                "Error: stepping, no such savepoint: nonexistent\n"
+            );
+            let reopened = cmd_sqlite3(&args(&["ledger.db", "SELECT id FROM t"]), "", "/", &fs);
+            assert_eq!(reopened.exit_code, 0, "{}", reopened.stderr);
+            assert_eq!(reopened.stdout, if bail { "1\n" } else { "" });
+        }
+    }
+
+    #[test]
+    fn sqlite_valid_rollback_savepoint_can_commit_after_rollback() {
+        let fs = MemoryVfs::new();
+        let run = |sql: &str| cmd_sqlite3(&args(&["ledger.db", sql]), "", "/", &fs);
+        let setup = run("CREATE TABLE t(id); INSERT INTO t VALUES(1),(2);");
+        assert_eq!(setup.exit_code, 0, "{}", setup.stderr);
+        let result = run(
+            "BEGIN; SAVEPOINT keep; DELETE FROM t WHERE id=1; ROLLBACK TO SAVEPOINT keep; DELETE FROM t WHERE id=2; RELEASE keep; COMMIT;",
+        );
+        assert_eq!(result.exit_code, 0, "{}", result.stderr);
+        assert_eq!(run("SELECT id FROM t").stdout, "1\n");
     }
 
     #[test]

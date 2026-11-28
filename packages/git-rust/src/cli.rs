@@ -543,6 +543,17 @@ pub fn execute_git_cli_with_input(
                 }
                 selected.extend(matches);
             }
+            if sub_args.contains(&"--cached")
+                && !sub_args.iter().any(|arg| matches!(*arg, "-f" | "--force"))
+            {
+                match crate::commands::worktree::cached_removal_conflicts(fs, &repo_root, &gitdir, &selected) {
+                    Ok(paths) if !paths.is_empty() => return CliResult::err(1, format!(
+                        "error: the following files have staged content different from both the file and the HEAD:\n    {}\n(use -f to force removal)\n", paths.join("\n    ")
+                    )),
+                    Err(e) => return CliResult::err(128, format!("fatal: {}\n", e.message)),
+                    _ => {}
+                }
+            }
             for path in selected {
                 if let Err(e) = remove(fs, &gitdir, &path) {
                     return CliResult::err(128, format!("fatal: {}\n", e.message));

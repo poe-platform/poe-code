@@ -342,6 +342,32 @@ fn add_path_to_index(
     Ok(())
 }
 
+pub(crate) fn cached_removal_conflicts(
+    fs: &MemoryFs,
+    dir: &str,
+    gitdir: &str,
+    paths: &[String],
+) -> Result<Vec<String>, GitError> {
+    let head = get_head_tree_map(fs, gitdir, "HEAD")?;
+    GitIndexManager::acquire(fs, gitdir, |index| {
+        let mut conflicts = Vec::new();
+        for path in paths {
+            let Some(entry) = index.entries_map().get(path) else { continue };
+            let matches_head = head.get(path).is_some_and(|head| {
+                head.oid == entry.oid && head.mode == format!("{:o}", entry.mode)
+            });
+            let matches_worktree = compute_workdir_oid(fs, dir, gitdir, path)
+                .is_some_and(|(oid, stat)| {
+                    oid == entry.oid && crate::utils::normalize_mode(stat.mode) == entry.mode
+                });
+            if !matches_head && !matches_worktree {
+                conflicts.push(path.clone());
+            }
+        }
+        Ok(conflicts)
+    })
+}
+
 pub fn remove(
     fs: &MemoryFs,
     gitdir: &str,

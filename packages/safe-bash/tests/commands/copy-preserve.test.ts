@@ -13,6 +13,37 @@ function view(backing: FileSystem, overrides: Partial<FileSystem>): FileSystem {
   } });
 }
 
+for (const [name, script, stdout] of [
+  ["new files, directories and device copies",
+    "umask 027; echo x > a; chmod 666 a; cp a b; stat -c %a b; mkdir s; chmod 777 s; cp -r s t; stat -c %a t; cp /dev/null c; stat -c %a c",
+    "640\n750\n640\n"],
+  ["recursive directory mode restoration",
+    "mkdir s; echo x > s/a; chmod 555 s; chmod 666 s/a; umask 077; cp -r s t; stat -c %a t t/a",
+    "500\n600\n"],
+  ["attributes-only creation",
+    "echo x > a; chmod 666 a; umask 077; cp --attributes-only a b; stat -c %a b",
+    "600\n"],
+  ["existing destinations",
+    "echo x > a; echo old > b; mkdir s t; chmod 666 a b; chmod 777 s t; umask 077; cp a b; cp -r s/. t; stat -c %a b t",
+    "666\n777\n"],
+  ...["-p", "--preserve=mode", "-a"].map(flag => [
+    `${flag} mode preservation`,
+    `mkdir s; echo x > s/a; chmod 777 s; chmod 666 s/a; umask 077; cp -r ${flag} s t; stat -c %a t t/a`,
+    "777\n666\n",
+  ]),
+]) {
+  test(`cp respects umask for ${name}`, async () => {
+    const fs = await fixture();
+    const shell = new Shell({ fs, cwd: "/work" }).use(agentCommands());
+    try {
+      const result = await shell.exec(script!);
+      assert.equal(result.exitCode, 0, result.stderr);
+      assert.equal(result.stderr, "");
+      assert.equal(result.stdout, stdout);
+    } finally { await shell.dispose(); }
+  });
+}
+
 test("cp --preserve=mode copies bytes and permissions through the agent shell", async () => {
   const fs = await fixture({ input: "abc\n", output: "old\n" });
   const shell = new Shell({ fs, cwd: "/work" }).use(agentCommands());

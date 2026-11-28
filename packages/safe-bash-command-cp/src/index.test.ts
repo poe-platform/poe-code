@@ -2,6 +2,7 @@ import assert from "node:assert/strict";
 import { test } from "node:test";
 import { createMemoryFileSystem } from "@poe-code/safe-fs";
 import { CommandRegistry, commandRuntimeIdentity, createCommandArguments, getCommandArguments, toByteSource, type CommandContext } from "safe-bash-contracts";
+import { creationUmask } from "safe-bash-contracts/runtime-control";
 import { createCpCommand, createCpCommands, cpCommands } from "./index.js";
 
 async function context(args: string[]): Promise<CommandContext> {
@@ -22,6 +23,21 @@ test("private factory retains canonical contracts and copies bytes", async () =>
   assert.equal((await definition.execute(invocation)).exitCode, 0);
   assert.deepEqual(await invocation.fs.readFile("/copy"), new Uint8Array([255, 0, 254]));
 });
+
+for (const streaming of [true, false]) {
+  test(`cp masks creation permissions with streaming=${streaming}`, async () => {
+    const invocation = await context(["/source/nested/file", "/copy"]);
+    const fs = invocation.fs;
+    await fs.chmod!("/source/nested/file", 0o666);
+    Object.defineProperty(fs, creationUmask, { value: 0o027 });
+    if (!streaming) {
+      fs.capabilitiesFor = async () => ({ ...fs.capabilities, streamingWrite: false });
+    }
+    assert.equal((await createCpCommand().execute(invocation)).exitCode, 0);
+    assert.equal((await fs.stat("/copy")).mode & 0o777, 0o640);
+    assert.deepEqual(await fs.readFile("/copy"), new Uint8Array([255, 0, 254]));
+  });
+}
 
 test("cp plugin rejects collisions and permits explicit replacement", () => {
   const commands = new CommandRegistry();

@@ -2,6 +2,8 @@
 
 Safe Bash provides `cp` for copying files and directory trees between configured virtual filesystems. Use `cp --parents a/b/file destination` to keep source directories beneath an existing destination directory. It supports recursive/archive copies, symbolic and hard links, metadata preservation, interactive overwrite, backups, update and no-clobber policies. `--update=older` (also `-u` or `--update`) copies only when the destination is missing or older, `--update=none` skips existing files, and `--update=all` copies regardless of timestamps. Use `--no-preserve=LIST` to disable selected preserved attributes, such as `cp -p --no-preserve=mode source destination`. Recursive copies report per-entry errors, continue copying remaining entries and exit with status 1 if any entry failed.
 
+New files and directories respect the shell's umask. Use `-p`, `--preserve=mode` or `-a` to preserve source permissions instead. Overwriting an existing destination keeps its permissions unless mode preservation is requested.
+
 ```ts
 import { Shell, createMemoryFileSystem } from "@poe-platform/safe-bash";
 import { cpCommands } from "@poe-platform/safe-bash/commands/cp";

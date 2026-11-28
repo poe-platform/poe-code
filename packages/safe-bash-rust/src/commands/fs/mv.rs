@@ -397,6 +397,7 @@ pub(super) fn cmd_mv(
             return err_out(&format!("mv: {e}\n"), 1);
         }
     }
+    let mut destinations = std::collections::HashSet::new();
     for src_raw in sources {
         let (src, disp_target, target) = match paths(src_raw) {
             Ok(paths) => paths,
@@ -431,6 +432,13 @@ pub(super) fn cmd_mv(
                     declined = true;
                     return Ok(());
                 }
+            }
+            if backup_mode != BackupMode::Numbered && destinations.contains(&target) {
+                return Err(format!(
+                    "will not overwrite just-created {} with {}",
+                    shell_quoted_operand(&disp_target),
+                    shell_quoted_operand(src_raw)
+                ));
             }
             if backup_mode != BackupMode::None
                 && let Some((source_stat, target_stat)) = inspect_pair()?
@@ -511,6 +519,7 @@ pub(super) fn cmd_mv(
                 }
                 return Err(e);
             }
+            destinations.insert(target.clone());
             if verbose {
                 let suffix = backup
                     .as_ref()

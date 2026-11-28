@@ -35,6 +35,7 @@ fn bc_exponentiation_is_right_associative() {
 fn bc_negative_integer_powers_use_division_scale() {
     for (input, expected) in [
         ("scale=5; 2^(-3); 3^(-2)", ".12500\n.11111\n"),
+        ("scale=5; x=2; x^=-3; x; scale(x); x*8", ".12500\n5\n1.00000\n"),
         (
             "scale=5; 2.0^(-3); 3^(-2.0); .2^(-3)",
             ".12500\n.11111\n125.00000\n",
@@ -117,3 +118,4 @@ fn bc_exponentiation_is_right_associative_and_preserves_precedence() {
         assert_eq!(result.stderr, "", "{input}");
     }
 }
+

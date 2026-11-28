@@ -7833,6 +7833,27 @@ fn apply_bc_binop(l: &BcVal, r: &BcVal, op: &str, bc: &mut BcEnv) -> BcVal {
                     scale: 0,
                 };
             }
+            "^" => {
+                let exp = r.val.abs().round() as u32;
+                let mut digits = big_pow(la, exp);
+                let scale = if r.neg { bc.scale } else { 0 };
+                if r.neg {
+                    let mut numerator = vec![1];
+                    numerator.extend(std::iter::repeat_n(0, scale));
+                    (digits, _) = big_div_rem(&numerator, &digits);
+                }
+                let neg = l.neg && (exp % 2 == 1);
+                let is_zero = digits.len() == 1 && digits[0] == 0;
+                let f = digits
+                    .iter()
+                    .fold(0.0f64, |acc, &d| acc * 10.0 + f64::from(d));
+                return BcVal {
+                    val: if neg && !is_zero { -f } else { f } / 10f64.powi(scale as i32),
+                    coefficient: Some(digits),
+                    neg: neg && !is_zero,
+                    scale,
+                };
+            }
             _ => {}
         }
     }

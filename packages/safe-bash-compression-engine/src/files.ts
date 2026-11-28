@@ -339,6 +339,9 @@ export async function writeFileOperand(context: CommandContext, plan: Operand, o
     if (!sameEntry(stageStat, snapshot(await operation.run(() => fs.lstat(staged!, { signal }))))) {
       throw new FsError("EBUSY", { path: staged, message: "staging identity changed" });
     }
+    if (plan.sourceStat && fs.chmod) {
+      await operation.run(() => fs.chmod!(staged!, plan.sourceStat!.mode & 0o777, { signal }));
+    }
     await operation.run(async () => { await fs.rename(staged!, destination, { signal, noReplace: !plan.destinationStat }); moved = true; });
     operation.check();
     try { await retainedCleanup(); }

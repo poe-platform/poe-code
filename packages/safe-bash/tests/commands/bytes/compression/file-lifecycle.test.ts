@@ -3,6 +3,43 @@ import test from "node:test";
 import { run, wrap } from "./helpers.js";
 import { FsError, type InvocationCleanup } from "../../../../src/contracts/index.js";
 import { createMemoryFileSystem } from "../../../../src/fs/memory/index.js";
+import { Shell } from "../../../../src/shell/shell.js";
+import { agentCommands } from "../../../../src/index.js";
+
+test("gzip and gunzip preserve source permissions, including with -k", async () => {
+  const fs = createMemoryFileSystem();
+  await fs.mkdir("/work");
+  const shell = new Shell({ fs, cwd: "/work" }).use(agentCommands());
+  try {
+    const result = await shell.exec("echo x > a; chmod 644 a; gzip a; stat -c %a a.gz; gunzip a.gz; stat -c %a a; chmod 755 a; gzip -k a; stat -c %a a.gz");
+    assert.equal(result.exitCode, 0, result.stderr);
+    assert.equal(result.stderr, "");
+    assert.equal(result.stdout, "644\n644\n755\n");
+    assert.equal((await fs.stat("/work/a")).mode & 0o777, 0o755);
+    assert.equal(Buffer.from(await fs.readFile("/work/a")).toString(), "x\n");
+  } finally { await shell.dispose(); }
+});
+
+test("gzip preserves read-only source permissions after writing output", async () => {
+  const fs = createMemoryFileSystem();
+  await fs.writeFile("/input", Buffer.from("hello\n"));
+  await fs.chmod("/input", 0o444);
+  const result = await run("gzip", ["-k", "input"], undefined, { fs });
+  assert.equal(result.exitCode, 0, result.stderr);
+  assert.equal((await fs.stat("/input.gz")).mode & 0o777, 0o444);
+});
+
+test("gzip retains input and cleans staging when copying permissions fails", async () => {
+  const memory = createMemoryFileSystem();
+  await memory.writeFile("/input", Buffer.from("hello\n"));
+  const fs = wrap(memory, {
+    async chmod() { throw new FsError("EPERM"); },
+  });
+  const result = await run("gzip", ["input"], undefined, { fs });
+  assert.notEqual(result.exitCode, 0);
+  assert.equal(Buffer.from(await memory.readFile("/input")).toString(), "hello\n");
+  assert.deepEqual((await memory.readdir("/")).map(entry => entry.name), ["input"]);
+});
 
 for (const [command, suffix] of [["bzip2", ".bz2"], ["xz", ".xz"], ["zstd", ".zst"]]) {
   test(`${command}: register owned cleanup before staging acquisition`, async context => {

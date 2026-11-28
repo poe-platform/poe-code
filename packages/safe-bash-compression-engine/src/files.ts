@@ -55,6 +55,10 @@ function outputPath(source: string, options: CompressionOptions): string {
       if (source.endsWith(".tbz")) return source.slice(0, -4) + ".tar";
     }
     if (options.xzFormat === "raw" && !options.suffix) throw new FsError("EINVAL", { path: source, message: "raw format requires a suffix (use -S or -c)" });
+    if (options.decompress && options.suffix === undefined) {
+      if (options.format === "xz" && source.endsWith(".txz")) return source.slice(0, -4) + ".tar";
+      if (options.format === "zstd" && source.endsWith(".tzst")) return source.slice(0, -5) + ".tar";
+    }
     const suffix = options.suffix ?? (options.format === "bzip2" && options.decompress && source.endsWith(".bz") ? ".bz"
       : options.format === "xz" && (options.decompress ? source.endsWith(".lzma") : options.xzFormat === "lzma")
       ? ".lzma" : formats[options.format].suffix);

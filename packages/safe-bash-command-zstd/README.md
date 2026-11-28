@@ -17,7 +17,9 @@ Use `-o FILE` to select the output filename, `-c` (or `-o -`) for stdout,
 `-d` for decompression, `-t` for integrity checks, and
 `-k`/`-f` for file retention/replacement. The existing bounded codec supports
 levels 1–9, checksum and frame/window controls; unsupported capabilities fail
-option validation. Files are retained by default. Decoded bytes are unlimited
+option validation. Decompressing `release.tzst` produces `release.tar`. Files are
+retained by default; use `--rm` to remove the compressed source after decompression.
+Decoded bytes are unlimited
 unless `maxDecodedBytes` (or `limits.maxDecodedBytes`) is specified. Input budgets
 and cancellation use the canonical Safe Bash runtime contracts.
 

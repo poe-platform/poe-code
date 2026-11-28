@@ -23,6 +23,8 @@ try {
 The existing profile supports XZ, legacy LZMA and raw formats; CRC32, CRC64,
 SHA-256 and omitted checks; presets, custom filter chains, block controls,
 single-stream decoding, custom suffixes, and human or robot index listings.
+Decompressing `release.txz` produces `release.tar`; an explicit `--suffix`
+overrides the default filename mapping.
 Use `-lv` for stream and block offsets and sizes, or `-lvv` to also show
 checksums, filters, header sizes, and decoder memory. Both support `--robot`.
 The codec runs as bundled JavaScript without native processes or runtime fetches.

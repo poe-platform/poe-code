@@ -27,6 +27,33 @@ test("ls and find preserve literal filenames in captured output", async context 
   }
 });
 
+test("ls groups directories before files", async context => {
+  const fs = await fixture({});
+  const shell = new Shell({ fs, cwd: "/work" }).use(agentCommands());
+  context.after(() => shell.dispose());
+  const result = await shell.exec('touch a z; mkdir d; ls --group-directories-first; echo "st=$?"');
+  assert.equal(result.stdout, "d\na\nz\nst=0\n");
+  assert.equal(result.stderr, "");
+  assert.equal(result.exitCode, 0);
+
+  await fs.mkdir("/work/b");
+  for (const [args, expected] of [
+    [["--group-directories-first"], "b\nd\na\nz\n"],
+    [["--group-directories-first", "-r"], "d\nb\nz\na\n"],
+    [["--group-directories-first", "-U"], "a\nb\nd\nz\n"],
+    [["--group-directories-first", "-d", "z", "d", "a", "b"], "b\nd\na\nz\n"],
+  ] as const) {
+    const listed = await run("ls", [...args], { fs });
+    assert.equal(listed.stdout, expected);
+    assert.equal(listed.stderr, "");
+    assert.equal(listed.exitCode, 0);
+  }
+  await fs.writeFile("/work/--group-directories-first", new Uint8Array());
+  const literal = await run("ls", ["--", "--group-directories-first"], { fs });
+  assert.equal(literal.stdout, "--group-directories-first\n");
+  assert.equal(literal.exitCode, 0);
+});
+
 test("ls accepts color options in captured output", async context => {
   const fs = await fixture({});
   const shell = new Shell({ fs, cwd: "/work" }).use(agentCommands());

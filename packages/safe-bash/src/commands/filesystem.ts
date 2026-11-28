@@ -850,6 +850,7 @@ export function filesystemCommands(maxDirectoryEntries?: number, maxRecursiveDir
       const now = Date.now();
       let hidden: "none" | "all" | "almost-all" = "none";
       let sort: "name" | "time" | "size" | "none" | "extension" | "version" = "name";
+      let groupDirectoriesFirst = false;
       let timeKey: "mtimeMs" | "atimeMs" | "ctimeMs" = "mtimeMs";
       let indicator: "none" | "slash" | "file-type" | "classify" = "none";
       let layout: "single-column" | "long" | "commas" | "vertical" | "horizontal" = "single-column";
@@ -867,6 +868,10 @@ export function filesystemCommands(maxDirectoryEntries?: number, maxRecursiveDir
       const args: string[] = [];
       for (let index = 0; index < context.args.length; index++) {
         const argument = context.args[index]!;
+        if (!ended && argument === "--group-directories-first") {
+          groupDirectoriesFirst = true;
+          continue;
+        }
         if (!ended && (argument === "--width" || argument.startsWith("--width="))) {
           selectWidth(argument === "--width" ? context.args[++index] : argument.slice(8));
           continue;
@@ -1006,6 +1011,11 @@ export function filesystemCommands(maxDirectoryEntries?: number, maxRecursiveDir
           return left.display < right.display ? -1 : left.display > right.display ? 1 : 0;
         });
         if (parsed.flags.has("r")) entries.reverse();
+        if (groupDirectoriesFirst) entries.sort((left, right) => {
+          context.signal.throwIfAborted();
+          if (left.stat.type === right.stat.type) return 0;
+          return left.stat.type === "directory" ? -1 : right.stat.type === "directory" ? 1 : 0;
+        });
         await yieldTurn(context.signal);
       };
       const humanSize = (size: number, path: string): string => {

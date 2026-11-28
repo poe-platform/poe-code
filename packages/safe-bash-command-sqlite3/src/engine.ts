@@ -4057,11 +4057,11 @@ export class SqliteDatabase {
       idx += 2;
     }
 
-    let targetCols = tbl.columns.map((c) => {
+    const explicitColumns = tokens[idx]?.value === "(";
+    let targetCols = tbl.columns.filter(c => !c.generatedExpr).map((c) => {
       return c.name;
     });
-    const hasTargetColumns = tokens[idx]?.value === "(";
-    if (hasTargetColumns) {
+    if (explicitColumns) {
       targetCols = [];
       idx += 1;
       while (idx < tokens.length && tokens[idx]?.value !== ")") {
@@ -4101,6 +4101,7 @@ export class SqliteDatabase {
     const endValuesIdx =
       onConflictIdx !== -1 ? onConflictIdx : returningIdx !== -1 ? returningIdx : tokens.length;
     const valueRows: SqlValue[][] = [];
+    let valueCount = 0;
 
     if (
       tokens[idx]?.value.toUpperCase() === "DEFAULT" &&
@@ -4137,11 +4138,10 @@ export class SqliteDatabase {
               cur.push(t);
             }
           }
-          if (rowToks.length !== targetCols.length) {
-            throw new Error(hasTargetColumns
-              ? `in prepare, ${rowToks.length} values for ${targetCols.length} columns`
-              : `in prepare, table ${tbl.name} has ${targetCols.length} columns but ${rowToks.length} values were supplied`);
+          if (valueRows.length > 0 && rowToks.length !== valueCount) {
+            throw new Error("in prepare, all VALUES must have the same number of terms");
           }
+          valueCount = rowToks.length;
           const evaledRow = yield* stepMap(rowToks, function* (rt) {
             return yield* this.evalExprSteps(
               new ExprParser(rt).parseExpression(),
@@ -4161,10 +4161,17 @@ export class SqliteDatabase {
         positionalParams,
         cteScope
       );
+      valueCount = selectRes.columns.length;
       for (const r of selectRes.rows) {
         yield;
         valueRows.push(r);
       }
+    }
+
+    if (valueCount !== targetCols.length) {
+      throw new Error(explicitColumns
+        ? `in prepare, ${valueCount} values for ${targetCols.length} columns`
+        : `in prepare, table ${tableName} has ${targetCols.length} columns but ${valueCount} values were supplied`);
     }
 
     // Parse ON CONFLICT clause if present

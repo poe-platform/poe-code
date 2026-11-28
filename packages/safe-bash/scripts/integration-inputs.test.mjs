@@ -24,6 +24,11 @@ test("sqlite function errors remain in active discovery", () => {
   assert.ok(discoverTests(root, loadBoundaries(root)).includes("tests/commands/sqlite-function-errors.test.ts"));
 });
 
+test("sqlite INSERT arity regressions remain in active discovery", () => {
+  const root = fileURLToPath(new URL("../", import.meta.url));
+  assert.ok(discoverTests(root, loadBoundaries(root)).includes("tests/commands/sqlite-insert-arity.test.ts"));
+});
+
 test("ls time-style regressions remain in active discovery", () => {
   const root = fileURLToPath(new URL("../", import.meta.url));
   assert.ok(discoverTests(root, loadBoundaries(root)).includes("tests/commands/ls-time-style.test.ts"));

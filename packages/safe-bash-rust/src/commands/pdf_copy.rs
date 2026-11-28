@@ -599,10 +599,12 @@ impl PageOutput {
         output
             .set_info(&base_source, &[b"Title", b"Author"])
             .ok_or("invalid PDF metadata")?;
+        let mut base_source = Some(base_source);
         let mut sources = BTreeMap::new();
         if let Some(name) = primary.filter(|_|base_is_input) {
-            sources.insert((name,edits.password), base_source);
+            sources.insert((name,edits.password), base_source.take().unwrap());
         }
+        let mut primary_pages = BTreeMap::new();
         let mut groups = Vec::new();
         let mut available = limits.max_output_bytes / 20;
         let batch = collate.filter(|_| specs.len() > 1);
@@ -626,9 +628,15 @@ impl PageOutput {
             }).map_err(|e| format!("parsing numeric range for {key}: {e}"))?;
             let mut seen = BTreeSet::new();
             if batch.is_none() {
+                let offset = output.pages.len();
                 output
                     .copy_pages(source, indices.iter().copied(), false, |_| None, Some(&mut seen), None)
                     .ok_or("could not copy selected PDF pages")?;
+                if base_is_input && Some(key) == primary {
+                    for (&index, &page) in indices.iter().zip(&output.pages[offset..]) {
+                        primary_pages.entry(source.pages[index]).or_insert(page);
+                    }
+                }
             } else {
                 groups.push((identity, indices.into_iter(), seen));
             }
@@ -642,21 +650,54 @@ impl PageOutput {
                         continue;
                     }
                     let selected = indices.as_slice()[..n].iter().copied();
+                    let source = sources.get_mut(key).unwrap();
+                    let offset = output.pages.len();
                     output
                         .copy_pages(
-                            sources.get_mut(key).unwrap(),
-                            selected,
+                            source,
+                            selected.clone(),
                             false,
                             |_| None,
                             Some(seen),
                             None,
                         )
                         .ok_or("could not copy selected PDF pages")?;
+                    if base_is_input && Some(key.0) == primary {
+                        for (index, &page) in selected.zip(&output.pages[offset..]) {
+                            primary_pages.entry(source.pages[index]).or_insert(page);
+                        }
+                    }
                     indices.nth(n - 1);
                     progress = true;
                 }
                 if !progress {
                     break;
+                }
+            }
+        }
+        if edits.qpdf {
+            let source = base_source.as_mut().or_else(|| {
+                sources.get_mut(&(primary?, edits.password))
+            }).ok_or("missing primary PDF")?;
+            // Copy catalog navigation after all groups so destinations resolve to
+            // the selected primary pages, including collated and repeated inputs.
+            let mut copy = Copy {
+                objects: &mut source.objects,
+                tree: &source.tree,
+                ids: primary_pages,
+                output: &mut output,
+                cairo: None,
+            };
+            for key in [b"Names".as_slice(), b"Dests", b"Outlines"] {
+                if let Some(value) = source.catalog.get(key) {
+                    let mut body = vec![b'/'];
+                    body.extend_from_slice(key);
+                    body.push(b' ');
+                    copy.value(value, &mut body, 0).ok_or("could not copy primary PDF catalog")?;
+                    body.push(b'\n');
+                    copy.output.remaining = copy.output.remaining.checked_sub(body.len())
+                        .ok_or("PDF output byte limit exceeded")?;
+                    copy.output.bodies[0].extend(body);
                 }
             }
         }

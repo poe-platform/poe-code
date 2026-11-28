@@ -2,6 +2,49 @@ import assert from "node:assert/strict";
 import { test } from "node:test";
 import { Shell, agentCommands, createMemoryFileSystem } from "../../src/index.js";
 
+test("time honors TIMEFORMAT in redirected benchmark output", async context => {
+  const shell = new Shell({ fs: createMemoryFileSystem(), cwd: "/work" }).use(agentCommands());
+  context.after(() => shell.dispose());
+  const result = await shell.exec(`TIMEFORMAT='%R real'; { time true; } 2>&1 | sed 's/[0-9]/N/g'; TIMEFORMAT='elapsed=%3lR'; { time true; } 2>&1 | sed 's/[0-9]/N/g'; TIMEFORMAT=; { time true; } 2>&1 | wc -c`);
+  assert.equal(result.stdout, "N.NNN real\nelapsed=NmN.NNNs\n0\n");
+  assert.equal(result.stderr, "");
+  assert.equal(result.exitCode, 0);
+});
+
+test("time formats precision, long CPU times, percent and utilization", async context => {
+  const shell = new Shell({ fs: createMemoryFileSystem() }).use(agentCommands());
+  context.after(() => shell.dispose());
+  const result = await shell.exec(`TIMEFORMAT='%% %0U %1S %9U %lS %0lU %P'; time false`);
+  assert.equal(result.stderr, "% 0 0.0 0.000 0m0.000s 0m0s 0.00\n");
+  assert.equal(result.exitCode, 1);
+});
+
+test("portable time overrides an empty TIMEFORMAT", async context => {
+  const shell = new Shell({ fs: createMemoryFileSystem() }).use(agentCommands());
+  context.after(() => shell.dispose());
+  const result = await shell.exec("TIMEFORMAT=; time -p true");
+  assert.match(result.stderr, /^real \d+\.\d{2}\nuser 0\.00\nsys 0\.00\n$/);
+  assert.equal(result.exitCode, 0);
+});
+
+for (const format of ["%Q", "%1P", "%lP"]) {
+  test(`time diagnoses invalid TIMEFORMAT ${format} without changing status`, async context => {
+    const shell = new Shell({ fs: createMemoryFileSystem() }).use(agentCommands());
+    context.after(() => shell.dispose());
+    const result = await shell.exec(`TIMEFORMAT='${format}'; time false`);
+    assert.equal(result.stderr, `shell: TIMEFORMAT: \`${format.at(-1)}': invalid format character\n`);
+    assert.equal(result.exitCode, 1);
+  });
+}
+
+test("time reads the final TIMEFORMAT and preserves a trailing percent", async context => {
+  const shell = new Shell({ fs: createMemoryFileSystem() }).use(agentCommands());
+  context.after(() => shell.dispose());
+  const result = await shell.exec("TIMEFORMAT=before; time TIMEFORMAT='after%'");
+  assert.equal(result.stderr, "after%\n");
+  assert.equal(result.exitCode, 0);
+});
+
 test("function display retains time when evaluated again", async context => {
   const shell = new Shell({ fs: createMemoryFileSystem() }).use(agentCommands());
   context.after(() => shell.dispose());

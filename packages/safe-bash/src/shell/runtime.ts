@@ -1,4 +1,5 @@
 import { pwdBuiltinHelp } from "./pwd-help.js";
+import { formatTime } from "./time-format.js";
 import { descriptorFileSystem, descriptorPath } from "./descriptor-filesystem.js";
 import { isShellIdentifier, protectedReadArrays, variableTarget } from "./variable-target.js";
 export { isShellIdentifier } from "./variable-target.js";
@@ -4952,7 +4953,7 @@ export class Runtime {
         // Virtual commands have no separately attributable process CPU usage.
         const timing = pipeline.timing === "portable"
           ? `real ${elapsed.toFixed(2)}\nuser 0.00\nsys 0.00\n`
-          : `\nreal\t${Math.floor(elapsed / 60)}m${(elapsed % 60).toFixed(3)}s\nuser\t0m0.000s\nsys\t0m0.000s\n`;
+          : formatTime(state.variables.TIMEFORMAT ?? "\nreal\t%3lR\nuser\t%3lU\nsys\t%3lS", elapsed);
         await writeDiagnostic(io.stderr, timing, this.signal);
       }
     }

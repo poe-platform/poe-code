@@ -37470,6 +37470,12 @@ fn parse_pandoc_latex(input: &str) -> Option<Vec<PandocBlock>> {
             _ => text.push(ch),
         }
     }
+    let text = pandoc_latex::expand_macros(
+        &text,
+        &mut Default::default(),
+        &mut (16 * 1024 * 1024),
+        0,
+    )?;
     if text.contains("\\begin{tabular}") {
         let mut blocks = Vec::new();
         let mut rest = text.as_str();

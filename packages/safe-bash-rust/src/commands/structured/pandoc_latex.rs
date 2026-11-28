@@ -156,3 +156,87 @@ pub(super) fn inlines(
     }
     Some((nodes, pos))
 }
+
+fn macro_group(input: &str) -> Option<(&str, &str)> {
+    let input = input.trim_start().strip_prefix('{')?;
+    let mut chars = input.char_indices();
+    let mut depth = 1usize;
+    while let Some((pos, ch)) = chars.next() {
+        match ch {
+            '\\' => {
+                chars.next();
+            }
+            '{' => depth += 1,
+            '}' => {
+                depth -= 1;
+                if depth == 0 {
+                    return Some((&input[..pos], &input[pos + 1..]));
+                }
+            }
+            _ => {}
+        }
+    }
+    None
+}
+
+pub(super) fn expand_macros(
+    input: &str,
+    macros: &mut std::collections::BTreeMap<String, String>,
+    remaining: &mut usize,
+    depth: usize,
+) -> Option<String> {
+    if depth > 64 {
+        return None;
+    }
+    let mut output = String::new();
+    let mut chars = input.chars();
+    while let Some(ch) = chars.next() {
+        if ch != '\\' {
+            output.push(ch);
+            continue;
+        }
+        let rest = chars.as_str();
+        let end = rest
+            .find(|ch: char| !ch.is_ascii_alphabetic())
+            .unwrap_or(rest.len());
+        let command = &rest[..end];
+        if command.is_empty() {
+            output.push('\\');
+            if let Some(escaped) = chars.next() {
+                output.push(escaped);
+            }
+            continue;
+        }
+        let rest = &rest[end..];
+        if command == "verb"
+            && let Some((_, consumed)) = verbatim(rest)
+        {
+            output.push_str("\\verb");
+            output.push_str(&rest[..consumed]);
+            chars = rest[consumed..].chars();
+            continue;
+        }
+        if command == "newcommand"
+            && let Some((name, after)) = macro_group(rest)
+            && let Some(name) = name.strip_prefix('\\')
+            && !name.is_empty()
+            && name.chars().all(|ch| ch.is_ascii_alphabetic())
+            && let Some((body, after)) = macro_group(after)
+        {
+            macros.insert(name.into(), body.into());
+            chars = after.chars();
+            continue;
+        }
+        if let Some(body) = macros.get(command).cloned() {
+            // Bound total expansion as well as depth: nested macros can grow exponentially.
+            *remaining = remaining.checked_sub(body.len())?;
+            output.push_str(&expand_macros(&body, macros, remaining, depth + 1)?);
+            chars = rest.trim_start().chars();
+        } else {
+            output.push('\\');
+            output.push_str(command);
+            chars = rest.chars();
+        }
+    }
+    Some(output)
+}

@@ -36,6 +36,8 @@ Pipe binds more tightly than union: `.a | upcase, length` applies `length` to th
 original document. Use `.a | (upcase, length)` to apply both operations to `.a`.
 Use `key` to get a selected node's map key or array index, and `parent` or
 `parent(n)` to select its containing node or an ancestor `n` levels up.
+Check array values with `any` and `all`, or apply a condition with `any_c(. > 3)`
+and `all_c(. > 3)`. Empty arrays return `false` for `any` and `true` for `all`.
 Filter with `select(.tags | contains(["x"]))`; `contains` matches string substrings,
 array subsets, and recursively contained map values.
 Check lists with `any` or `all`, or apply a predicate with `any_c(. > 3)` and

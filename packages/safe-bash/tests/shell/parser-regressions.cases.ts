@@ -3,7 +3,7 @@ import { spawnSync } from "node:child_process";
 import { test } from "node:test";
 import { parseShell, ShellSyntaxError } from "../../src/shell/index.js";
 import { setup } from "./helpers.js";
-import { printfCommand } from "../../src/commands/basic.js";
+import { basicCommands, printfCommand } from "../../src/commands/basic.js";
 import { streamCommands } from "../../src/commands/streams.js";
 
 for (const opening of ["((", "( ("]) test(`nested subshell file effects with ${opening}`, async () => {
@@ -128,6 +128,30 @@ test("parameter alternates inherit outer double-quote rules", async () => {
   const { shell } = setup();
   assert.equal((await shell.exec('args "${missing:-\'hello\'}" ${missing:-\'hello world\'}')).stdout, '["\'hello\'","hello world"]');
   assert.equal((await shell.exec('args "${missing:-a\'b\'c}" "${missing:-${other:-\'nested\'}}"')).stdout, '["a\'b\'c","\'nested\'"]');
+});
+
+for (const [source, expected] of [
+  ["unset x; echo \"${x:-'}'}\" \"${x:-'a}b'}\"", "'}' 'a}b'\n"],
+  ["unset x; y=value; printf '%s\\n' \"${x:-'$y}'}\"", "'value}'\n"],
+  ["unset x; printf '%s\\n' \"${x:-'$(printf inner)}'}\"", "'inner}'\n"],
+  ["unset x; printf '%s\\n' \"${x:-${y:-'nested}word'}}\"", "'nested}word'\n"],
+  ["x=set; printf '%s\\n' \"${x:-'unused}word'}\"", "set\n"],
+  ["unset x; printf '%s\\n' ${x:-'a}b'}", "a}b\n"],
+  ["x=set; printf '%s\\n' \"${x:+'a}b'}\"", "'a}b'\n"],
+  ["unset x; printf '%s\\n' \"${x:='a}b'}\" \"$x\"", "'a}b'\n'a}b'\n"],
+] as const) test(`single quotes protect parameter alternate closing braces: ${source}`, async () => {
+  const { shell } = setup();
+  for (const command of basicCommands()) shell.register(command);
+  try {
+    const result = await shell.exec(source);
+    assert.equal(result.stderr, "");
+    assert.equal(result.exitCode, 0);
+    assert.equal(result.stdout, expected);
+  } finally { await shell.dispose(); }
+});
+
+test("double-quoted parameter alternates require matching single quotes", () => {
+  assert.throws(() => parseShell('echo "${x:-it\'s}"'), ShellSyntaxError);
 });
 
 const compoundCommands = [

@@ -712,6 +712,7 @@ class Lexer {
     let parentheses = 0;
     let brackets = 0;
     let conditionals = 0;
+    let alternateSingleQuoted = false;
     let patternParentheses = 0;
     let regexBracket = false;
     let regexBracketFirst = false;
@@ -763,7 +764,7 @@ class Lexer {
         if (terminator.includes("]") && current === "[") {
           if (++brackets > this.budget.maxSyntaxDepth) this.error(`Subscript syntax nesting exceeds ${this.budget.maxSyntaxDepth}`);
         } else if (current === "]" && brackets > 0) brackets--;
-        else if (terminator.includes(current) && (!arithmetic || current !== ":" || parentheses === 0 && conditionals === 0)) break;
+        else if (!alternateSingleQuoted && terminator.includes(current) && (!arithmetic || current !== ":" || parentheses === 0 && conditionals === 0)) break;
       } else if (!this.braceReplay && this.position > assignmentSubscriptEnd) {
         if (!enclosingQuoted && !literal && current === "(" && (patternParentheses > 0 || (
           this.position > offset
@@ -815,6 +816,12 @@ class Lexer {
         const start = this.position;
         const value = this.ansiWord();
         text(value, true, false, start, this.position, true);
+      } else if (current === "'" && enclosingQuoted && terminator === "}" && !arithmetic) {
+        // In double-quoted defaults, apostrophes protect closing braces but
+        // remain literal and do not suppress parameter or command expansion.
+        alternateSingleQuoted = !alternateSingleQuoted;
+        text(current, true);
+        this.position++;
       } else if (current === "'" && !enclosingQuoted) {
         plain = false;
         let end = this.source.indexOf("'", this.position + 1);
@@ -927,6 +934,7 @@ class Lexer {
         }
       }
     }
+    if (alternateSingleQuoted) this.error("Unterminated single quote", { quote: "'", line: this.lineAt(offset) });
     if (conditionalPattern === "regex" && patternParentheses > 0) this.error("Unterminated conditional regular expression group");
     let rawNewlines = 0;
     let nlPos = this.source.indexOf("\n", offset);

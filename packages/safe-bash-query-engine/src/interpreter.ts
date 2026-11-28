@@ -600,23 +600,21 @@ export class Interpreter {
         return;
       case "reduce":
       case "foreach": {
-        const depth = (this.frame?.depth ?? 0) + 1;
-        if (depth > this.budget.limits.maxAstDepth) throw new JqLimitError("maxAstDepth");
         let sourceInput = input;
         for await (const initial of this.run(ast.init, input)) {
           let accumulator = initial;
           for await (const value of this.run(ast.source, sourceInput)) {
             await this.budget.tick();
-            const scope = Object.create(Interpreter.prototype) as Interpreter;
-            Object.assign(scope, this, { frame: { name: ast.name, value, parent: this.frame, depth } });
-            const previous = accumulator;
-            accumulator = null;
-            for await (const updated of scope.run(ast.update, previous)) {
-              await this.budget.tick();
-              accumulator = updated;
-              if (ast.kind === "foreach") {
-                if (ast.extract) yield* scope.run(ast.extract, updated);
-                else yield updated;
+            for await (const scope of this.matchPattern(ast.pattern, value, this)) {
+              const previous = accumulator;
+              accumulator = null;
+              for await (const updated of scope.run(ast.update, previous)) {
+                await this.budget.tick();
+                accumulator = updated;
+                if (ast.kind === "foreach") {
+                  if (ast.extract) yield* scope.run(ast.extract, updated);
+                  else yield updated;
+                }
               }
             }
           }

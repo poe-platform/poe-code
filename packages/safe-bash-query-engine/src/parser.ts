@@ -26,7 +26,7 @@ export type Ast =
   | { kind: "optional"; operand: Ast }
   | { kind: "descend" }
   | { kind: "try"; body: Ast; handler: Ast | undefined }
-  | { kind: "reduce" | "foreach"; source: Ast; name: string; init: Ast; update: Ast; extract: Ast | undefined }
+  | { kind: "reduce" | "foreach"; source: Ast; pattern: BindingPattern; init: Ast; update: Ast; extract: Ast | undefined }
   | { kind: "index"; base: Ast; index: Ast }
   | { kind: "slice"; base: Ast; start: Ast | undefined; end: Ast | undefined }
   | { kind: "iterate"; base: Ast }
@@ -350,19 +350,19 @@ export function parse(source: string, variables: ReadonlyMap<string, Json>, budg
       const body = expression(10);
       result = { kind: "try", body, handler: accept("catch") ? expression(10) : undefined };
     } else if (token.text === "reduce" || token.text === "foreach") {
-      const source = expression(10); expect("as"); expect("$");
-      const name = take(); if (name.kind !== "name") fail("expected variable name");
+      const source = expression(10); expect("as");
+      const names = new Set<string>();
+      const binding = pattern(names);
       expect("("); const init = expression(); expect(";");
-      const previous = bindings.get(name.text) ?? 0;
-      bindings.set(name.text, previous + 1);
+      const previous = new Map([...names].map(name => [name, bindings.get(name) ?? 0]));
+      for (const [name, count] of previous) bindings.set(name, count + 1);
       try {
         const update = expression();
         const extract = token.text === "foreach" && accept(";") ? expression() : undefined;
         expect(")");
-        result = { kind: token.text, source, name: name.text, init, update, extract };
+        result = { kind: token.text, source, pattern: binding, init, update, extract };
       } finally {
-        if (previous) bindings.set(name.text, previous);
-        else bindings.delete(name.text);
+        for (const [name, count] of previous) { if (count) bindings.set(name, count); else bindings.delete(name); }
       }
     } else if (token.text === ".") {
       result = { kind: "identity" };
@@ -516,16 +516,7 @@ export function parse(source: string, variables: ReadonlyMap<string, Json>, budg
     else if (node.kind === "label" || node.kind === "define") children.push(node.body);
     else if (node.kind === "binary") children.push(node.left, node.right);
     else if (node.kind === "bind") children.push(node.source, node.body);
-    else if (node.kind === "destructure") {
-      children.push(node.source, node.body);
-      const patterns = [...node.patterns];
-      while (patterns.length) {
-        budget.step();
-        const entry = patterns.pop()!;
-        if (entry.kind === "fields") for (const field of entry.fields) { children.push(field.key); patterns.push(field.pattern); }
-        else if (entry.pattern) patterns.push(entry.pattern);
-      }
-    }
+    else if (node.kind === "destructure") children.push(node.source, node.body);
     else if (node.kind === "unary" || node.kind === "optional") children.push(node.operand);
     else if (node.kind === "index") children.push(node.base, node.index);
     else if (node.kind === "iterate") children.push(node.base);
@@ -538,6 +529,15 @@ export function parse(source: string, variables: ReadonlyMap<string, Json>, budg
     else if (node.kind === "reduce" || node.kind === "foreach") {
       children.push(node.source, node.init, node.update);
       if (node.extract) children.push(node.extract);
+    }
+    if (node.kind === "destructure" || node.kind === "reduce" || node.kind === "foreach") {
+      const patterns = node.kind === "destructure" ? [...node.patterns] : [node.pattern];
+      while (patterns.length) {
+        budget.step();
+        const entry = patterns.pop()!;
+        if (entry.kind === "fields") for (const field of entry.fields) { children.push(field.key); patterns.push(field.pattern); }
+        else if (entry.pattern) patterns.push(entry.pattern);
+      }
     }
     for (const child of children.reverse()) pending.push({ node: child, depth: depth + 1 });
   }

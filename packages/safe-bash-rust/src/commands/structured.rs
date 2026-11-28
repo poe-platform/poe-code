@@ -22513,7 +22513,7 @@ fn fire_sql_triggers(
             let end = chars.peek().map_or(tr.body.len(), |(i, _)| *i);
             body.push_str(&tr.body[start..end]);
         }
-        for sub_stmt in body.split(';') {
+        for sub_stmt in split_sql_stmts(&body) {
             let sub = sub_stmt.trim();
             let sub_up = sub.to_ascii_uppercase();
             if sub_up.starts_with("INSERT ") || sub_up.starts_with("REPLACE ") {

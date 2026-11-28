@@ -77,3 +77,41 @@ fn sqlite_trigger_preserves_literals_and_does_not_rescan_values() {
         "NEW.id2\nit's NEW.id\nNEW.id2\n",
     );
 }
+
+#[test]
+fn sqlite_trigger_preserves_semicolons_in_string_literals() {
+    assert_trigger_output(
+        "CREATE TABLE t(n); CREATE TABLE log(s); CREATE TRIGGER tr AFTER INSERT ON t BEGIN INSERT INTO log VALUES('one;two'); END; INSERT INTO t VALUES(3); SELECT s FROM log;",
+        "one;two\n",
+    );
+    assert_trigger_output(
+        "CREATE TABLE t(n); CREATE TABLE log(s);
+         CREATE TRIGGER tr AFTER INSERT ON t BEGIN
+           INSERT INTO log VALUES('one;two');
+           INSERT INTO log VALUES('it''s;quoted');
+           INSERT INTO log VALUES(';END;BEGIN;');
+           INSERT INTO log VALUES('last');
+         END;
+         INSERT INTO t VALUES(3);
+         SELECT s FROM log;",
+        "one;two\nit's;quoted\n;END;BEGIN;\nlast\n",
+    );
+}
+
+#[test]
+fn sqlite_trigger_preserves_semicolons_in_row_values() {
+    assert_trigger_output(
+        "CREATE TABLE t(n); CREATE TABLE log(s);
+         CREATE TRIGGER ins AFTER INSERT ON t BEGIN
+           INSERT INTO log VALUES(NEW.n);
+         END;
+         CREATE TRIGGER upd AFTER UPDATE ON t BEGIN
+           INSERT INTO log VALUES(OLD.n);
+           INSERT INTO log VALUES(NEW.n);
+         END;
+         INSERT INTO t VALUES('one;two');
+         UPDATE t SET n='it''s;updated';
+         SELECT s FROM log;",
+        "one;two\none;two\nit's;updated\n",
+    );
+}

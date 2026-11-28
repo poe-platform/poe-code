@@ -244,7 +244,7 @@ export async function indexedDiff(budget: Budget, options: DiffFlags, left: stri
     }
     if (nested && visible) await text(["diff", ...options.optionArgs.map(quoteDiffArgument), quoteDiffName(options.labels[0] ?? left), quoteDiffName(options.labels[1] ?? right)].join(" ") + "\n");
     if (options.format === "ed" || options.format === "forward-ed") {
-      await renderEd(next, count, group, budget, append, options.format === "forward-ed");
+      await renderEd(next, count, group, options.format, budget, append);
       return { different: true, trouble };
     }
     if (options.format === "normal") {

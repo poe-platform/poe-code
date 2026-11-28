@@ -81,7 +81,7 @@ export function evalSyncDiff(
   const b1 = resolveOperand(left);
   const b2 = resolveOperand(right);
   if (!b1 || !b2) return undefined;
-  if (opts.format === "ed" && !opts.brief) {
+  if ((opts.format === "ed" || opts.format === "forward-ed") && !opts.brief) {
     if ((b1.byteLength > 0 && b1[b1.byteLength - 1] !== 10) || (b2.byteLength > 0 && b2[b2.byteLength - 1] !== 10)) {
       return undefined;
     }

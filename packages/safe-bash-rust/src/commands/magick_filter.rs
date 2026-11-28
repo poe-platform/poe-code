@@ -169,6 +169,24 @@ fn lab_rgb(l: f64, a: f64, b: f64) -> [u8; 3] {
 }
 
 impl Raster {
+    pub(super) fn unsharp(&mut self, sigma: f64, amount: f64, threshold: f64, alpha: bool) {
+        if amount == 0. || self.pixels.is_empty() {
+            return;
+        }
+        let mut blurred = self.clone();
+        blurred.blur(sigma, alpha);
+        for (pixel, blurred) in self.pixels.iter_mut().zip(blurred.pixels) {
+            for c in 0..3 {
+                let difference = f64::from(pixel[c]) - f64::from(blurred[c]);
+                if difference.abs() >= threshold * 255. {
+                    pixel[c] = (f64::from(pixel[c]) + amount * difference)
+                        .round()
+                        .clamp(0., 255.) as u8;
+                }
+            }
+        }
+    }
+
     pub(super) fn sharpen(&mut self, sigma: f64, alpha: bool) {
         let sig2 = 2. * sigma * sigma;
         let radius = (-sig2 * 0.1f64.ln()).sqrt().floor().clamp(1., 5000.) as i32;

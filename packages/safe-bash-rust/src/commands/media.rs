@@ -12498,6 +12498,7 @@ fn cmd_magick(
         Convolve(Vec<f64>, f64),
         Blur(f64),
         Sharpen(f64),
+        Unsharp(f64, f64, f64),
         Alpha(String, [u8; 4]),
         Roll(Geometry),
         Chop(Geometry, Gravity),
@@ -13065,6 +13066,20 @@ fn cmd_magick(
                 let sigma = Geometry::parse(g).sigma();
                 ops.push(if matches!(arg.as_str(), "-blur" | "-gaussian-blur") {
                     PixelOp::Blur(sigma)
+                } else if arg == "-unsharp" {
+                    let offsets = magick_coordinates::split_offsets(g).1;
+                    let (amount, threshold) = if offsets.is_empty() {
+                        (1., 0.05)
+                    } else {
+                        let split = offsets[1..]
+                            .find(['+', '-'])
+                            .map_or(offsets.len(), |i| i + 1);
+                        (
+                            offsets[..split].parse().unwrap_or(1.),
+                            offsets[split..].parse().unwrap_or(0.05),
+                        )
+                    };
+                    PixelOp::Unsharp(sigma, amount, threshold)
                 } else {
                     PixelOp::Sharpen(sigma)
                 });
@@ -13208,6 +13223,12 @@ fn cmd_magick(
                     PixelOp::Sharpen(sigma) => {
                         image.sharpen(*sigma, image.alpha || matches!(channels, 2 | 4))
                     }
+                    PixelOp::Unsharp(sigma, amount, threshold) => image.unsharp(
+                        *sigma,
+                        *amount,
+                        *threshold,
+                        image.alpha || matches!(channels, 2 | 4),
+                    ),
                     PixelOp::Blur(sigma) => {
                         image.blur(*sigma, image.alpha || matches!(channels, 2 | 4))
                     }
@@ -22055,7 +22076,7 @@ mod media_unit_tests {
                 "3a598893d74a2a3c01d2f56c247489456b25b9af433166153e0db27e3d1a5e01",
             ),
             (
-                "-unsharp",
+                "-sharpen",
                 "2x2",
                 "754638fe5429215b20dcb64ba4994cbe400db343d5b7906abc808d24b87f933b",
             ),

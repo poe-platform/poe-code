@@ -37493,6 +37493,12 @@ fn parse_pandoc_rtf(input: &str) -> Option<Vec<PandocBlock>> {
     let mut field: Option<Field> = None;
     let mut blocks = Vec::new();
     let mut paragraph = Vec::new();
+    let mut heading = None;
+    let mut paragraph_heading = None;
+    let paragraph_block = |inlines, level| match level {
+        Some(level) => PandocBlock::Header(level, PandocAttr::default(), inlines),
+        None => PandocBlock::Para(inlines),
+    };
     let mut table = pandoc_table::Table::default();
     let mut row = None::<Vec<pandoc_table::Cell>>;
     let mut cell = Vec::new();
@@ -37551,9 +37557,12 @@ fn parse_pandoc_rtf(input: &str) -> Option<Vec<PandocBlock>> {
             text.push_str(value);
             continue;
         }
+        if paragraph.is_empty() {
+            paragraph_heading = heading;
+        }
         flush(&mut text, style, &mut paragraph, &mut space);
         match event {
-            RtfEvent::Open => stack.push((style, field.take())),
+            RtfEvent::Open => stack.push((style, field.take(), heading)),
             RtfEvent::Close => {
                 if let Some(Field {
                     block,
@@ -37572,10 +37581,14 @@ fn parse_pandoc_rtf(input: &str) -> Option<Vec<PandocBlock>> {
                         String::new(),
                     ));
                 }
-                (style, field) = stack.pop()?;
+                (style, field, heading) = stack.pop()?;
             }
             RtfEvent::FieldInstruction(instruction) => {
-                if let Some(field) = stack.iter_mut().rev().find_map(|(_, field)| field.as_mut()) {
+                if let Some(field) = stack
+                    .iter_mut()
+                    .rev()
+                    .find_map(|(_, field, _)| field.as_mut())
+                {
                     let mut parts = instruction.trim().splitn(2, char::is_whitespace);
                     if parts
                         .next()
@@ -37599,6 +37612,12 @@ fn parse_pandoc_rtf(input: &str) -> Option<Vec<PandocBlock>> {
                         target: None,
                     });
                 }
+                "pard" => heading = None,
+                "outlinelevel" => {
+                    heading = parameter
+                        .filter(|level| (0..9).contains(level))
+                        .map(|level| level as usize + 1);
+                }
                 "b" => style.0 = parameter != Some(0),
                 "i" => style.1 = parameter != Some(0),
                 "sub" => style.2 = Some(false),
@@ -37608,14 +37627,20 @@ fn parse_pandoc_rtf(input: &str) -> Option<Vec<PandocBlock>> {
                 "plain" => style = (false, false, None, false),
                 "trowd" => {
                     if !paragraph.is_empty() {
-                        blocks.push(PandocBlock::Para(std::mem::take(&mut paragraph)));
+                        blocks.push(paragraph_block(
+                            std::mem::take(&mut paragraph),
+                            paragraph_heading,
+                        ));
                     }
                     row = Some(Vec::new());
                     space = false;
                 }
                 "cell" | "row" if row.is_some() => {
                     if !paragraph.is_empty() {
-                        cell.push(PandocBlock::Para(std::mem::take(&mut paragraph)));
+                        cell.push(paragraph_block(
+                            std::mem::take(&mut paragraph),
+                            paragraph_heading,
+                        ));
                     }
                     let cells = row.as_mut()?;
                     if name == "cell" || !cell.is_empty() {
@@ -37646,7 +37671,10 @@ fn parse_pandoc_rtf(input: &str) -> Option<Vec<PandocBlock>> {
                     } else {
                         &mut blocks
                     };
-                    target.push(PandocBlock::Para(std::mem::take(&mut paragraph)));
+                    target.push(paragraph_block(
+                        std::mem::take(&mut paragraph),
+                        paragraph_heading,
+                    ));
                 }
                 space = false;
             }
@@ -37658,7 +37686,7 @@ fn parse_pandoc_rtf(input: &str) -> Option<Vec<PandocBlock>> {
         blocks.push(PandocBlock::Table(table));
     }
     if !paragraph.is_empty() {
-        blocks.push(PandocBlock::Para(paragraph));
+        blocks.push(paragraph_block(paragraph, paragraph_heading));
     }
     Some(blocks)
 }
@@ -39361,9 +39389,10 @@ fn render_pandoc_rtf(blocks: &[PandocBlock]) -> String {
                 out.push_str(text);
                 out.push('\n');
             }
-            PandocBlock::Header(_, _, inlines) => {
+            PandocBlock::Header(level, _, inlines) => {
                 out.push_str(&format!(
-                    "{{\\pard\\b {}\\par}}\n",
+                    "{{\\pard\\outlinelevel{}\\b {}\\par}}\n",
+                    level.saturating_sub(1),
                     render_pandoc_inlines_rtf(inlines)
                 ));
             }

@@ -3272,21 +3272,21 @@ fn try_eval_jq_builtin(
                 }
                 "while" | "until" => {
                     if let Some((cond_e, step_e)) = split_jq_binary(arg_expr, ";") {
-                        let mut cur = input.clone();
+                        let mut pending = vec![input.clone()];
                         let mut out = Vec::new();
-                        loop {
+                        while let Some(cur) = pending.pop() {
                             let cond_ok = eval_jq(cond_e.trim(), &cur, vars)?
                                 .first()
                                 .map(|v| v.is_truthy())
                                 .unwrap_or(false);
                             if fname == "while" {
                                 if !cond_ok {
-                                    break;
+                                    continue;
                                 }
                                 out.push(cur.clone());
                             } else if cond_ok {
                                 out.push(cur);
-                                break;
+                                continue;
                             }
                             let remaining = vars
                                 .remaining_loop_iterations
@@ -3294,10 +3294,7 @@ fn try_eval_jq_builtin(
                                 .checked_sub(1)
                                 .ok_or(JqFault::Limit("maxLoopIterations"))?;
                             vars.remaining_loop_iterations.set(remaining);
-                            cur = eval_jq(step_e.trim(), &cur, vars)?
-                                .into_iter()
-                                .next()
-                                .unwrap_or(JVal::Null);
+                            pending.extend(eval_jq(step_e.trim(), &cur, vars)?.into_iter().rev());
                         }
                         return Ok(Some(out));
                     }

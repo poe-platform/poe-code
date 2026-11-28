@@ -19,7 +19,7 @@ export type Expression =
 
 interface Token { text: string; offset: number; kind: "symbol" | "string" | "number" | "name" | "end" }
 const priorities: Readonly<Record<string, number>> = { ",": 1, "|": 2, "=": 3, "=c": 3, "|=": 3, "+=": 3, "-=": 3, "*=": 3, "/=": 3, "//": 4, or: 5, and: 6, "==": 7, "!=": 7, ">": 7, "<": 7, ">=": 7, "<=": 7, "+": 8, "-": 8, "*": 9, "/": 9, "%": 9 };
-const functions = new Set(["path", "parent", "key", "select", "map", "contains", "has", "length", "keys", "tag", "type", "kind", "style", "head_comment", "anchor", "alias", "documentIndex", "document_index", "di", "fileIndex", "file_index", "fi", "filename", "env", "strenv", "del", "explode", "not", "sort", "sort_by", "reverse", "to_entries", "from_entries", "from_json", "from_yaml", "with_entries", "pick", "upcase", "downcase", "trim", "test", "split", "join"]);
+const functions = new Set(["path", "parent", "key", "select", "map", "contains", "has", "length", "keys", "tag", "type", "kind", "style", "head_comment", "anchor", "alias", "documentIndex", "document_index", "di", "fileIndex", "file_index", "fi", "filename", "env", "strenv", "del", "explode", "not", "sort", "sort_by", "unique", "unique_by", "group_by", "flatten", "min", "max", "reverse", "to_entries", "from_entries", "from_json", "from_yaml", "with_entries", "pick", "upcase", "downcase", "trim", "test", "split", "join"]);
 
 export function compileExpression(source: string, security: { readonly disableEnvOps?: boolean; readonly disableFileOps?: boolean; readonly maxExpressionBytes?: number; readonly maxExpressionDepth?: number } = {}): Expression {
   if (utf8ByteLength(source) > (security.maxExpressionBytes ?? Infinity)) throw new MikeError("yq limit exceeded: expression bytes");
@@ -154,7 +154,7 @@ export function compileExpression(source: string, security: { readonly disableEn
         else if (peek().text !== ")") args.push(parse());
         expect(")");
       }
-      const needsArgument = ["select", "map", "contains", "has", "env", "strenv", "del", "explode", "sort_by", "with_entries", "pick", "test", "split", "join"].includes(token.text);
+      const needsArgument = ["select", "map", "contains", "has", "env", "strenv", "del", "explode", "sort_by", "unique_by", "group_by", "with_entries", "pick", "test", "split", "join"].includes(token.text);
       if (needsArgument && args.length === 0) throw new MikeError(`'${token.text}' expects 1 arg but received none`);
       if (token.text === "parent" && args.length) {
         const level = args[0]!;

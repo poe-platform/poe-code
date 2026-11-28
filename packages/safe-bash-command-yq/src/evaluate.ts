@@ -880,6 +880,73 @@ export class Evaluator {
       if (name === "sort" || name === "sort_by") {
         output.push(this.child(await this.sort(base, expression.args[0] ?? { kind: "identity" }, depth, variables), input)); continue;
       }
+      if (name === "unique" || name === "unique_by" || name === "group_by") {
+        if (!yaml.isSeq(base.node)) throw new MikeError(`only arrays are supported for ${name === "group_by" ? "group by" : "unique"}`);
+        const node = name === "group_by" ? new yaml.YAMLSeq() : await cloneNode(base.node, yaml, this.work) as YAMLSeq;
+        if (name === "group_by") this.work.node();
+        node.items = [];
+        const groups = new Map<string, YAMLSeq>();
+        for (let index = 0; index < base.node.items.length; index++) {
+          { const t = this.work.tick(); if (t) await t; }
+          const member = this.child(base.node.items[index] as Node, base, base.node, index);
+          const selected = (await next(expression.args[0] ?? { kind: "identity" }, [member], false))[0];
+          const key = !selected ? "null" : yaml.isScalar(selected.node) ? scalarText(selected.node, yaml)
+            : name === "group_by" ? ""
+            : await encodeNative(selected, { format: "yaml", indent: 0, unwrap: true, compactSequence: false }, yaml, this.work);
+          { const t = this.work.tick(key.length); if (t) await t; }
+          let group = groups.get(key);
+          if (!group) {
+            this.work.node();
+            group = name === "group_by" ? new yaml.YAMLSeq() : node;
+            groups.set(key, group);
+            if (name === "group_by") node.items.push(group);
+          } else if (name !== "group_by") continue;
+          group.items.push(await cloneNode(member.node, yaml, this.work));
+        }
+        output.push(this.child(node, input)); continue;
+      }
+      if (name === "flatten") {
+        if (!yaml.isSeq(base.node)) throw new MikeError("only arrays are supported for flatten");
+        const node = await cloneNode(base.node, yaml, this.work) as YAMLSeq;
+        const pending = [{ node, index: 0 }];
+        const members: Node[] = [];
+        while (pending.length) {
+          this.work.depth(depth + pending.length);
+          { const t = this.work.tick(); if (t) await t; }
+          const frame = pending[pending.length - 1]!;
+          if (frame.index === frame.node.items.length) { pending.pop(); continue; }
+          const member = frame.node.items[frame.index++] as Node;
+          this.work.node();
+          if (yaml.isSeq(member)) pending.push({ node: member, index: 0 });
+          else members.push(member);
+        }
+        node.items = members;
+        output.push(this.child(node, input)); continue;
+      }
+      if (name === "min" || name === "max") {
+        const members = await next({ kind: "iterate" }, [base], false);
+        let selected = members[0];
+        for (let index = 1; index < members.length; index++) {
+          { const t = this.work.tick(); if (t) await t; }
+          const member = dereference(members[index]!, yaml, this.work);
+          const previous = dereference(selected!, yaml, this.work);
+          if (yaml.isMap(member.node)) throw new MikeError("maps not yet supported for comparison");
+          if (yaml.isSeq(member.node)) throw new MikeError("arrays not yet supported for comparison");
+          const left = value(member.node, yaml), right = value(previous.node, yaml);
+          if (left === null || right === null) continue;
+          let better: boolean;
+          if (typeof left === "string" && typeof right === "string") {
+            { const t = this.work.tick(left.length + right.length); if (t) await t; }
+            const compared = compareBytes(utf8Encoder.encode(left), utf8Encoder.encode(right));
+            better = name === "min" ? compared < 0 : compared > 0;
+          } else if ((typeof left === "number" || typeof left === "bigint") && (typeof right === "number" || typeof right === "bigint")) {
+            better = name === "min" ? left < right : left > right;
+          } else throw new MikeError(`${nodeTag(member.node, yaml)} not yet supported for comparison`);
+          if (better) selected = members[index];
+        }
+        if (selected) output.push(selected);
+        continue;
+      }
       if (name === "reverse") {
         if (!yaml.isSeq(base.node)) throw new MikeError(`cannot reverse ${nodeTag(base.node, yaml)}, can only reverse arrays`);
         const node = await cloneNode(base.node, yaml, this.work) as YAMLSeq;

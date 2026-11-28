@@ -42,6 +42,9 @@ Decode embedded documents with `.c | from_json | .d` or `.a | from_yaml | .b`.
 Format values with string interpolation, for example `"name=\(.name)"`.
 Join array values into a string with `join(", ")`, or select names first with
 `.items | map(.name) | join(",")`.
+Deduplicate lists with `unique` or `unique_by(.name)`, and group them with
+`group_by(.name)`, preserving first-seen order. Use `flatten` for nested arrays
+and `min` or `max` for numeric or string extrema.
 Bind values with `.a as $v | {"k": $v}`, or merge files with
 `yq ea '. as $item ireduce ({}; . * $item)' a.yml b.yml`.
 Merge flags append arrays (`*+`), merge arrays by index (`*d`), update only existing

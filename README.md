@@ -239,6 +239,8 @@ const run = await agent()
 console.log(run.output);
 ```
 
+Safe Bash YAML lists support `unique`, `unique_by`, `group_by`, `flatten`, `min`, and `max`.
+
 ### `spawn(service, options)`
 
 Runs a single prompt through a configured service CLI.

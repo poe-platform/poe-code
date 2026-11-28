@@ -9,6 +9,8 @@ import { formats, type CompressionOptions } from "./options.js";
 import { chunkBytes, stagingLimit, transform } from "./stream.js";
 import { FileOperation } from "./file-operation.js";
 
+const gzipSuffixes = [".gz", ".z", "-gz", "-z", "_z"];
+
 export interface Operand {
   readonly source: string;
   readonly name?: string;
@@ -68,18 +70,14 @@ function outputPath(source: string, options: CompressionOptions): string {
   }
   const suffix = options.suffix ?? ".gz";
   const name = source.toLowerCase();
-  const standardSuffixes = [".gz", ".z", "-gz", "-z", "_z"];
   if (options.decompress) {
     const custom = suffix.length > 0 && name.endsWith(suffix.toLowerCase());
     if (!custom && (name.endsWith(".tgz") || name.endsWith(".taz"))) return source.slice(0, -4) + ".tar";
-    const matched = custom ? suffix : standardSuffixes.find(value => name.endsWith(value));
+    const matched = custom ? suffix : gzipSuffixes.find(value => name.endsWith(value));
     if (!matched) throw new FsError("EINVAL", { path: source, message: "unknown gzip suffix (use -c for stdout)" });
     const destination = source.slice(0, -matched.length);
     if (destination === dirname(source) || destination.endsWith("/")) throw new FsError("EINVAL", { path: source, message: "empty output filename" });
     return destination;
-  }
-  if (!options.force && [suffix.toLowerCase(), ...standardSuffixes, ".tgz", ".taz"].some(value => name.endsWith(value))) {
-    throw new FsError("EINVAL", { path: source, message: "already has a gzip suffix (use -f to compress again)" });
   }
   return source + suffix;
 }
@@ -158,6 +156,14 @@ async function collectOperands(context: CommandContext, options: CompressionOpti
       if (sourceStat.type !== "file") throw new FsError("EINVAL", { path: source, message: "input must be a regular, non-symlink file" });
       realSource = await context.fs.realpath(source, { signal: context.signal });
       if (options.stdout || options.test) { plans.push({ source, sourceStat, realSource, name: source === pathOf(context, name) ? name : name + (options.suffix ?? ".gz") }); continue; }
+    }
+    if (options.format === "gzip" && !options.decompress && !options.force && options.output === undefined) {
+      const suffix = [(options.suffix ?? ".gz").toLowerCase(), ...gzipSuffixes, ".tgz", ".taz"]
+        .find(value => realSource!.toLowerCase().endsWith(value));
+      if (suffix) {
+        if (!options.quiet) await diagnostic(context, new PublicDiagnostic(`${name} already has ${realSource!.slice(-suffix.length)} suffix -- unchanged`));
+        continue;
+      }
     }
     const destination = options.output !== undefined ? pathOf(context, options.output) : outputPath(realSource!, options);
     if (options.format === "bzip2" && options.decompress && destination === realSource + ".out" && !options.quiet) {

@@ -178,8 +178,9 @@ File-output decompression never uses this passthrough. No option switches
 
 Named compression appends `.gz`, or the suffix supplied with `-S`/`--suffix`.
 Decompression recognizes the custom suffix before the standard suffixes.
-Without `-f`, file-output compression rejects the custom suffix and
-names already ending in `.gz`, `.z`, `-gz`, `-z`, `_z`, `.tgz`, or `.taz`.
+Without `-f`, file-output compression leaves names with the custom suffix or
+ending in `.gz`, `.z`, `-gz`, `-z`, `_z`, `.tgz`, or `.taz` unchanged, prints a
+warning (unless `-q`), and continues successfully with the remaining operands.
 File-output decompression removes `.gz`, `.z`, `-gz`, `-z`, or `_z`; `.tgz` and
 `.taz` become `.tar`. These suffix checks are case-insensitive. Unknown suffixes
 and empty resulting basenames fail. Stdout and test modes require no suffix,

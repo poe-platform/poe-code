@@ -687,6 +687,48 @@ pub(super) fn retain(
                 tooltip: tooltip.map(str::to_owned),
             });
         }
+        for drawing in elements(&nodes, "drawing") {
+            let unsupported = || {
+                format!(
+                    "Worksheet {:?} contains unsupported drawings; importing it would lose charts or images when saved",
+                    sheet.name
+                )
+            };
+            let id = attr(drawing, "id").ok_or_else(unsupported)?;
+            let target = relationships
+                .get(id)
+                .copied()
+                .filter(|relation| {
+                    attr(relation, "TargetMode") != Some("External")
+                        && attr(relation, "Type").and_then(|s| s.rsplit('/').next())
+                            == Some("drawing")
+                })
+                .and_then(|relation| attr(relation, "Target"))
+                .ok_or_else(unsupported)?;
+            let target = crate::vfs::resolve_posix_path(&format!("/{directory}"), target);
+            let bytes = entries
+                .get(target.trim_start_matches('/'))
+                .ok_or_else(unsupported)?;
+            imported.remaining = imported
+                .remaining
+                .checked_sub(bytes.len().checked_mul(16).ok_or(LIMIT)?)
+                .ok_or(LIMIT)?;
+            let drawing_nodes = load(entries, &target)?;
+            let root = drawing_nodes.iter().find_map(|node| match node {
+                xml::Node::Element(element) => Some(element),
+                _ => None,
+            });
+            // Google Sheets emits empty drawing parts even without any objects.
+            if !root.is_some_and(|root| {
+                root.tag.rsplit(':').next() == Some("wsDr")
+                    && !root
+                        .children
+                        .iter()
+                        .any(|n| matches!(n, xml::Node::Element(_)))
+            }) {
+                return Err(unsupported());
+            }
+        }
         for relation in elements(&rels, "Relationship") {
             if attr(relation, "TargetMode") == Some("External") {
                 continue;

@@ -2261,6 +2261,19 @@ mod tests {
     }
 
     #[test]
+    fn chart_drawings_do_not_block_read_only_cell_extraction() {
+        let rows = read_xlsx(
+            include_bytes!("../../../tests/fixtures/workbook-chart.xlsx"),
+            "csv",
+            10_000_000,
+        )
+        .unwrap();
+        assert_eq!(rows[0], ["Item", "Cost", "Count"]);
+        assert_eq!(rows[1], ["A", "10", "2"]);
+        assert_eq!(rows[2], ["B", "20", "3"]);
+    }
+
+    #[test]
     fn formula_rendering_retains_native_non_ascii_space_tokens() {
         // LibreOffice 24.8.7.2 emits these as name tokens, not empty formulas.
         for (source, expected) in [

@@ -26871,7 +26871,7 @@ fn eval_sql_row_expr(
         let inner = s[1..s.len() - 1].trim();
         if inner.to_ascii_uppercase().starts_with("SELECT ") {
             let sub_sql = substitute_correlated_subquery(inner, cols, row, tables);
-            let res = exec_sql_select(
+            let res = exec_sql_select_ext(
                 &sub_sql,
                 tables,
                 &BTreeMap::new(),
@@ -26879,11 +26879,13 @@ fn eval_sql_row_expr(
                 false,
                 false,
                 false,
+                false,
                 None,
                 false,
                 "|",
+                SQL_NULL,
             );
-            return res.lines().next().unwrap_or("").trim().to_string();
+            return res.lines().next().unwrap_or(SQL_NULL).to_string();
         }
         return eval_sql_row_expr(inner, cols, row, tables);
     }

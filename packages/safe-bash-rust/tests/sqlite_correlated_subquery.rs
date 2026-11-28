@@ -110,3 +110,31 @@ fn qualified_row_context_preserves_returning_column_names() {
         "[{\"k\":1}]\n[{\"k\":3}]\n"
     );
 }
+
+#[test]
+fn empty_scalar_subquery_is_null_inside_functions() {
+    assert_eq!(
+        run_sql("CREATE TABLE t(n); SELECT coalesce((SELECT n FROM t),27),coalesce(NULL,27);"),
+        "27|27\n"
+    );
+}
+
+#[test]
+fn scalar_subquery_distinguishes_null_empty_text_and_values() {
+    assert_eq!(
+        run_sql(
+            "CREATE TABLE t(n); INSERT INTO t VALUES(NULL),(''),('  text  '),(9); SELECT coalesce((SELECT n FROM t LIMIT 1),27),ifnull((SELECT n FROM t WHERE n=99),27); SELECT coalesce((SELECT n FROM t WHERE n=''),27); SELECT coalesce((SELECT n FROM t WHERE n='  text  '),27); SELECT coalesce((SELECT n FROM t WHERE n=9),27);"
+        ),
+        "27|27\n\n  text  \n9\n"
+    );
+}
+
+#[test]
+fn correlated_empty_scalar_subquery_uses_fallback_per_row() {
+    assert_eq!(
+        run_sql(
+            "CREATE TABLE a(k); CREATE TABLE b(k,v); INSERT INTO a VALUES(1),(2); INSERT INTO b VALUES(2,9); SELECT k,coalesce((SELECT v FROM b WHERE b.k=a.k),27) FROM a ORDER BY k;"
+        ),
+        "1|27\n2|9\n"
+    );
+}

@@ -32,6 +32,8 @@ The profile also supports maps with quoted or identifier keys (`{name: .name, co
 or select fields with shorthand (`{name}` means `{name: .name}`).
 Pipe binds more tightly than union: `.a | upcase, length` applies `length` to the
 original document. Use `.a | (upcase, length)` to apply both operations to `.a`.
+Filter with `select(.tags | contains(["x"]))`; `contains` matches string substrings,
+array subsets, and recursively contained map values.
 Format values with string interpolation, for example `"name=\(.name)"`.
 Bind values with `.a as $v | {"k": $v}`, or merge files with
 `yq ea '. as $item ireduce ({}; . * $item)' a.yml b.yml`.

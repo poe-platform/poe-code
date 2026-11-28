@@ -240,6 +240,48 @@ export class Evaluator {
     return result;
   }
 
+  async contains(input: Candidate, requested: Candidate, depth = 0): Promise<boolean> {
+    this.work.depth(depth);
+    { const t = this.work.tick(); if (t) await t; }
+    const yaml = this.yaml;
+    const base = dereference(input, yaml, this.work);
+    const target = dereference(requested, yaml, this.work);
+    const left = base.node, right = target.node;
+    if (nodeTag(left, yaml) !== nodeTag(right, yaml)) return false;
+    if (yaml.isScalar(left) && yaml.isScalar(right)) {
+      const first = value(left, yaml), second = value(right, yaml);
+      if (typeof first === "string" && typeof second === "string") {
+        { const t = this.work.tick(first.length + second.length); if (t) await t; }
+        return first.includes(second);
+      }
+      return first === second;
+    }
+    if (yaml.isSeq(left) && yaml.isSeq(right)) {
+      for (const wanted of right.items) {
+        { const t = this.work.tick(); if (t) await t; }
+        let found = false;
+        for (const item of left.items) {
+          if (await this.contains(this.child(item as Node, base), this.child(wanted as Node, target), depth + 1)) { found = true; break; }
+        }
+        if (!found) return false;
+      }
+      return true;
+    }
+    if (yaml.isMap(left) && yaml.isMap(right)) {
+      for (const wanted of right.items) {
+        { const t = this.work.tick(); if (t) await t; }
+        let found = false;
+        for (const item of left.items) {
+          if (await this.sameKey(item.key as Node, wanted.key as Node, depth + 1) &&
+            await this.contains(this.child(item.value as Node, base), this.child(wanted.value as Node, target), depth + 1)) { found = true; break; }
+        }
+        if (!found) return false;
+      }
+      return true;
+    }
+    return false;
+  }
+
   async sameKey(left: Node, right: Node, depth: number): Promise<boolean> {
     this.work.depth(depth);
     { const t = this.work.tick(); if (t) await t; }
@@ -749,6 +791,12 @@ export class Evaluator {
         continue;
       }
       const base = dereference(input, yaml, this.work);
+      if (name === "contains") {
+        for (const argument of await next(expression.args[0]!, [input], false)) {
+          output.push(this.child(scalar(yaml, this.work, await this.contains(base, argument)), input));
+        }
+        continue;
+      }
       if (name === "sort" || name === "sort_by") {
         output.push(this.child(await this.sort(base, expression.args[0] ?? { kind: "identity" }, depth, variables), input)); continue;
       }

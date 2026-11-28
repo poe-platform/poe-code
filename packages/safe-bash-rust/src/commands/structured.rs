@@ -37571,7 +37571,7 @@ fn parse_pandoc_rtf(input: &str) -> Option<Vec<PandocBlock>> {
         }
         flush(&mut text, style, &mut paragraph, &mut space);
         match event {
-            RtfEvent::Open => stack.push((style, field.take(), heading)),
+            RtfEvent::Open => stack.push((style, field.take(), None, heading)),
             RtfEvent::Close => {
                 if let Some(Field {
                     block,
@@ -37590,13 +37590,43 @@ fn parse_pandoc_rtf(input: &str) -> Option<Vec<PandocBlock>> {
                         String::new(),
                     ));
                 }
-                (style, field, heading) = stack.pop()?;
+                let (parent_style, parent_field, note, parent_heading) = stack.pop()?;
+                style = parent_style;
+                field = parent_field;
+                heading = parent_heading;
+                if let Some((
+                    parent_blocks,
+                    parent_paragraph,
+                    parent_paragraph_heading,
+                    parent_table,
+                    parent_row,
+                    parent_cell,
+                )) = note
+                {
+                    if !table.body.is_empty() {
+                        blocks.push(PandocBlock::Table(std::mem::take(&mut table)));
+                    }
+                    if !paragraph.is_empty() {
+                        blocks.push(paragraph_block(
+                            std::mem::take(&mut paragraph),
+                            paragraph_heading,
+                        ));
+                    }
+                    let note = PandocInline::Note(std::mem::replace(&mut blocks, parent_blocks));
+                    paragraph = parent_paragraph;
+                    paragraph_heading = parent_paragraph_heading;
+                    table = parent_table;
+                    row = parent_row;
+                    cell = parent_cell;
+                    paragraph.push(note);
+                    space = false;
+                }
             }
             RtfEvent::FieldInstruction(instruction) => {
                 if let Some(field) = stack
                     .iter_mut()
                     .rev()
-                    .find_map(|(_, field, _)| field.as_mut())
+                    .find_map(|(_, field, _, _)| field.as_mut())
                 {
                     let mut parts = instruction.trim().splitn(2, char::is_whitespace);
                     if parts
@@ -37620,6 +37650,22 @@ fn parse_pandoc_rtf(input: &str) -> Option<Vec<PandocBlock>> {
                         start: paragraph.len(),
                         target: None,
                     });
+                }
+                "footnote" => {
+                    if space && !paragraph.is_empty() {
+                        paragraph.push(PandocInline::Space);
+                    }
+                    space = false;
+                    stack.last_mut()?.2 = Some((
+                        std::mem::take(&mut blocks),
+                        std::mem::take(&mut paragraph),
+                        paragraph_heading,
+                        std::mem::take(&mut table),
+                        row.take(),
+                        std::mem::take(&mut cell),
+                    ));
+                    heading = None;
+                    paragraph_heading = None;
                 }
                 "pard" => heading = None,
                 "outlinelevel" => {

@@ -17,6 +17,13 @@ async function run(expression: string, input: string, limits: Partial<MikeLimits
   return { exitCode: result.exitCode, stdout, stderr };
 }
 
+for (const [input, stdout] of [
+  ["a: !!binary aGk=\n", "a: !!binary aGk=\n"],
+  ["b: !!set {x, y}\n", "b: !!set {x: '', y: ''}\n"],
+] as const) test(`yq preserves standard tags in ${input.trim()}`, async () => {
+  assert.deepEqual(await run(".", input), { exitCode: 0, stdout, stderr: "" });
+});
+
 for (const [expression, input, stdout] of [
   ['.c | from_json | .d', 'c: "{\\"d\\": 2}"\n', "2\n"],
   ['.a | from_yaml | .b', 'a: "b: 1"\n', "1\n"],

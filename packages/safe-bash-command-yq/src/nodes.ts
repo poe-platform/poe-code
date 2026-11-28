@@ -476,7 +476,28 @@ export async function decodeDocuments(input: string | AsyncIterable<string>, fil
   if (adapted.text !== text) { await admitText(adapted.text); text = adapted.text; insertions = adapted.insertions; }
   const lexer = new yaml.Lexer();
   const parser = new yaml.Parser();
-  const composer = new yaml.Composer({ keepSourceTokens: true, intAsBigInt: true, uniqueKeys: false, merge: false, prettyErrors: false, logLevel: "silent" });
+  const composer = new yaml.Composer({
+    keepSourceTokens: true, intAsBigInt: true, uniqueKeys: false, merge: false, prettyErrors: false, logLevel: "silent",
+    customTags: [
+      // yq keeps binary data as its YAML text and sets as ordinary mappings.
+      { tag: "tag:yaml.org,2002:binary", resolve: (value: string) => value },
+      {
+        tag: "tag:yaml.org,2002:set", collection: "map",
+        resolve(map) {
+          if (!yaml.isMap(map)) return map;
+          const mapping: YAMLMap = map;
+          for (const pair of mapping.items) {
+            if (pair.value === null || yaml.isScalar(pair.value) && pair.value.value === null) {
+              const value = new yaml.Scalar("");
+              value.type = "QUOTE_SINGLE";
+              pair.value = value;
+            }
+          }
+          return map;
+        },
+      },
+    ],
+  });
   let hasDocument = false;
   let prefix: import("yaml").CST.Token[] = [];
   const token = async (item: import("yaml").CST.Token) => {

@@ -21911,7 +21911,7 @@ fn cmd_sqlite3(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> 
             continue;
         }
         if upper.starts_with("BEGIN") {
-            tx_snapshot = Some((tables.clone(), indexes.clone()));
+            tx_snapshot = Some((tables.clone(), indexes.clone(), triggers.clone()));
             continue;
         }
         if upper == "COMMIT"
@@ -21935,7 +21935,7 @@ fn cmd_sqlite3(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> 
         }
         if let Some(rest) = upper.strip_prefix("SAVEPOINT ") {
             let sp_name = rest.trim().to_ascii_lowercase();
-            savepoints.push((sp_name, (tables.clone(), indexes.clone())));
+            savepoints.push((sp_name, (tables.clone(), indexes.clone(), triggers.clone())));
             continue;
         }
         if let Some(rest) = upper.strip_prefix("RELEASE ") {
@@ -21971,7 +21971,7 @@ fn cmd_sqlite3(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> 
                     .trim()
                     .to_ascii_lowercase();
                 if let Some(pos) = savepoints.iter().rposition(|(name, _)| name == &sp_name) {
-                    (tables, indexes) = savepoints[pos].1.clone();
+                    (tables, indexes, triggers) = savepoints[pos].1.clone();
                     savepoints.truncate(pos + 1);
                 } else {
                     errors.push_str(&format!("Error: stepping, no such savepoint: {sp_name}\n"));
@@ -21984,7 +21984,7 @@ fn cmd_sqlite3(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> 
                     .take()
                     .or_else(|| savepoints.first().map(|(_, snap)| snap.clone()))
                 {
-                    (tables, indexes) = snap;
+                    (tables, indexes, triggers) = snap;
                 }
                 savepoints.clear();
             }
@@ -22145,6 +22145,50 @@ fn cmd_sqlite3(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> 
                     }
                 }
             }
+            continue;
+        }
+        if upper.starts_with("DROP TABLE ") {
+            let rest = stmt["DROP TABLE ".len()..].trim();
+            let if_exists = rest.to_ascii_uppercase().starts_with("IF EXISTS ");
+            let name = if if_exists {
+                rest["IF EXISTS ".len()..].trim()
+            } else {
+                rest
+            };
+            let name = resolve_sql_table_name(&tables, name.trim_matches('"')).to_owned();
+            if !tables.contains_key(&name) {
+                if !if_exists {
+                    errors.push_str(&format!("Error: no such table: {name}\n"));
+                    break;
+                }
+                continue;
+            }
+            // DROP performs an implicit DELETE without the table's SQL triggers.
+            let remaining_triggers: Vec<_> = triggers
+                .iter()
+                .filter(|trigger| !trigger.table.eq_ignore_ascii_case(&name))
+                .cloned()
+                .collect();
+            if foreign_keys_enabled
+                && let Err(error) = exec_sql_delete(
+                    &format!("DELETE FROM \"{name}\""),
+                    &mut tables,
+                    &views,
+                    &remaining_triggers,
+                    true,
+                    tx_snapshot.is_some() || !savepoints.is_empty(),
+                    json_mode,
+                    csv_mode,
+                    &sep,
+                )
+            {
+                errors.push_str(&error);
+                break;
+            }
+            if let Some(table) = tables.remove(&name) {
+                indexes.retain(|index| !table.index_sql.contains_key(index));
+            }
+            triggers = remaining_triggers;
             continue;
         }
         if upper.starts_with("DROP INDEX ") {
@@ -22955,7 +22999,7 @@ fn cmd_sqlite3(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> 
     // Closing the connection rolls back any transaction that did not commit.
     if let Some(snap) = tx_snapshot.or_else(|| savepoints.into_iter().next().map(|(_, snap)| snap))
     {
-        (tables, indexes) = snap;
+        (tables, indexes, triggers) = snap;
     }
     if dirty && !readonly_mode && db_path != ":memory:" {
         if tables.values().any(|t| t.is_fts5) {

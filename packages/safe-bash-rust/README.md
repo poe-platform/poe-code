@@ -49,6 +49,8 @@ Native `qpdf --json=1` and `--json=2` honor `--json-key` selection, including re
 
 For trusted Python in native hybrid mode, install Pyodide 314.0.6 and set the host process's `SAFE_BASH_PYODIDE_MODULE_URL` to its `pyodide.mjs` file URL. This registers `python` and `python3` with the existing Python worker adapter, sharing the shell's virtual files, working directory, stdin and environment. No host Python fallback is used. Pyodide JavaScript interoperability is not a security sandbox. Package provisioning is separate from the standard-library runtime.
 
+Native `sqlite3` supports `DROP TABLE` and `DROP TABLE IF EXISTS`. With `PRAGMA foreign_keys=ON`, dropping a parent applies its foreign-key delete actions and rejects immediate constraint violations. The implicit delete does not fire the dropped table’s triggers. Successful drops persist the changed rows and schema; transactions and savepoints can roll them back.
+
 ## Feature Index
 
 Native `awk getline` preserves its target value at EOF. Array indexes and field

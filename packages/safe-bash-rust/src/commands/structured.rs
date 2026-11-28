@@ -19655,6 +19655,109 @@ fn sqlite_parse_table_btree_rows(
     rows
 }
 
+// Index interior cells own their separator record (unlike table B-trees).
+// Build all leaves at the same depth, and allocate overflow pages before nodes.
+fn sqlite_build_index_pages(records: &[Vec<SqlBtreeVal>], start: usize) -> (usize, Vec<Vec<u8>>) {
+    let mut pages = Vec::new();
+    let mut cells = Vec::with_capacity(records.len());
+    let max_local = ((SQLITE_PAGE_SIZE - 12) * 64) / 255 - 23;
+    let min_local = ((SQLITE_PAGE_SIZE - 12) * 32) / 255 - 23;
+    for record in records {
+        let payload = sqlite_encode_record(record);
+        let mut cell = sqlite_encode_varint(payload.len() as i64);
+        let local = if payload.len() <= max_local {
+            payload.len()
+        } else {
+            let k = min_local + (payload.len() - min_local) % (SQLITE_PAGE_SIZE - 4);
+            if k <= max_local { k } else { min_local }
+        };
+        cell.extend_from_slice(&payload[..local]);
+        if local < payload.len() {
+            cell.extend_from_slice(&((start + pages.len()) as u32).to_be_bytes());
+            let mut chunks = payload[local..].chunks(SQLITE_PAGE_SIZE - 4).peekable();
+            while let Some(chunk) = chunks.next() {
+                let mut page = vec![0; SQLITE_PAGE_SIZE];
+                if chunks.peek().is_some() {
+                    sqlite_write_u32_be(&mut page, 0, (start + pages.len() + 1) as u32);
+                }
+                page[4..4 + chunk.len()].copy_from_slice(chunk);
+                pages.push(page);
+            }
+        }
+        cells.push(cell);
+    }
+    fn build(cells: &[Vec<u8>], depth: usize, start: usize, pages: &mut Vec<Vec<u8>>) -> usize {
+        let mut page = vec![0; SQLITE_PAGE_SIZE];
+        let mut content = SQLITE_PAGE_SIZE;
+        let count;
+        if depth == 0 {
+            page[0] = 0x0a;
+            count = cells.len();
+            for (i, cell) in cells.iter().enumerate() {
+                content -= cell.len();
+                page[content..content + cell.len()].copy_from_slice(cell);
+                sqlite_write_u16_be(&mut page, 8 + 2 * i, content);
+            }
+        } else {
+            page[0] = 0x02;
+            count = 1;
+            let middle = cells.len() / 2;
+            let left = build(&cells[..middle], depth - 1, start, pages);
+            let right = build(&cells[middle + 1..], depth - 1, start, pages);
+            content -= cells[middle].len() + 4;
+            sqlite_write_u32_be(&mut page, content, left as u32);
+            page[content + 4..].copy_from_slice(&cells[middle]);
+            sqlite_write_u16_be(&mut page, 12, content);
+            sqlite_write_u32_be(&mut page, 8, right as u32);
+        }
+        sqlite_write_u16_be(&mut page, 3, count);
+        sqlite_write_u16_be(&mut page, 5, content);
+        let number = start + pages.len();
+        pages.push(page);
+        number
+    }
+    let capacity = (SQLITE_PAGE_SIZE - 8) / (cells.iter().map(Vec::len).max().unwrap_or(0) + 2);
+    let mut depth = 0;
+    let mut largest_leaf = cells.len();
+    while largest_leaf > capacity {
+        largest_leaf /= 2;
+        depth += 1;
+    }
+    let root = build(&cells, depth, start, &mut pages);
+    (root, pages)
+}
+
+fn sqlite_compare_index_values(
+    a: &SqlBtreeVal,
+    b: &SqlBtreeVal,
+    nocase: bool,
+) -> std::cmp::Ordering {
+    use SqlBtreeVal::*;
+    match (a, b) {
+        (Null, Null) => std::cmp::Ordering::Equal,
+        (Null, _) => std::cmp::Ordering::Less,
+        (_, Null) => std::cmp::Ordering::Greater,
+        (Int(a), Int(b)) => a.cmp(b),
+        (Float(a), Float(b)) => a.partial_cmp(b).unwrap_or(std::cmp::Ordering::Equal),
+        (Int(a), Float(b)) => (*a as f64)
+            .partial_cmp(b)
+            .unwrap_or(std::cmp::Ordering::Equal),
+        (Float(a), Int(b)) => a
+            .partial_cmp(&(*b as f64))
+            .unwrap_or(std::cmp::Ordering::Equal),
+        (Int(_) | Float(_), _) => std::cmp::Ordering::Less,
+        (_, Int(_) | Float(_)) => std::cmp::Ordering::Greater,
+        (Text(a), Text(b)) if nocase => a
+            .bytes()
+            .map(|b| b.to_ascii_lowercase())
+            .cmp(b.bytes().map(|b| b.to_ascii_lowercase())),
+        (Text(a), Text(b)) => a.cmp(b),
+        (Blob(a), Blob(b)) => a.cmp(b),
+        (Text(_), Blob(_)) => std::cmp::Ordering::Less,
+        (Blob(_), Text(_)) => std::cmp::Ordering::Greater,
+    }
+}
+
 fn sqlite_build_table_pages(
     rows: &[(i64, Vec<SqlBtreeVal>)],
     start_page_number: usize,
@@ -20224,6 +20327,93 @@ fn serialize_sql_db(
             sql: create_sql.clone(),
         });
 
+        for (name, sql) in &tbl.index_sql {
+            if !indexes.contains(name) {
+                continue;
+            }
+            let Some(open) = sql.find('(') else { continue };
+            let Some(close) = find_matching_paren(&sql[open..]).map(|n| open + n) else {
+                continue;
+            };
+            let terms = split_top_level_comma(&sql[open + 1..close]);
+            let terms: Vec<_> = terms
+                .iter()
+                .map(|term| {
+                    let (expr, desc, _) = parse_sql_order_term(term);
+                    let (expr, explicit_nocase) = split_sql_collation(expr)
+                        .map_or((expr, None), |(expr, nocase)| (expr, Some(nocase)));
+                    let column = find_sql_col(&tbl.columns, expr);
+                    let nocase = explicit_nocase.unwrap_or_else(|| {
+                        column
+                            .and_then(|i| tbl.metadata.get(i))
+                            .is_some_and(|m| m.nocase)
+                    });
+                    (expr, column, desc, nocase)
+                })
+                .collect();
+            let predicate = sql[close + 1..].trim().trim_end_matches(';').trim();
+            let predicate = predicate
+                .get(..6)
+                .filter(|s| s.eq_ignore_ascii_case("WHERE "))
+                .map(|_| &predicate[6..]);
+            let mut records = Vec::new();
+            for ((rowid, values), row) in btree_rows.iter().zip(&tbl.rows) {
+                if predicate.is_some_and(|p| {
+                    !eval_sql_where(p, &tbl.columns, &tbl.metadata, row, tables).unwrap_or(false)
+                }) {
+                    continue;
+                }
+                let mut record = Vec::new();
+                for (expr, column, _, _) in &terms {
+                    let value = if let Some(column) = column {
+                        if Some(*column) == effective_alias {
+                            SqlBtreeVal::Int(*rowid)
+                        } else {
+                            values[*column].clone()
+                        }
+                    } else {
+                        let value = eval_sql_row_value(expr, &tbl.columns, row, tables)
+                            .unwrap_or_else(|_| SQL_NULL.to_string());
+                        if value == SQL_NULL {
+                            SqlBtreeVal::Null
+                        } else if let Some(bytes) = sql_blob_bytes(&value) {
+                            SqlBtreeVal::Blob(bytes)
+                        } else if let Some(text) = value.strip_prefix(SQL_TEXT_PREFIX) {
+                            SqlBtreeVal::Text(text.to_string())
+                        } else if let Ok(n) = value.parse::<i64>() {
+                            SqlBtreeVal::Int(n)
+                        } else if let Ok(n) = value.parse::<f64>() {
+                            SqlBtreeVal::Float(n)
+                        } else {
+                            SqlBtreeVal::Text(value)
+                        }
+                    };
+                    record.push(value);
+                }
+                record.push(SqlBtreeVal::Int(*rowid));
+                records.push(record);
+            }
+            records.sort_by(|a, b| {
+                for (i, (_, _, desc, nocase)) in terms.iter().enumerate() {
+                    let order = sqlite_compare_index_values(&a[i], &b[i], *nocase);
+                    if !order.is_eq() {
+                        return if *desc { order.reverse() } else { order };
+                    }
+                }
+                sqlite_compare_index_values(a.last().unwrap(), b.last().unwrap(), false)
+            });
+            let (rootpage, pages) = sqlite_build_index_pages(&records, next_page_num);
+            next_page_num += pages.len();
+            extra_pages.extend(pages);
+            master_entries.push(MasterEntry {
+                m_type: "index".to_string(),
+                name: name.clone(),
+                tbl_name: tname.clone(),
+                rootpage,
+                sql: sql.clone(),
+            });
+        }
+
         let is_auto_inc = create_sql.to_ascii_uppercase().contains("AUTOINCREMENT");
         if is_auto_inc {
             has_auto_inc = true;
@@ -20248,62 +20438,6 @@ fn serialize_sql_db(
             rootpage: root_page,
             sql: "CREATE TABLE sqlite_sequence(name,seq)".to_string(),
         });
-    }
-
-    let default_tbl = tables
-        .keys()
-        .next()
-        .cloned()
-        .unwrap_or_else(|| "t".to_string());
-    let default_col = tables
-        .get(&default_tbl)
-        .and_then(|t| t.columns.first().cloned())
-        .unwrap_or_else(|| "id".to_string());
-    for idx_name in indexes {
-        if let Some((tname, sql)) = tables
-            .iter()
-            .find_map(|(tname, tbl)| tbl.index_sql.get(idx_name).map(|sql| (tname, sql)))
-        {
-            master_entries.push(MasterEntry {
-                m_type: "index".to_string(),
-                name: idx_name.clone(),
-                tbl_name: tname.clone(),
-                rootpage: 0,
-                sql: sql.clone(),
-            });
-            continue;
-        }
-        let mut found_unique: Option<(String, Vec<String>)> = None;
-        for (tname, tbl) in tables {
-            if let Some((_, ucols, _)) = tbl
-                .unique_indexes
-                .iter()
-                .find(|(uname, _, _)| uname.eq_ignore_ascii_case(idx_name))
-            {
-                found_unique = Some((tname.clone(), ucols.clone()));
-                break;
-            }
-        }
-        if let Some((tname, ucols)) = found_unique {
-            master_entries.push(MasterEntry {
-                m_type: "index".to_string(),
-                name: idx_name.clone(),
-                tbl_name: tname.clone(),
-                rootpage: 0,
-                sql: format!(
-                    "CREATE UNIQUE INDEX {idx_name} ON {tname}({})",
-                    ucols.join(", ")
-                ),
-            });
-        } else {
-            master_entries.push(MasterEntry {
-                m_type: "index".to_string(),
-                name: idx_name.clone(),
-                tbl_name: default_tbl.clone(),
-                rootpage: 0,
-                sql: format!("CREATE INDEX {idx_name} ON {default_tbl}({default_col})"),
-            });
-        }
     }
 
     for (vname, view_sql) in views {

@@ -35,7 +35,7 @@ export async function admitCopyDestination(context: CommandContext, target: stri
 }
 
 export async function copyCheckedSource(context: CommandContext, source: string, target: string,
-  expected: FileStat, exclusive: boolean): Promise<void> {
+  expected: FileStat, exclusive: boolean, mode = expected.mode & 0o7777): Promise<void> {
   let acquisition: Promise<FileReadHandle> | undefined;
   let destination: Awaited<ReturnType<NonNullable<CommandContext["fs"]["open"]>>> | undefined;
   let closing: Promise<void> | undefined;
@@ -111,7 +111,7 @@ export async function copyCheckedSource(context: CommandContext, source: string,
     };
     const options = {
       flag: exclusive ? "wx" as const : "w" as const, signal: context.signal,
-      ...(capabilities.permissions === true ? { mode: expected.mode & 0o7777 } : {}),
+      ...(capabilities.permissions === true ? { mode } : {}),
     };
     if (selectCopyDestination(context, target, capabilities, exclusive) === "descriptor") {
       const size = retained.size;

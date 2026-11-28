@@ -7,6 +7,7 @@ import { admitFilesystemModes, filesystemCommandRequirements } from "safe-bash-i
 import { createDirectoryReader, type DirectoryReader } from "safe-bash-io-engine/commands/directory-admission";
 import { preflightOperands, maybeStat, needCapability, destinations, childOperand } from "safe-bash-io-engine/commands/filesystem-operands";
 import { PublicDiagnostic } from "safe-bash-contracts/diagnostics";
+import { creationUmask } from "safe-bash-contracts/runtime-control";
 import { backupCopyTarget } from "./copy-backup.js";
 import { copyOptions } from "./copy-options.js";
 import { admitCopyPreservation, preserveCopyMetadata, type CopyOptions } from "./copy-preserve.js";
@@ -61,6 +62,8 @@ async function copy(
   const preserve = flags.has("a") && preserveLink
     ? new Set([...requestedPreserve].filter(attribute => attribute !== "timestamps")) : requestedPreserve;
   const sourceStat = preserveLink ? link : await context.fs.stat(source, { signal: context.signal });
+  const mask: unknown = Reflect.get(context.fs, creationUmask);
+  const creationMode = sourceStat.mode & 0o777 & ~(preserve.has("mode") ? 0 : typeof mask === "number" ? mask : 0o022);
   if (top && flags.has("parents")) {
     await admitFilesystemModes(context, "cp", ["parents"], [dirname(target)]);
     if (!preflight) await context.fs.mkdir(dirname(target), { recursive: true, signal: context.signal });
@@ -134,7 +137,7 @@ async function copy(
     }
     await admitFilesystemModes(context, "cp", [attributesOnly ? "attributes-recursive" : "recursive"], [target]);
     const capabilities = await context.fs.capabilitiesFor?.(target, { signal: context.signal }) ?? context.fs.capabilities;
-    const directoryMode = capabilities.permissions === false ? undefined : sourceStat.mode & 0o777;
+    const directoryMode = capabilities.permissions === false ? undefined : creationMode;
     const temporaryMode = !targetStat && directoryMode !== undefined && (directoryMode & 0o700) !== 0o700;
     if (temporaryMode) {
       await admitFilesystemModes(context, "cp", ["mode"], [target]);
@@ -170,7 +173,7 @@ async function copy(
       ancestors.delete(physicalSource);
       if (created && temporaryMode) {
         // Restore the temporary mode even when copying was cancelled.
-        try { await context.fs.chmod!(target, sourceStat.mode & 0o777); }
+        try { await context.fs.chmod!(target, directoryMode!); }
         finally { context.signal.throwIfAborted(); }
       }
     }
@@ -228,7 +231,7 @@ async function copy(
       const capabilities = await context.fs.capabilitiesFor?.(target, { creation: "exclusive", signal: context.signal }) ?? context.fs.capabilities;
       context.signal.throwIfAborted();
       await context.fs.writeFile(target, new Uint8Array(), {
-        flag: "wx", ...(capabilities.permissions === false ? {} : { mode: sourceStat.mode & 0o777 }), signal: context.signal,
+        flag: "wx", ...(capabilities.permissions === false ? {} : { mode: creationMode }), signal: context.signal,
       });
     }
   } else {
@@ -255,7 +258,7 @@ async function copy(
     }
     try {
       if (removeDestination && targetStat && !backup) await context.fs.rm(target, { recursive: false, signal: context.signal });
-      await copyCheckedSource(context, physicalSource, target, sourceStat, exclusive || publication === "descriptor");
+      await copyCheckedSource(context, physicalSource, target, sourceStat, exclusive || publication === "descriptor", creationMode);
     }
     catch (error) {
       context.signal.throwIfAborted();
@@ -272,7 +275,7 @@ async function copy(
         if (identities.includes("unknown")) throw new FsError("ENOTSUP", { path: source, dest: target, message: "forced copy unlink lacks authoritative distinctness" });
         await context.fs.rm(target, { recursive: false, signal: context.signal });
       }
-      await copyCheckedSource(context, physicalSource, target, sourceStat, true);
+      await copyCheckedSource(context, physicalSource, target, sourceStat, true, creationMode);
     }
   }
   if (!preflight) await preserveCopyMetadata(context, preserve, metadata, target);

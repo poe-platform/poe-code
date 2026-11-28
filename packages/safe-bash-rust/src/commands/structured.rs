@@ -18496,6 +18496,7 @@ fn sql_trigger_update_columns(header: &str) -> Vec<String> {
 
 #[derive(Clone)]
 enum SqlWinFn {
+    FilteredAggregate(String),
     RowNumber,
     Rank,
     DenseRank,
@@ -18535,6 +18536,24 @@ enum SqlWinFn {
     Min {
         col_idx: usize,
     },
+}
+
+fn split_sql_aggregate_filter(expr: &str) -> Option<(&str, &str)> {
+    let open = expr.find('(')?;
+    let close = open + find_matching_paren(&expr[open..])?;
+    let suffix = expr[close + 1..].trim();
+    if !suffix.get(..6)?.eq_ignore_ascii_case("FILTER") {
+        return None;
+    }
+    let filter = suffix[6..].trim();
+    if !filter.starts_with('(') || find_matching_paren(filter)? != filter.len() - 1 {
+        return None;
+    }
+    let predicate = filter[1..filter.len() - 1].trim();
+    if !predicate.get(..5)?.eq_ignore_ascii_case("WHERE") {
+        return None;
+    }
+    Some((&expr[..=close], predicate[5..].trim()))
 }
 
 fn sql_window_distribution(
@@ -25162,8 +25181,8 @@ fn exec_sql_select_with_mode(
                         == expr_s[..over_pos].chars().filter(|&c| c == ')').count()
                     && expr_s.trim_end().ends_with(')')
                     && is_matching_outer_delim(expr_s[over_pos + 5..].trim(), '(', ')')
-                    && expr_s[..over_pos]
-                        .trim()
+                    && split_sql_aggregate_filter(expr_s[..over_pos].trim())
+                        .map_or(expr_s[..over_pos].trim(), |(base, _)| base)
                         .split_once('(')
                         .is_some_and(|(fname, rest)| {
                             !fname.is_empty()
@@ -25247,7 +25266,9 @@ fn exec_sql_select_with_mode(
                     }
                     let open_p = fn_part.find('(').unwrap_or(0);
                     let inner = fn_part[open_p + 1..fn_part.len().saturating_sub(1)].trim();
-                    let func = if fn_up.starts_with("ROW_NUMBER(") {
+                    let func = if split_sql_aggregate_filter(fn_part).is_some() {
+                        SqlWinFn::FilteredAggregate(fn_part.to_string())
+                    } else if fn_up.starts_with("ROW_NUMBER(") {
                         SqlWinFn::RowNumber
                     } else if fn_up.starts_with("DENSE_RANK(") {
                         SqlWinFn::DenseRank
@@ -25406,6 +25427,7 @@ fn exec_sql_select_with_mode(
             SqlProj::Win { .. } | SqlProj::Expr(_) => true,
         })
         .collect();
+    let overflow = Cell::new(false);
     let mut proj_rows: Vec<(&Vec<String>, Vec<String>)> = filtered
         .iter()
         .enumerate()
@@ -25475,6 +25497,27 @@ fn exec_sql_select_with_mode(
                                     || bytes[fn_start - 1] == b'_')
                             {
                                 fn_start -= 1;
+                            }
+                            if expanded_e[fn_start..fn_open].eq_ignore_ascii_case("FILTER") {
+                                let aggregate_end = expanded_e[..fn_start].trim_end().len();
+                                let mut depth = 0;
+                                for idx in (0..aggregate_end).rev() {
+                                    if bytes[idx] == b')' {
+                                        depth += 1;
+                                    } else if bytes[idx] == b'(' {
+                                        depth -= 1;
+                                        if depth == 0 {
+                                            fn_start = idx;
+                                            while fn_start > 0
+                                                && (bytes[fn_start - 1].is_ascii_alphanumeric()
+                                                    || bytes[fn_start - 1] == b'_')
+                                            {
+                                                fn_start -= 1;
+                                            }
+                                            break;
+                                        }
+                                    }
+                                }
                             }
                             let fn_part = expanded_e[fn_start..=fn_close].trim();
                             let fn_up = fn_part.to_ascii_uppercase();
@@ -25564,7 +25607,13 @@ fn exec_sql_select_with_mode(
                                 }
                                 (0, ep)
                             };
-                            let wval = if fn_up.starts_with("ROW_NUMBER(") {
+                            let wval = if split_sql_aggregate_filter(fn_part).is_some() {
+                                let frame: Vec<&Vec<String>> = p_indices[start_pos..=end_pos]
+                                    .iter()
+                                    .map(|&i| filtered[i])
+                                    .collect();
+                                eval_sql_group_expr(fn_part, &tbl.columns, &frame, tables, 0, &overflow)
+                            } else if fn_up.starts_with("ROW_NUMBER(") {
                                 (my_pos + 1).to_string()
                             } else if fn_up.starts_with("CUME_DIST(")
                                 || fn_up.starts_with("PERCENT_RANK(")
@@ -25774,6 +25823,15 @@ fn exec_sql_select_with_mode(
                             (0, ep)
                         };
                         let wval = match func {
+                            SqlWinFn::FilteredAggregate(expr) => {
+                                let frame: Vec<&Vec<String>> = p_indices
+                                    .iter()
+                                    .take(end_pos + 1)
+                                    .skip(start_pos)
+                                    .map(|&i| filtered[i])
+                                    .collect();
+                                eval_sql_group_expr(expr, &tbl.columns, &frame, tables, 0, &overflow)
+                            }
                             SqlWinFn::RowNumber => (my_pos + 1).to_string(),
                             SqlWinFn::CumeDist | SqlWinFn::PercentRank => sql_window_distribution(
                                 &p_indices,
@@ -25943,6 +26001,10 @@ fn exec_sql_select_with_mode(
             (r, vals)
         })
         .collect();
+
+    if overflow.get() {
+        return "\x00RAISE_ERR:integer overflow".to_string();
+    }
 
     if is_distinct {
         let mut seen = Vec::new();
@@ -28301,21 +28363,7 @@ fn eval_sql_group_expr(
         }
     }
     let empty_tables = tables;
-    if let Some(f_pos) = upper.find(" FILTER")
-        && s[f_pos + 7..].trim_start().starts_with('(')
-    {
-        let base_agg = s[..f_pos].trim();
-        let filter_spec = s[f_pos + 7..]
-            .trim()
-            .trim_start_matches('(')
-            .trim_end_matches(')')
-            .trim();
-        let f_up = filter_spec.to_ascii_uppercase();
-        let w_cond = if f_up.starts_with("WHERE ") {
-            filter_spec[6..].trim()
-        } else {
-            filter_spec
-        };
+    if let Some((base_agg, w_cond)) = split_sql_aggregate_filter(s) {
         let filtered_grp: Vec<&Vec<String>> = grp
             .iter()
             .copied()

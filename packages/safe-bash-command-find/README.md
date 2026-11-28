@@ -8,6 +8,9 @@ with `+n` for older and `-n` for newer. `Y=t` accepts a date instead of a refere
 to UTC, and support explicit offsets, `@` epoch seconds, and relative dates such
 as `1 day ago`. Comparisons are strictly newer. Missing candidate birth times do
 not match; missing reference birth times report an error before any actions run.
+`-anewer FILE` and `-cnewer FILE` compare access or change time to FILE's modification
+time. `-atime`, `-ctime`, and `-mtime` select by age in days; use `-amin`, `-cmin`,
+and `-mmin` for minutes. Prefix the age with `+` for older or `-` for newer files.
 
 Run `find` against an injected virtual filesystem with portable byte streams. `-executable`, `-readable`, and `-writable` test filesystem access, including symlink targets and read-only policies.
 

@@ -10,6 +10,21 @@ import { fixture, run } from "./helpers.js";
 
 const now = 1_700_000_000_000;
 
+test("find access and change time predicates work through agentCommands", async context => {
+  const fs = await fixture();
+  const shell = new Shell({ fs, cwd: "/work" }).use(agentCommands());
+  context.after(() => shell.dispose());
+  const result = await shell.exec("touch a; find . -atime 0 -name a; find . -ctime 0 -name a; find . -ctime -1 -type f; touch -d 2001-01-01 old; find . -type f -anewer old | sort; find . -type f -cnewer old | sort");
+  assert.equal(result.exitCode, 0);
+  assert.equal(result.stderr, "");
+  assert.equal(result.stdout, "./a\n./a\n./a\n./a\n./a\n./old\n");
+  for (const expression of ["-atime 0 -name a", "-ctime 0 -name a", "-ctime -1 -type f", "-type f -anewer old", "-type f -cnewer old"]) {
+    const invocation = await shell.exec(`find . ${expression}`);
+    assert.equal(invocation.exitCode, 0, invocation.stderr);
+    assert.equal(invocation.stderr, "");
+  }
+});
+
 test("find access predicates work after chmod in an agent shell", async context => {
   const fs = await fixture();
   const shell = new Shell({ fs, cwd: "/work" }).use(agentCommands());
@@ -510,7 +525,7 @@ test("find output limits stop later deletions without rolling back completed one
 
 test("find retains unsupported time/ownership/traversal syntax without deleting files", async () => {
   const fs = await fixture({ keep: "keep" });
-  for (const expression of [["-daystart"], ["-atime", "1"], ["-user", "root"], ["-xdev"]]) {
+  for (const expression of [["-daystart"], ["-user", "root"], ["-xdev"]]) {
     const result = await run("find", ["keep", "-delete", ...expression], { fs });
     assert.equal(result.exitCode, 2);
     assert.equal(result.stdout, "");

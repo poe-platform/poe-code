@@ -16,6 +16,18 @@ async function run(fs: FileSystem, args: string[], env: Record<string, string> =
 }
 
 const fields = { a: "atimeMs", c: "ctimeMs", m: "mtimeMs", B: "birthtimeMs" } as const;
+for (const [predicate, field] of [["-anewer", "atimeMs"], ["-cnewer", "ctimeMs"]] as const) {
+  test(`find ${predicate} compares candidate time strictly to reference modification time`, async context => {
+    const fs = createMemoryFileSystem();
+    const reference: FileStat = { type: "file", size: 0, mode: 0o644, atimeMs: 100, ctimeMs: 200, mtimeMs: 300 };
+    context.mock.method(fs, "lstat", async (path: string) => path === "/reference" ? reference : {
+      ...reference, mtimeMs: 0, [field]: reference.mtimeMs + (path === "/older" ? -1 : path === "/newer" ? 1 : 0),
+    });
+    assert.deepEqual(await run(fs, ["older", "equal", "newer", predicate, "reference"]),
+      { exitCode: 0, stdout: "newer\n", stderr: "" });
+  });
+}
+
 for (const [x, field] of Object.entries(fields)) {
   for (const [y, referenceField] of Object.entries(fields)) {
     test(`find -newer${x}${y} compares the selected timestamps strictly`, async context => {
@@ -68,7 +80,8 @@ for (const [date, timezone] of [["2020-06-01", "UTC"], ["2020-05-31 20:00:00", "
   });
 }
 
-for (const args of [["-newermt"], ["-newermt", "not-a-date"], ["-newermt", "2020-02-30"],
+for (const args of [["-anewer"], ["-cnewer"], ["-anewer", "missing"], ["-cnewer", "missing"],
+  ["-newermt"], ["-newermt", "not-a-date"], ["-newermt", "2020-02-30"],
   ["-newerma", "missing"], ["-newertm", "reference"], ["-newermx", "reference"]]) {
   test(`find validates ${args.join(" ")} before deleting`, async () => {
     const fs = createMemoryFileSystem();

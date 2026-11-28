@@ -121,20 +121,21 @@ export async function compileFindExpression(context: CommandContext, execute: Co
           catch { throw new UsageError(`invalid regular expression '${operand}'`); }
           return entry => regex.test(entry.display);
         }
-        if (token === "-mtime" || token === "-atime" || token === "-ctime" || token === "-mmin" || token === "-amin" || token === "-cmin") {
+        if (["-mtime", "-atime", "-ctime", "-mmin", "-amin", "-cmin"].includes(token)) {
           needsStat = true;
           const match = /^([+-]?)([0-9]+)$/u.exec(operand);
           if (!match) throw new UsageError(`invalid time '${operand}'`);
           const amount = integer(match[2]!);
           const days = token.endsWith("time");
+          const field = timeFields[token[1]!]!;
           const unit = days ? 86_400_000 : 60_000;
           const origin = startedAt - (days ? match[1] === "-" ? 1000 : unit : 0);
           const reference = origin - amount * unit;
           if (!Number.isSafeInteger(amount * unit) || !Number.isSafeInteger(reference) || !Number.isSafeInteger(reference + unit)) {
             throw new UsageError(`invalid time '${operand}': comparison is out of range`);
           }
-          return async entry => {
-            const stamp = (token === "-amin" || token === "-atime") ? (entry.stat.atimeMs ?? entry.stat.mtimeMs) : (token === "-cmin" || token === "-ctime") ? (entry.stat.ctimeMs ?? entry.stat.mtimeMs) : entry.stat.mtimeMs;
+          return entry => {
+            const stamp = entry.stat[field] ?? entry.stat.mtimeMs;
             const delta = stamp - reference;
             return match[1] === "+" ? delta < 0 : match[1] === "-" ? delta > 0 : delta > 0 && delta <= unit;
           };

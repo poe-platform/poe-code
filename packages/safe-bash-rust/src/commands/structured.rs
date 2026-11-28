@@ -19166,14 +19166,50 @@ fn cmd_csvjoin(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> 
         keys.reverse();
     }
 
-    let norm_join_key = |raw: &str| -> String {
+    let calendar_types: Vec<Option<bool>> = tables
+        .iter_mut()
+        .zip(&keys)
+        .map(|((_, rows), key)| {
+            let key = (*key).filter(|_| !no_inference)?;
+            let dates: Option<Vec<_>> = rows
+                .iter()
+                .map(|row| {
+                    let raw = row.get(key).map(String::as_str).unwrap_or("");
+                    if raw.trim().is_empty() {
+                        Some(None)
+                    } else {
+                        csvkit_calendar::parse_iso(raw).map(Some)
+                    }
+                })
+                .collect();
+            let dates = dates?;
+            let datetime = dates.iter().flatten().any(|d| d.value.len() > 10);
+            for (row, date) in rows.iter_mut().zip(dates) {
+                if let Some(date) = date {
+                    row[key] = if datetime && date.value.len() == 10 {
+                        format!("{}T00:00:00", date.value)
+                    } else {
+                        date.value.replace(' ', "T")
+                    };
+                }
+            }
+            Some(datetime)
+        })
+        .collect();
+
+    let norm_join_key = |raw: &str, calendar: Option<bool>| {
+        if let Some(datetime) = calendar
+            && let Some(date) = csvkit_calendar::parse_iso(raw)
+        {
+            return (Some((datetime, date.aware, date.instant)), String::new());
+        }
         if !no_inference
             && is_csvkit_num_str(raw, false)
             && let Ok(n) = raw.trim().parse::<f64>()
         {
-            return format_csvkit_num(n);
+            return (None, format_csvkit_num(n));
         }
-        raw.to_string()
+        (None, raw.to_string())
     };
 
     let (mut cur_hdr, mut cur_rows) = tables[0].clone();
@@ -19200,19 +19236,29 @@ fn cmd_csvjoin(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> 
         combined_hdr = normalize_csvkit_headers(&combined_hdr);
 
         let mut matched_right = vec![false; r_rows.len()];
+        let right_keys: Vec<_> = r_rows
+            .iter()
+            .enumerate()
+            .map(|(i, row)| match r_key {
+                Some(k) => norm_join_key(
+                    row.get(k).map(String::as_str).unwrap_or(""),
+                    calendar_types[t_idx],
+                ),
+                None => (None, i.to_string()),
+            })
+            .collect();
         let mut next_rows: Vec<Vec<String>> = Vec::new();
         for (l_row_i, lr) in cur_rows.iter().enumerate() {
             let lk = match left_key {
-                Some(k_idx) => norm_join_key(lr.get(k_idx).map(|s| s.as_str()).unwrap_or("")),
-                None => l_row_i.to_string(),
+                Some(k_idx) => norm_join_key(
+                    lr.get(k_idx).map(|s| s.as_str()).unwrap_or(""),
+                    calendar_types[0],
+                ),
+                None => (None, l_row_i.to_string()),
             };
             let mut matched = false;
             for (r_row_i, rr) in r_rows.iter().enumerate() {
-                let rk = match r_key {
-                    Some(k_idx) => norm_join_key(rr.get(k_idx).map(|s| s.as_str()).unwrap_or("")),
-                    None => r_row_i.to_string(),
-                };
-                if lk == rk {
+                if lk == right_keys[r_row_i] {
                     matched = true;
                     matched_right[r_row_i] = true;
                     let mut row = lr.clone();

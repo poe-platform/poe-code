@@ -18678,6 +18678,7 @@ enum SqlTriggerTiming {
 
 #[derive(Clone)]
 struct SqlTrigger {
+    active: bool,
     name: String,
     table: String,
     op: SqlTriggerOp,
@@ -20885,6 +20886,7 @@ fn deserialize_sql_db(
                             .trim()
                             .to_string();
                         triggers.push(SqlTrigger {
+                            active: false,
                             name: m_name,
                             table: tname,
                             op,
@@ -21029,6 +21031,7 @@ fn deserialize_sql_db(
                             }
                         }
                         triggers.push(SqlTrigger {
+                            active: false,
                             name: format!("tr_{}_{}", table, triggers.len() + 1),
                             table,
                             op,
@@ -21405,6 +21408,7 @@ fn cmd_sqlite3(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> 
     let mut user_version: i64 = 0;
     let mut application_id: i64 = 0;
     let mut foreign_keys_enabled = false;
+    let mut recursive_triggers_enabled = false;
     if db_path != ":memory:" {
         let full = resolve_posix_path(cwd, &db_path);
         if let Ok(bytes) = fs.read_file(&full) {
@@ -21904,6 +21908,7 @@ fn cmd_sqlite3(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> 
                                 &mut tables,
                                 &views,
                                 &triggers,
+                                recursive_triggers_enabled,
                             )
                             .unwrap_or(true);
                             if allow {
@@ -21921,6 +21926,7 @@ fn cmd_sqlite3(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> 
                                     &mut tables,
                                     &views,
                                     &triggers,
+                                    recursive_triggers_enabled,
                                 );
                             }
                         }
@@ -22027,6 +22033,10 @@ fn cmd_sqlite3(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> 
                     user_version = rhs.trim().parse::<i64>().unwrap_or(0);
                 } else if lhs.trim().eq_ignore_ascii_case("application_id") {
                     application_id = rhs.trim().parse::<i64>().unwrap_or(0);
+                } else if lhs.trim().eq_ignore_ascii_case("recursive_triggers") {
+                    let value = rhs.trim().to_ascii_uppercase();
+                    recursive_triggers_enabled =
+                        matches!(value.as_str(), "ON" | "1" | "TRUE" | "YES");
                 } else if lhs.trim().eq_ignore_ascii_case("foreign_keys")
                     && tx_snapshot.is_none()
                     && savepoints.is_empty()
@@ -22034,6 +22044,15 @@ fn cmd_sqlite3(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> 
                     let rv = rhs.trim().to_ascii_uppercase();
                     foreign_keys_enabled = matches!(rv.as_str(), "ON" | "1" | "TRUE" | "YES");
                 }
+            } else if pup == "RECURSIVE_TRIGGERS" {
+                emit_chunk(
+                    format!("{}\n", u8::from(recursive_triggers_enabled)),
+                    &mut once_path,
+                    &output_path,
+                    &mut out,
+                    cli_csv_mode,
+                    dot_mode_csv,
+                );
             } else if pup == "USER_VERSION" {
                 emit_chunk(
                     format!("{user_version}\n"),
@@ -22427,6 +22446,7 @@ fn cmd_sqlite3(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> 
                 &mut tables,
                 &views,
                 &triggers,
+                recursive_triggers_enabled,
                 foreign_keys_enabled,
                 tx_snapshot.is_some() || !savepoints.is_empty(),
                 json_mode,
@@ -22624,6 +22644,7 @@ fn cmd_sqlite3(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> 
                     };
                     triggers.push(SqlTrigger {
                         active: false,
+                        active: false,
                         name: sql_trigger_name(name),
                         table: tname,
                         op,
@@ -22671,6 +22692,7 @@ fn cmd_sqlite3(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> 
                 &mut tables,
                 &views,
                 &triggers,
+                recursive_triggers_enabled,
                 foreign_keys_enabled,
                 tx_snapshot.is_some() || !savepoints.is_empty(),
                 json_mode,
@@ -22700,6 +22722,7 @@ fn cmd_sqlite3(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> 
                 &mut tables,
                 &views,
                 &triggers,
+                recursive_triggers_enabled,
                 foreign_keys_enabled,
                 json_mode,
                 csv_mode,
@@ -22936,6 +22959,7 @@ fn cmd_sqlite3(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> 
                     &mut tables,
                     &views,
                     &triggers,
+                    recursive_triggers_enabled,
                     foreign_keys_enabled,
                     tx_snapshot.is_some() || !savepoints.is_empty(),
                     json_mode,
@@ -22968,6 +22992,7 @@ fn cmd_sqlite3(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> 
                     &mut tables,
                     &views,
                     &triggers,
+                    recursive_triggers_enabled,
                     foreign_keys_enabled,
                     json_mode,
                     csv_mode,
@@ -23227,21 +23252,18 @@ fn fire_sql_triggers(
     tables: &mut BTreeMap<String, SqlTable>,
     views: &BTreeMap<String, String>,
     triggers: &[SqlTrigger],
+    recursive_triggers_enabled: bool,
 ) -> Result<bool, String> {
-    let matching: Vec<SqlTrigger> = triggers
-        .iter()
-        .filter(|tr| {
-            tr.table.eq_ignore_ascii_case(tname)
-                && tr.op == op
-                && tr.timing == timing
-                && (tr.update_of.is_empty()
-                    || tr.update_of.iter().any(|column| {
-                        find_sql_col(cols, column)
-                            .is_some_and(|index| updated_cols.contains(&index))
-                    }))
-        })
-        .cloned()
-        .collect();
+    let matching = triggers.iter().filter(|tr| {
+        (recursive_triggers_enabled || !tr.active)
+            && tr.table.eq_ignore_ascii_case(tname)
+            && tr.op == op
+            && tr.timing == timing
+            && (tr.update_of.is_empty()
+                || tr.update_of.iter().any(|column| {
+                    find_sql_col(cols, column).is_some_and(|index| updated_cols.contains(&index))
+                }))
+    });
     for tr in matching {
         let mut trig_cols = Vec::new();
         let mut trig_metadata = Vec::new();
@@ -23320,19 +23342,63 @@ fn fire_sql_triggers(
             let end = chars.peek().map_or(tr.body.len(), |(i, _)| *i);
             body.push_str(&tr.body[start..end]);
         }
+        // Keep active trigger definitions visible to view writability checks,
+        // but suppress their re-entry for the duration of these nested writes.
+        let nested_triggers;
+        let triggers = if recursive_triggers_enabled {
+            triggers
+        } else {
+            nested_triggers = triggers
+                .iter()
+                .map(|candidate| {
+                    let mut nested = candidate.clone();
+                    nested.active |= std::ptr::eq(candidate, tr);
+                    nested
+                })
+                .collect::<Vec<_>>();
+            &nested_triggers
+        };
         for sub_stmt in split_sql_stmts(&body) {
             let sub = sub_stmt.trim();
             let sub_up = sub.to_ascii_uppercase();
             if sub_up.starts_with("INSERT ") || sub_up.starts_with("REPLACE ") {
                 exec_sql_insert(
-                    sub, tables, views, triggers, false, false, false, false, "|",
+                    sub,
+                    tables,
+                    views,
+                    triggers,
+                    recursive_triggers_enabled,
+                    false,
+                    false,
+                    false,
+                    false,
+                    "|",
                 )?;
             } else if sub_up.starts_with("DELETE FROM ") {
                 exec_sql_delete(
-                    sub, tables, views, triggers, false, false, false, false, "|",
+                    sub,
+                    tables,
+                    views,
+                    triggers,
+                    recursive_triggers_enabled,
+                    false,
+                    false,
+                    false,
+                    false,
+                    "|",
                 )?;
             } else if sub_up.starts_with("UPDATE ") {
-                exec_sql_update(sub, tables, views, triggers, false, false, false, "|")?;
+                exec_sql_update(
+                    sub,
+                    tables,
+                    views,
+                    triggers,
+                    recursive_triggers_enabled,
+                    false,
+                    false,
+                    false,
+                    "|",
+                )?;
             } else if sub_up.starts_with("SELECT ") {
                 let sel_out = exec_sql_select_ext(
                     sub, tables, views, false, false, false, false, false, None, false, "|", "",
@@ -23461,6 +23527,7 @@ fn exec_sql_insert(
     tables: &mut BTreeMap<String, SqlTable>,
     views: &BTreeMap<String, String>,
     triggers: &[SqlTrigger],
+    recursive_triggers_enabled: bool,
     foreign_keys_enabled: bool,
     in_transaction: bool,
     json_mode: bool,
@@ -23733,6 +23800,7 @@ fn exec_sql_insert(
                 tables,
                 views,
                 triggers,
+                recursive_triggers_enabled,
             ) {
                 Ok(true) => affected_rows.push(row),
                 Ok(false) => {}
@@ -23754,6 +23822,7 @@ fn exec_sql_insert(
             tables,
             views,
             triggers,
+            recursive_triggers_enabled,
         ) {
             Ok(false) => continue,
             Ok(true) => {}
@@ -23889,6 +23958,7 @@ fn exec_sql_insert(
                         tables,
                         views,
                         triggers,
+                        recursive_triggers_enabled,
                     )
                     .inspect_err(|_| *tables = stmt_snap.clone())?
                     {
@@ -23927,6 +23997,7 @@ fn exec_sql_insert(
                         tables,
                         views,
                         triggers,
+                        recursive_triggers_enabled,
                     )
                     .inspect_err(|_| *tables = stmt_snap.clone())?;
                 }
@@ -23955,6 +24026,7 @@ fn exec_sql_insert(
             tables,
             views,
             triggers,
+            recursive_triggers_enabled,
         )
         .inspect_err(|_| *tables = stmt_snap.clone())?;
     }
@@ -23980,6 +24052,7 @@ fn exec_sql_update(
     tables: &mut BTreeMap<String, SqlTable>,
     views: &BTreeMap<String, String>,
     triggers: &[SqlTrigger],
+    recursive_triggers_enabled: bool,
     foreign_keys_enabled: bool,
     json_mode: bool,
     csv_mode: bool,
@@ -24133,6 +24206,7 @@ fn exec_sql_update(
                 tables,
                 views,
                 triggers,
+                recursive_triggers_enabled,
             ) {
                 Ok(true) => affected_rows.push(ur),
                 Ok(false) => {}
@@ -24154,6 +24228,7 @@ fn exec_sql_update(
             tables,
             views,
             triggers,
+            recursive_triggers_enabled,
         ) {
             Ok(false) => continue,
             Ok(true) => {}
@@ -24292,6 +24367,7 @@ fn exec_sql_update(
                             tables,
                             views,
                             triggers,
+                            recursive_triggers_enabled,
                         )
                         .inspect_err(|_| *tables = tables_snap.clone())?;
                         fire_sql_triggers(
@@ -24305,6 +24381,7 @@ fn exec_sql_update(
                             tables,
                             views,
                             triggers,
+                            recursive_triggers_enabled,
                         )
                         .inspect_err(|_| *tables = tables_snap.clone())?;
                     }
@@ -24323,6 +24400,7 @@ fn exec_sql_update(
             tables,
             views,
             triggers,
+            recursive_triggers_enabled,
         ) {
             *tables = tables_snap;
             return Err(e);
@@ -24349,6 +24427,7 @@ fn exec_sql_delete(
     tables: &mut BTreeMap<String, SqlTable>,
     views: &BTreeMap<String, String>,
     triggers: &[SqlTrigger],
+    recursive_triggers_enabled: bool,
     foreign_keys_enabled: bool,
     in_transaction: bool,
     json_mode: bool,
@@ -24433,6 +24512,7 @@ fn exec_sql_delete(
                 tables,
                 views,
                 triggers,
+                recursive_triggers_enabled,
             ) {
                 *tables = tables_snap;
                 return Err(e);
@@ -24450,6 +24530,7 @@ fn exec_sql_delete(
             tables,
             views,
             triggers,
+            recursive_triggers_enabled,
         )
         .inspect_err(|_| *tables = tables_snap.clone())?;
         if foreign_keys_enabled {
@@ -24554,6 +24635,7 @@ fn exec_sql_delete(
                                 tables,
                                 views,
                                 triggers,
+                                recursive_triggers_enabled,
                             )
                             .inspect_err(|_| *tables = tables_snap.clone())?;
                             pending_deletes.push((ctname.clone(), c_cols.clone(), row));
@@ -24573,6 +24655,7 @@ fn exec_sql_delete(
             tables,
             views,
             triggers,
+            recursive_triggers_enabled,
         )
         .inspect_err(|_| *tables = tables_snap.clone())?;
     }
@@ -45444,6 +45527,7 @@ mod tests {
             false,
             false,
             false,
+            false,
             "|",
         );
         assert_eq!(
@@ -45476,6 +45560,7 @@ mod tests {
             false,
             false,
             false,
+            false,
             "|",
         );
         assert_eq!(
@@ -45502,6 +45587,7 @@ mod tests {
             &mut tables,
             &BTreeMap::new(),
             &[],
+            false,
             false,
             false,
             false,

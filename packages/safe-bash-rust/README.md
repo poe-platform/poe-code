@@ -53,6 +53,8 @@ Native `sqlite3` supports `DROP TABLE` and `DROP TABLE IF EXISTS`. With `PRAGMA 
 
 ## Feature Index
 
+Native `sqlite3` supports connection-local `PRAGMA recursive_triggers` (off by default). With recursion off, a running trigger cannot re-enter itself, while other triggers still execute.
+
 Native `awk getline` preserves its target value at EOF. Array indexes and field
 targets are evaluated once before reading, including when no record remains.
 

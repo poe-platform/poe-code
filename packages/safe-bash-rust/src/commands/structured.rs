@@ -20358,7 +20358,8 @@ fn deserialize_sql_db(
                 {
                     let after_on = norm[on_p + 4..].trim();
                     if let Some(open) = after_on.find('(')
-                        && let Some(close) = after_on.rfind(')')
+                        && let Some(close) =
+                            find_matching_paren(&after_on[open..]).map(|close| open + close)
                     {
                         let tname = resolve_sql_table_name(
                             tables,
@@ -20367,13 +20368,7 @@ fn deserialize_sql_db(
                         .to_owned();
                         let ucols: Vec<String> = split_top_level_comma(&after_on[open + 1..close])
                             .into_iter()
-                            .map(|c| {
-                                c.split_whitespace()
-                                    .next()
-                                    .unwrap_or("")
-                                    .trim_matches('"')
-                                    .to_string()
-                            })
+                            .map(|c| c.trim().to_string())
                             .filter(|c| !c.is_empty())
                             .collect();
                         if !ucols.is_empty()
@@ -20726,6 +20721,67 @@ fn find_sql_col(cols: &[String], target: &str) -> Option<usize> {
     })
 }
 
+fn sql_unique_conflicts(
+    table: &SqlTable,
+    terms: &[String],
+    row: &[String],
+    skip_row: Option<usize>,
+    tables: &BTreeMap<String, SqlTable>,
+) -> Vec<usize> {
+    let expressions: Vec<&str> = terms
+        .iter()
+        .map(|term| parse_sql_order_term(term).0)
+        .collect();
+    let evaluate = |expression: &str, row: &[String]| {
+        let column = split_sql_collation(expression).map_or(expression, |(inner, _)| inner);
+        if let Some(position) = find_sql_col(&table.columns, column) {
+            row.get(position)
+                .cloned()
+                .unwrap_or_else(|| SQL_NULL.to_string())
+        } else {
+            eval_sql_row_value(expression, &table.columns, row, tables)
+        }
+    };
+    let key: Vec<String> = expressions.iter().map(|expr| evaluate(expr, row)).collect();
+    if key.iter().any(|value| value == SQL_NULL) {
+        return Vec::new();
+    }
+    let mut conflicts = Vec::new();
+    for (index, existing) in table.rows.iter().enumerate() {
+        if Some(index) == skip_row {
+            continue;
+        }
+        let mut matches = true;
+        for (expression, value) in expressions.iter().zip(&key) {
+            let existing_value = evaluate(expression, existing);
+            if existing_value == SQL_NULL || existing_value != *value {
+                matches = false;
+                break;
+            }
+        }
+        if matches {
+            conflicts.push(index);
+        }
+    }
+    conflicts
+}
+
+fn sql_unique_error(table_name: &str, table: &SqlTable, name: &str, terms: &[String]) -> String {
+    let columns: Option<Vec<_>> = terms
+        .iter()
+        .map(|term| {
+            let expression = parse_sql_order_term(term).0;
+            let column = split_sql_collation(expression).map_or(expression, |(inner, _)| inner);
+            find_sql_col(&table.columns, column)
+                .map(|position| format!("{table_name}.{}", table.columns[position]))
+        })
+        .collect();
+    match columns {
+        Some(columns) => format!("Error: UNIQUE constraint failed: {}\n", columns.join(", ")),
+        None => format!("Error: stepping, UNIQUE constraint failed: index '{name}' (19)\n"),
+    }
+}
+
 // The outer statement selects the access mode; quoted words and CTE bodies do not.
 fn sqlite_mutates(upper: &str) -> bool {
     let mut depth = 0usize;
@@ -20946,7 +21002,7 @@ fn cmd_sqlite3(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> 
     }
     expand_dot_reads(&sql_input, cwd, fs, &mut cleaned_sql);
 
-    for raw_stmt in split_sql_stmts(&cleaned_sql) {
+    'statements: for raw_stmt in split_sql_stmts(&cleaned_sql) {
         let mut stmt_owned = raw_stmt.trim().to_string();
         if stmt_owned.is_empty() {
             continue;
@@ -21675,49 +21731,36 @@ fn cmd_sqlite3(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> 
                     .unwrap_or("")
                     .trim_matches('"')
                     .to_string();
-                if !idx_name.is_empty() && !indexes.contains(&idx_name) {
-                    indexes.push(idx_name.clone());
-                }
                 let after_on = norm[on_p + 4..].trim();
-                if let Some(open) = after_on.find('(') {
+                if !idx_name.is_empty()
+                    && !indexes.contains(&idx_name)
+                    && let Some(open) = after_on.find('(')
+                    && let Some(close) = find_matching_paren(&after_on[open..])
+                {
                     let tname =
                         resolve_sql_table_name(&tables, after_on[..open].trim().trim_matches('"'))
                             .to_owned();
-                    if let Some(tbl) = tables.get_mut(&tname) {
-                        tbl.index_sql
-                            .entry(idx_name.clone())
-                            .or_insert_with(|| stmt.to_string());
-                    }
-                }
-                if is_unique && !idx_name.is_empty() {
-                    let after_on = norm[on_p + 4..].trim();
-                    if let Some(open) = after_on.find('(')
-                        && let Some(close) = after_on.rfind(')')
-                    {
-                        let tname = resolve_sql_table_name(
-                            &tables,
-                            after_on[..open].trim().trim_matches('"'),
-                        )
-                        .to_owned();
-                        let ucols: Vec<String> = split_top_level_comma(&after_on[open + 1..close])
+                    let terms: Vec<String> =
+                        split_top_level_comma(&after_on[open + 1..open + close])
                             .into_iter()
-                            .map(|c| {
-                                c.split_whitespace()
-                                    .next()
-                                    .unwrap_or("")
-                                    .trim_matches('"')
-                                    .to_string()
-                            })
-                            .filter(|c| !c.is_empty())
+                            .map(|term| term.trim().to_string())
                             .collect();
-                        if !ucols.is_empty()
-                            && let Some(tbl) = tables.get_mut(&tname)
-                            && !tbl
-                                .unique_indexes
-                                .iter()
-                                .any(|(n, _, _)| n.eq_ignore_ascii_case(&idx_name))
-                        {
-                            tbl.unique_indexes.push((idx_name, ucols, false));
+                    if is_unique && let Some(table) = tables.get(&tname) {
+                        for (index, row) in table.rows.iter().enumerate() {
+                            if !sql_unique_conflicts(table, &terms, row, Some(index), &tables)
+                                .is_empty()
+                            {
+                                errors
+                                    .push_str(&sql_unique_error(&tname, table, &idx_name, &terms));
+                                break 'statements;
+                            }
+                        }
+                    }
+                    indexes.push(idx_name.clone());
+                    if let Some(table) = tables.get_mut(&tname) {
+                        table.index_sql.insert(idx_name.clone(), stmt.to_string());
+                        if is_unique {
+                            table.unique_indexes.push((idx_name, terms, false));
                         }
                     }
                 }
@@ -22115,7 +22158,10 @@ fn cmd_sqlite3(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> 
                 &sep,
             ) {
                 Ok(chunk) => chunk,
-                Err(e) => return err_out(&e, 1),
+                Err(e) => {
+                    errors.push_str(&e);
+                    break 'statements;
+                }
             };
             if !ret_chunk.is_empty() {
                 emit_chunk(
@@ -22357,7 +22403,8 @@ fn cmd_sqlite3(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> 
                         for cname in &cte_names {
                             tables.remove(cname);
                         }
-                        return err_out(&e, 1);
+                        errors.push_str(&e);
+                        break 'statements;
                     }
                 };
                 if !ret_chunk.is_empty() {
@@ -22451,7 +22498,11 @@ fn cmd_sqlite3(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> 
 
     BuiltinOutcome {
         stdout: out,
-        exit_code: i32::from(!errors.is_empty()),
+        exit_code: if errors.starts_with("Error: stepping, UNIQUE constraint failed: index ") {
+            19
+        } else {
+            i32::from(!errors.is_empty())
+        },
         stderr: errors,
     }
 }
@@ -23120,55 +23171,30 @@ fn exec_sql_insert(
             }
         }
 
-        let mut unique_conflict_idx: Option<(usize, Vec<String>)> = None;
+        let mut unique_conflict_idx = None;
         let mut replace_conflicts = BTreeSet::new();
         let mut ignore_conflict = is_do_nothing;
-        if let Some(tbl) = tables.get(&tname) {
-            for (_uname, ucols, declared_ignore) in &unique_idx_clone {
-                let col_positions: Vec<usize> = ucols
-                    .iter()
-                    .filter_map(|uc| find_sql_col(&t_cols, uc))
-                    .collect();
-                if col_positions.len() == ucols.len()
-                    && col_positions
-                        .iter()
-                        .all(|&p| row.get(p).is_some_and(|s| s != SQL_NULL))
-                {
-                    for (dup_idx, existing_row) in tbl.rows.iter().enumerate() {
-                        if col_positions
-                            .iter()
-                            .all(|&p| existing_row.get(p) == row.get(p))
-                        {
-                            unique_conflict_idx.get_or_insert_with(|| (dup_idx, ucols.clone()));
-                            if !upper.starts_with("INSERT OR ") && !is_or_replace && !is_do_update {
-                                ignore_conflict |= *declared_ignore;
-                            }
-                            if is_or_replace {
-                                replace_conflicts.insert(dup_idx);
-                            } else {
-                                break;
-                            }
-                        }
-                    }
-                    if unique_conflict_idx.is_some() && !is_or_replace {
-                        break;
-                    }
+        for (name, terms, declared_ignore) in &unique_idx_clone {
+            let conflicts = sql_unique_conflicts(&tables[&tname], terms, &row, None, tables);
+            if let Some(&index) = conflicts.first() {
+                if !upper.starts_with("INSERT OR ") && !is_or_replace && !is_do_update {
+                    ignore_conflict |= *declared_ignore;
+                }
+                if !(ignore_conflict || is_or_replace || is_do_update) {
+                    let error = sql_unique_error(&tname, &tables[&tname], name, terms);
+                    *tables = stmt_snap;
+                    return Err(error);
+                }
+                unique_conflict_idx.get_or_insert(index);
+                if is_or_replace {
+                    replace_conflicts.extend(conflicts);
+                } else {
+                    break;
                 }
             }
         }
-        if let Some((_, ref ucols)) = unique_conflict_idx
-            && !(ignore_conflict || is_or_replace || is_do_update)
-        {
-            *tables = stmt_snap;
-            let col_desc = ucols
-                .iter()
-                .map(|c| format!("{tname}.{c}"))
-                .collect::<Vec<_>>()
-                .join(", ");
-            return Err(format!("Error: UNIQUE constraint failed: {col_desc}\n"));
-        }
 
-        let existing_idx = unique_conflict_idx.map(|(idx, _)| idx);
+        let existing_idx = unique_conflict_idx;
         if let Some(e_idx) = existing_idx
             && !is_or_replace
             && (ignore_conflict || is_do_update)
@@ -23235,8 +23261,24 @@ fn exec_sql_insert(
                         tables,
                         views,
                         triggers,
-                    )? {
+                    )
+                    .inspect_err(|_| *tables = stmt_snap.clone())?
+                    {
                         continue;
+                    }
+                    for (name, terms, _) in &unique_idx_clone {
+                        let conflicts = sql_unique_conflicts(
+                            &tables[&tname],
+                            terms,
+                            &updated_row,
+                            Some(e_idx),
+                            tables,
+                        );
+                        if !conflicts.is_empty() {
+                            let error = sql_unique_error(&tname, &tables[&tname], name, terms);
+                            *tables = stmt_snap;
+                            return Err(error);
+                        }
                     }
                     if let Some(tbl) = tables.get_mut(&tname) {
                         tbl.rows[e_idx] = updated_row.clone();
@@ -23253,7 +23295,8 @@ fn exec_sql_insert(
                         tables,
                         views,
                         triggers,
-                    )?;
+                    )
+                    .inspect_err(|_| *tables = stmt_snap.clone())?;
                 }
                 continue;
             }
@@ -23280,7 +23323,8 @@ fn exec_sql_insert(
             tables,
             views,
             triggers,
-        )?;
+        )
+        .inspect_err(|_| *tables = stmt_snap.clone())?;
     }
 
     if let Some(rcols) = returning_cols {
@@ -23474,6 +23518,14 @@ fn exec_sql_update(
             if !eval_sql_where(check, &t_cols, &tables[&tname].metadata, &ur, tables) {
                 *tables = tables_snap;
                 return Err(format!("Error: CHECK constraint failed: {check}\n"));
+            }
+        }
+        for (name, terms, _) in tables[&tname].unique_indexes.clone() {
+            let conflicts = sql_unique_conflicts(&tables[&tname], &terms, &ur, Some(r_idx), tables);
+            if !conflicts.is_empty() {
+                let error = sql_unique_error(&tname, &tables[&tname], &name, &terms);
+                *tables = tables_snap;
+                return Err(error);
             }
         }
         if let Some(tbl) = tables.get_mut(&tname)

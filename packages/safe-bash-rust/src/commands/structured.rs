@@ -19058,7 +19058,7 @@ fn cmd_csvjoin(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> 
     let mut left_join = false;
     let mut right_join = false;
     let mut outer_join = false;
-    let mut no_inference = false;
+    let mut inference = csvkit_cell::Inference::default();
     let mut no_header = false;
     let mut skip_lines = 0usize;
     let mut zero_based = false;
@@ -19077,7 +19077,8 @@ fn cmd_csvjoin(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> 
             "--left" => left_join = true,
             "--right" => right_join = true,
             "--outer" => outer_join = true,
-            "-I" | "--no-inference" => no_inference = true,
+            "-I" | "--no-inference" => inference.no_inference = true,
+            "--no-leading-zeroes" => inference.no_leading_zeroes = true,
             "-H" | "--no-header-row" => no_header = true,
             "-K" | "--skip-lines" if i + 1 < args.len() => {
                 i += 1;
@@ -19152,11 +19153,35 @@ fn cmd_csvjoin(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> 
         keys.reverse();
     }
 
+    // Infer each join column once, retaining decimal spelling for CSV output.
+    let numeric_keys: Vec<bool> = tables
+        .iter_mut()
+        .zip(&keys)
+        .map(|((_, rows), key)| {
+            let Some(key) = key.filter(|_| !inference.no_inference) else {
+                return false;
+            };
+            let cells: Vec<_> = rows
+                .iter()
+                .map(|row| inference.text_cell(row.get(key).cloned().unwrap_or_default()))
+                .collect();
+            if !cells.iter().flatten().all(|cell| cell.number.is_some()) {
+                return false;
+            }
+            for (row, cell) in rows.iter_mut().zip(cells) {
+                if let Some(value) = row.get_mut(key) {
+                    *value = cell.and_then(|cell| cell.number).unwrap_or_default();
+                }
+            }
+            true
+        })
+        .collect();
+
     let calendar_types: Vec<Option<bool>> = tables
         .iter_mut()
         .zip(&keys)
         .map(|((_, rows), key)| {
-            let key = (*key).filter(|_| !no_inference)?;
+            let key = (*key).filter(|_| !inference.no_inference)?;
             let dates: Option<Vec<_>> = rows
                 .iter()
                 .map(|row| {
@@ -19183,19 +19208,20 @@ fn cmd_csvjoin(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> 
         })
         .collect();
 
-    let norm_join_key = |raw: &str, calendar: Option<bool>| {
+    let norm_join_key = |raw: &str, numeric: bool, calendar: Option<bool>| {
         if let Some(datetime) = calendar
             && let Some(date) = csvkit_calendar::parse_iso(raw)
         {
-            return (Some((datetime, date.aware, date.instant)), String::new());
+            return (
+                Some((datetime, date.aware, date.instant)),
+                false,
+                String::new(),
+            );
         }
-        if !no_inference
-            && is_csvkit_num_str(raw, false)
-            && let Ok(n) = raw.trim().parse::<f64>()
-        {
-            return (None, format_csvkit_num(n));
+        if numeric && let Some(number) = csvkit_decimal::Decimal::parse(raw, false) {
+            return (None, true, number.normalized_key());
         }
-        (None, raw.to_string())
+        (None, numeric && !raw.is_empty(), raw.to_string())
     };
 
     let (mut cur_hdr, mut cur_rows) = tables[0].clone();
@@ -19228,9 +19254,10 @@ fn cmd_csvjoin(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> 
             .map(|(i, row)| match r_key {
                 Some(k) => norm_join_key(
                     row.get(k).map(String::as_str).unwrap_or(""),
+                    numeric_keys[t_idx],
                     calendar_types[t_idx],
                 ),
-                None => (None, i.to_string()),
+                None => (None, false, i.to_string()),
             })
             .collect();
         let mut next_rows: Vec<Vec<String>> = Vec::new();
@@ -19238,9 +19265,10 @@ fn cmd_csvjoin(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> 
             let lk = match left_key {
                 Some(k_idx) => norm_join_key(
                     lr.get(k_idx).map(|s| s.as_str()).unwrap_or(""),
+                    numeric_keys[0],
                     calendar_types[0],
                 ),
-                None => (None, l_row_i.to_string()),
+                None => (None, false, l_row_i.to_string()),
             };
             let mut matched = false;
             for (r_row_i, rr) in r_rows.iter().enumerate() {

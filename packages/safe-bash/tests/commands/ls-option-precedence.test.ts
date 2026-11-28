@@ -4,6 +4,41 @@ import { fixture, run } from "./helpers.js";
 import { agentCommands } from "../../src/plugins/index.js";
 import { Shell } from "../../src/shell/index.js";
 
+test("ls long-format ownership variants work through shell pipelines", async context => {
+  const shell = new Shell({ fs: await fixture(), cwd: "/work" }).use(agentCommands());
+  context.after(() => shell.dispose());
+  const result = await shell.exec("touch a; ls -n a | awk '{print NF}'; ls -g a | awk '{print NF}'; ls -o a | awk '{print NF}'; ls -lG a | awk '{print NF}'");
+  assert.equal(result.exitCode, 0);
+  assert.equal(result.stderr, "");
+  assert.equal(result.stdout, "9\n8\n8\n8\n");
+});
+
+for (const [flags, ownership] of [
+  ["-n", ["123", "456"]], ["-g", ["456"]], ["-o", ["123"]],
+  ["-lG", ["123"]], ["-Gl", ["123"]], ["-go", []],
+  ["-gn", ["456"]], ["-on", ["123"]], ["-gGl", []], ["-n1", ["123", "456"]],
+] as const) test(`ls selects ownership columns with ${flags}`, async () => {
+  const fs = await fixture({ a: "" });
+  const lstat = fs.lstat.bind(fs);
+  fs.lstat = async (...args) => ({ ...await lstat(...args), uid: 123, gid: 456 });
+  const result = await run("ls", [flags, "a"], { fs });
+  assert.equal(result.exitCode, 0, result.stderr);
+  assert.equal(result.stderr, "");
+  const fields = result.stdout.trim().split(/\s+/u);
+  assert.equal(fields.length, 7 + ownership.length);
+  assert.deepEqual(fields.slice(2, 2 + ownership.length), ownership);
+  assert.equal(fields.at(-1), "a");
+});
+
+for (const flags of ["-G", "-nC", "-gm", "-ox"]) {
+  test(`ls ownership selectors preserve subsequent layout with ${flags}`, async () => {
+    const result = await run("ls", [flags, "a"], { fs: await fixture({ a: "" }) });
+    assert.equal(result.exitCode, 0, result.stderr);
+    assert.equal(result.stderr, "");
+    assert.equal(result.stdout, "a\n");
+  });
+}
+
 for (const [flags, expected] of [
   [["-m"], "a, b, c\n"], [["-x"], "a  b  c\n"], [["-C"], "a  b  c\n"],
   [["-w", "1"], "a\nb\nc\n"], [["--format=commas"], "a, b, c\n"],

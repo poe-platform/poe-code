@@ -853,6 +853,8 @@ export function filesystemCommands(maxDirectoryEntries?: number, maxRecursiveDir
       let timeKey: "mtimeMs" | "atimeMs" | "ctimeMs" = "mtimeMs";
       let indicator: "none" | "slash" | "file-type" | "classify" = "none";
       let layout: "single-column" | "long" | "commas" | "vertical" | "horizontal" = "single-column";
+      let showOwner = true;
+      let showGroup = true;
       let width = 80;
       const selectWidth = (selection: string | undefined): void => {
         if (selection === undefined) throw new UsageError("option requires an argument -- 'w'");
@@ -930,7 +932,10 @@ export function filesystemCommands(maxDirectoryEntries?: number, maxRecursiveDir
           for (let offset = 1; offset < argument.length; offset++) {
             const flag = argument[offset]!;
             if (flag === "w") { selectWidth(argument.slice(offset + 1) || context.args[++index]); break; }
-            if (flag === "l") layout = "long";
+            if (flag === "l" || flag === "n") layout = "long";
+            else if (flag === "g") { layout = "long"; showOwner = false; }
+            else if (flag === "o") { layout = "long"; showGroup = false; }
+            else if (flag === "G") showGroup = false;
             else if (flag === "1") { if (layout !== "long") layout = "single-column"; }
             else if (flag === "m") layout = "commas";
             else if (flag === "x") layout = "horizontal";
@@ -1055,7 +1060,9 @@ export function filesystemCommands(maxDirectoryEntries?: number, maxRecursiveDir
             }
             size = `${stat.rdevMajor ?? "?"}, ${stat.rdevMinor ?? "?"}`;
           }
-          await output(context, `${inode}${modeText(stat)} ${stat.nlink ?? 1} ${stat.uid ?? 0} ${stat.gid ?? 0} ${size} ${date} ${formatName(display)}${suffix}${target}\n`);
+          const owner = showOwner ? ` ${stat.uid ?? 0}` : "";
+          const group = showGroup ? ` ${stat.gid ?? 0}` : "";
+          await output(context, `${inode}${modeText(stat)} ${stat.nlink ?? 1}${owner}${group} ${size} ${date} ${formatName(display)}${suffix}${target}\n`);
         } else await output(context, `${inode}${formatName(display)}${suffix}\n`);
         outputWritten = true;
       };

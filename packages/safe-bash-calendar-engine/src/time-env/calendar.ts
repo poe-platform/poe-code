@@ -322,25 +322,25 @@ export function parseDate(text: string, zone: TimeZone, now: () => bigint): bigi
 function parseAbsoluteDate(value: string, zone: TimeZone, now: () => bigint): { instant: bigint; zone: TimeZone } {
   const epoch = decimalEpoch(value);
   if (epoch !== undefined) return { instant: epoch, zone };
-  const monthFirst = /^([A-Za-z]+)\s+(\d{1,2}),?(?:\s+(\d{4}))?(?=\s|$)(.*)$/.exec(value);
+  const prefix = /^([A-Za-z]+),?\s+/.exec(value);
+  const weekday = prefix ? weekdayNames.findIndex(name => name.toLowerCase() === prefix[1]!.toLowerCase()
+    || name.slice(0, 3).toLowerCase() === prefix[1]!.toLowerCase()) : -1;
+  if (weekday >= 0) value = value.slice(prefix![0].length);
+  const defaultOutput = weekday < 0 ? null : /^([A-Za-z]+)\s+(\d{1,2})\s+(\d{2}:\d{2}:\d{2})\s+(?:(\S+)\s+)?(\d{4})$/i.exec(value);
+  const monthFirst = defaultOutput ? null : /^([A-Za-z]+)\s+(\d{1,2}),?(?:\s+(\d{4}))?(?=\s|$)(.*)$/.exec(value);
   const dayFirst = /^(\d{1,2})(?:\s+|-)([A-Za-z]+)(?:(?:\s+|-)(\d{4}))?(?=\s|$)(.*)$/.exec(value);
-  const defaultOutput = /^(Sun|Mon|Tue|Wed|Thu|Fri|Sat)\s+([A-Za-z]+)\s+(\d{1,2})\s+(\d{2}:\d{2}:\d{2})\s+(?:(\S+)\s+)?(\d{4})$/i.exec(value);
   if (monthFirst || dayFirst || defaultOutput) {
-    const monthText = (monthFirst?.[1] ?? dayFirst?.[2] ?? defaultOutput![2]!).toLowerCase();
+    const monthText = (monthFirst?.[1] ?? dayFirst?.[2] ?? defaultOutput![1]!).toLowerCase();
     const month = monthNames.findIndex(name => name.toLowerCase() === monthText || name.slice(0, 3).toLowerCase() === monthText) + 1;
-    const day = monthFirst?.[2] ?? dayFirst?.[1] ?? defaultOutput![3]!;
-    const year = monthFirst?.[3] ?? dayFirst?.[3] ?? defaultOutput?.[6] ?? zone.fields(now()).year;
-    const timeText = monthFirst?.[4] ?? dayFirst?.[4] ?? ` ${defaultOutput![4]} ${defaultOutput![5] ?? ""}`;
-    const parsed = parseAbsoluteDate(`${year}-${month}-${day}${timeText}`, zone, now);
-    if (defaultOutput && weekdayNames[new Date(utcMilliseconds(parsed.zone.fields(parsed.instant))).getUTCDay()]!.slice(0, 3).toLowerCase() !== defaultOutput[1]!.toLowerCase()) {
-      throw new CommandFailure("weekday does not match calendar date");
-    }
-    return parsed;
+    const day = monthFirst?.[2] ?? dayFirst?.[1] ?? defaultOutput![2]!;
+    const year = monthFirst?.[3] ?? dayFirst?.[3] ?? defaultOutput?.[5] ?? zone.fields(now()).year;
+    const timeText = monthFirst?.[4] ?? dayFirst?.[4] ?? ` ${defaultOutput![3]} ${defaultOutput![4] ?? ""}`;
+    return parseAbsoluteDate(`${weekday < 0 ? "" : prefix![0]}${year}-${month}-${day}${timeText}`, zone, now);
   }
   const numeric = /^(\d{2}(?:\d{2})?-\d{1,2}-\d{1,2}|\d{4}\/\d{1,2}\/\d{1,2}|\d{1,2}\/\d{1,2}\/\d{2}(?:\d{2})?|\d{8})(?=$|[A-Za-z+\s-])(?:[Tt ](?=\d))?/i.exec(value);
   const remainder = numeric ? value.slice(numeric[0].length).trim() : value.replace(/^today\s+/i, "");
   const time = /^(?:(\d{1,2})(?::(\d{2})(?::(\d{2})(?:[.,](\d+))?)?)?\s*(am|pm|a\.m\.|p\.m\.)?)?(?:\s*((?:UTC|GMT)[+-]\d{1,2}(?::\d{2})?|[A-Za-z]+|[+-]\d{2}(?::?\d{2})?(?::\d{2})?))?$/i.exec(remainder);
-  if (time && (numeric || time[1] !== undefined)) {
+  if (time && (numeric || (weekday < 0 && time[1] !== undefined))) {
     const sourceZone = parsedZone(time[6], zone);
     let year: number, month: number, day: number;
     if (numeric) {
@@ -360,34 +360,11 @@ function parseAbsoluteDate(value: string, zone: TimeZone, now: () => bigint): { 
       hour = hour % 12 + (time[5].toLowerCase().startsWith("p") ? 12 : 0);
     }
     const fields: CalendarFields = { year, month, day, hour, minute: Number(time[2] ?? 0), second: Number(time[3] ?? 0) };
-    return { instant: sourceZone.instant(fields, BigInt((time[4] ?? "").slice(0, 9).padEnd(9, "0"))), zone: sourceZone };
-  }
-  const rfc = /^(?:(Sun|Mon|Tue|Wed|Thu|Fri|Sat),\s+)?(\d{1,2})\s+(Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)\s+(\d{4})\s+(\d{2}):(\d{2}):(\d{2})\s+((?:UTC|GMT)[+-]\d{1,2}(?::\d{2})?|[A-Za-z]+|[+-]\d{4})$/.exec(value);
-  if (rfc) {
-    const fields: CalendarFields = { year: Number(rfc[4]), month: monthNames.findIndex(name => name.startsWith(rfc[3]!)) + 1,
-      day: Number(rfc[2]), hour: Number(rfc[5]), minute: Number(rfc[6]), second: Number(rfc[7]) };
-    if (rfc[1] && !weekdayNames[new Date(utcMilliseconds(fields)).getUTCDay()]!.startsWith(rfc[1])) throw new CommandFailure("weekday does not match calendar date");
-    const sourceZone = parsedZone(rfc[8], zone);
-    return { instant: sourceZone.instant(fields), zone: sourceZone };
-  }
-  const named = /^(?<month>[A-Za-z]+)\s+(?<day>\d{1,2}),?\s+(?<year>\d{4})(?:\s+(?<hour>\d{1,2})(?::(?<minute>\d{2})(?::(?<second>\d{2}))?)?\s*(?<period>am|pm)?)?(?:\s+(?<zone>Z|UTC|GMT|[+-]\d{2}(?::?\d{2})?(?::\d{2})?))?$/i.exec(value)?.groups
-    ?? /^(?:(?<weekday>Sun|Mon|Tue|Wed|Thu|Fri|Sat),\s+)?(?<day>\d{1,2})(?:\s+|-)(?<month>[A-Za-z]+)(?:\s+|-)(?<year>\d{4})(?:\s+(?<hour>\d{1,2})(?::(?<minute>\d{2})(?::(?<second>\d{2}))?)?\s*(?<period>am|pm)?)?(?:\s+(?<zone>Z|UTC|GMT|[+-]\d{2}(?::?\d{2})?(?::\d{2})?))?$/i.exec(value)?.groups
-    ?? /^(?<weekday>Sun|Mon|Tue|Wed|Thu|Fri|Sat)\s+(?<month>[A-Za-z]+)\s+(?<day>\d{1,2})\s+(?<hour>\d{2}):(?<minute>\d{2}):(?<second>\d{2})\s+(?<zone>Z|UTC|GMT|[+-]\d{2}(?::?\d{2})?(?::\d{2})?)\s+(?<year>\d{4})$/i.exec(value)?.groups;
-  if (named) {
-    const month = monthNames.findIndex(name => name.toLowerCase() === named.month!.toLowerCase()
-      || name.slice(0, 3).toLowerCase() === named.month!.toLowerCase()) + 1;
-    let hour = Number(named.hour ?? 0);
-    if (named.period) {
-      if (hour < 1 || hour > 12) throw new CommandFailure("invalid calendar date or time");
-      hour = hour % 12 + (named.period.toLowerCase() === "pm" ? 12 : 0);
-    }
-    const fields: CalendarFields = { year: Number(named.year), month, day: Number(named.day),
-      hour, minute: Number(named.minute ?? 0), second: Number(named.second ?? 0) };
-    if (named.weekday && weekdayNames[new Date(utcMilliseconds(fields)).getUTCDay()]!.slice(0, 3).toLowerCase() !== named.weekday.toLowerCase()) {
+    const instant = sourceZone.instant(fields, BigInt((time[4] ?? "").slice(0, 9).padEnd(9, "0")));
+    if (weekday >= 0 && new Date(utcMilliseconds(fields)).getUTCDay() !== weekday) {
       throw new CommandFailure("weekday does not match calendar date");
     }
-    const sourceZone = parsedZone(named.zone, zone);
-    return { instant: sourceZone.instant(fields), zone: sourceZone };
+    return { instant, zone: sourceZone };
   }
   throw new CommandFailure(`unsupported or invalid date: ${value}`);
 }

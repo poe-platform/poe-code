@@ -32,3 +32,14 @@ test("Shell date accepts month-name dates and its default UTC output", async () 
     assert.equal(roundTrip.exitCode, 0);
   } finally { await shell.dispose(); }
 });
+
+
+test("Shell date accepts weekday prefixes before explicit dates", async () => {
+  const shell = new Shell({ fs: createMemoryFileSystem(), cwd: "/work" }).use(agentCommands());
+  try {
+    const result = await shell.exec("date -u -d 'Fri, 5 Jan 2024' +%F; date -u -d 'Friday January 5 2024' +%F; date -u -d 'fri 2024-01-05' +%F");
+    assert.equal(result.stdout, "2024-01-05\n2024-01-05\n2024-01-05\n");
+    assert.equal(result.stderr, "");
+    assert.equal(result.exitCode, 0);
+  } finally { await shell.dispose(); }
+});

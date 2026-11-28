@@ -42,6 +42,9 @@ test("date parses its own default output", async () => {
 });
 
 for (const [input, format, expected] of [
+  ["Fri, 5 Jan 2024", "%F", "2024-01-05\n"],
+  ["Friday January 5 2024", "%F", "2024-01-05\n"],
+  ["fri 2024-01-05", "%F", "2024-01-05\n"],
   ["Jan 5 2024", "%F", "2024-01-05\n"],
   ["5 Jan 2024", "%F", "2024-01-05\n"],
   ["5-Jan-2024", "%F", "2024-01-05\n"],

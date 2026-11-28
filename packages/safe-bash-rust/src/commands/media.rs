@@ -12698,6 +12698,10 @@ fn cmd_magick(
                 ));
                 i += 1;
             }
+            "-combine" => {
+                stack_steps.push((ops.len(), magick_stack::Step::Combine));
+                i += 1;
+            }
             "-separate" => {
                 stack_steps.push((
                     ops.len(),
@@ -13174,6 +13178,7 @@ fn cmd_magick(
                     | magick_stack::Step::Separate(..)
                     | magick_stack::Step::Clut(..)
                     | magick_stack::Step::Remap(..)
+                    | magick_stack::Step::Combine
             )
         });
     let apply_pixels =
@@ -13363,6 +13368,7 @@ fn cmd_magick(
                                 | magick_stack::Step::Clut(..)
                                 | magick_stack::Step::Remap(..)
                                 | magick_stack::Step::Separate(..)
+                                | magick_stack::Step::Combine
                                 | magick_stack::Step::Append(..)
                                 | magick_stack::Step::Write(..)
                         )

@@ -121,6 +121,7 @@ pub(super) enum Step<'a> {
     Separate([bool; 4]),
     Clut([bool; 4]),
     Remap(&'a str),
+    Combine,
 }
 
 struct SourceTiming {
@@ -779,6 +780,52 @@ pub(super) fn evaluate(
                 retained = scene.image.pixels.len() * 4
                     + size_of::<Scene>()
                     + size_of::<(Rc<Scene>, usize)>();
+            }
+            Step::Combine => {
+                retained = 0;
+                for (scene, start) in &mut stack {
+                    let scene = Rc::make_mut(scene);
+                    let (keep, alpha) =
+                        transform(&mut scene.image, *start..*at, scene.timing.is_some())?;
+                    scene.png_alpha = alpha;
+                    if !keep {
+                        scene.timing = None;
+                    }
+                    retained = retained.saturating_add(
+                        scene.image.pixels.len().saturating_mul(4)
+                            .saturating_add(size_of::<Scene>() + size_of::<(Rc<Scene>, usize)>()),
+                    );
+                    if retained > limit {
+                        return Err("image exceeds memory budget".into());
+                    }
+                }
+                let mut planes = stack.drain(..);
+                let (first, _) = planes
+                    .next()
+                    .ok_or("no images found for operation '-combine'")?;
+                let mut combined = Rc::unwrap_or_clone(first);
+                let im = &mut combined.image;
+                im.gray &= planes.len() < 1 + usize::from(im.alpha);
+                im.alpha |= planes.len() >= 3;
+                for pixel in &mut im.pixels {
+                    pixel[0] = super::magick_color::luma(pixel[0], pixel[1], pixel[2], false);
+                }
+                for (index, (scene, _)) in planes.enumerate() {
+                    let channel = if im.gray { 3 } else { index + 1 };
+                    if channel >= 4 {
+                        continue;
+                    }
+                    let source = &scene.image;
+                    for y in 0..im.height {
+                        for x in 0..im.width.min(source.width) {
+                            let pixel = source.pixels[y.min(source.height - 1) * source.width + x];
+                            im.pixels[y * im.width + x][channel] =
+                                super::magick_color::luma(pixel[0], pixel[1], pixel[2], false);
+                        }
+                    }
+                }
+                retained = im.pixels.len() * 4 + size_of::<Scene>() + size_of::<(Rc<Scene>, usize)>();
+                stack.push((Rc::new(combined), *at));
             }
             Step::Separate(channels) => {
                 let mut separated = Vec::new();

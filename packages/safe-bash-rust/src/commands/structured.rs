@@ -37449,36 +37449,45 @@ fn parse_pandoc_rtf(input: &str) -> Option<Vec<PandocBlock>> {
     let mut blocks = Vec::new();
     let mut paragraph = Vec::new();
     let mut text = String::new();
-    let mut style = (false, false);
+    let mut style = (false, false, None);
     let mut stack = Vec::new();
     let mut space = false;
-    let flush =
-        |text: &mut String, (bold, italic), paragraph: &mut Vec<PandocInline>, space: &mut bool| {
-            let mut words = text.split_ascii_whitespace();
-            if let Some(word) = words.next() {
-                if !paragraph.is_empty()
-                    && (*space || text.starts_with(|ch: char| ch.is_ascii_whitespace()))
-                {
-                    paragraph.push(PandocInline::Space);
-                }
-                let mut content = vec![PandocInline::Text(word.into())];
-                for word in words {
-                    content.push(PandocInline::Space);
-                    content.push(PandocInline::Text(word.into()));
-                }
-                if bold {
-                    content = vec![PandocInline::Strong(content)];
-                }
-                if italic {
-                    content = vec![PandocInline::Emph(content)];
-                }
-                paragraph.extend(content);
-                *space = text.ends_with(|ch: char| ch.is_ascii_whitespace());
-            } else {
-                *space |= !text.is_empty();
+    let flush = |text: &mut String,
+                 (bold, italic, superscript),
+                 paragraph: &mut Vec<PandocInline>,
+                 space: &mut bool| {
+        let mut words = text.split_ascii_whitespace();
+        if let Some(word) = words.next() {
+            if !paragraph.is_empty()
+                && (*space || text.starts_with(|ch: char| ch.is_ascii_whitespace()))
+            {
+                paragraph.push(PandocInline::Space);
             }
-            text.clear();
-        };
+            let mut content = vec![PandocInline::Text(word.into())];
+            for word in words {
+                content.push(PandocInline::Space);
+                content.push(PandocInline::Text(word.into()));
+            }
+            if bold {
+                content = vec![PandocInline::Strong(content)];
+            }
+            if italic {
+                content = vec![PandocInline::Emph(content)];
+            }
+            if let Some(superscript) = superscript {
+                content = vec![if superscript {
+                    PandocInline::Superscript(content)
+                } else {
+                    PandocInline::Subscript(content)
+                }];
+            }
+            paragraph.extend(content);
+            *space = text.ends_with(|ch: char| ch.is_ascii_whitespace());
+        } else {
+            *space |= !text.is_empty();
+        }
+        text.clear();
+    };
     for event in events {
         if let RtfEvent::Text {
             text: value,
@@ -37495,7 +37504,10 @@ fn parse_pandoc_rtf(input: &str) -> Option<Vec<PandocBlock>> {
             RtfEvent::Control { name, parameter } => match name.as_str() {
                 "b" => style.0 = parameter != Some(0),
                 "i" => style.1 = parameter != Some(0),
-                "plain" => style = (false, false),
+                "sub" => style.2 = Some(false),
+                "super" => style.2 = Some(true),
+                "nosupersub" => style.2 = None,
+                "plain" => style = (false, false, None),
                 _ => {}
             },
             RtfEvent::Text { boundary, .. } => {

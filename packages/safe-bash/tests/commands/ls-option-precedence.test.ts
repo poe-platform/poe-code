@@ -1,6 +1,74 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 import { fixture, run } from "./helpers.js";
+import { agentCommands } from "../../src/plugins/index.js";
+import { Shell } from "../../src/shell/index.js";
+
+for (const [flags, expected] of [
+  [["-m"], "a, b, c\n"], [["-x"], "a  b  c\n"], [["-C"], "a  b  c\n"],
+  [["-w", "1"], "a\nb\nc\n"], [["--format=commas"], "a, b, c\n"],
+  [["--format=single-column"], "a\nb\nc\n"],
+  [["-Cw4"], "a  c\nb\n"], [["-x", "--width=4"], "a  b\nc\n"],
+  [["-m", "-w4"], "a,\nb, c\n"], [["-m", "-w0"], "a, b, c\n"],
+  [["-lC"], "a  b  c\n"], [["-m1"], "a\nb\nc\n"],
+  [["--format", "vertical"], "a  b  c\n"], [["--format=horizontal"], "a  b  c\n"],
+  [["--format=across"], "a  b  c\n"], [["--format=commas", "--format=single-column"], "a\nb\nc\n"],
+] as const) test(`ls output layout: ${flags.join(" ")}`, async () => {
+  const result = await run("ls", flags, { fs: await fixture({ a: "", b: "", c: "" }) });
+  assert.equal(result.exitCode, 0, result.stderr);
+  assert.equal(result.stderr, "");
+  assert.equal(result.stdout, expected);
+});
+
+test("ls layout selectors work through the shell and pipeline", async () => {
+  const shell = new Shell({ fs: await fixture(), cwd: "/work" }).use(agentCommands());
+  const result = await shell.exec("touch a b c; ls -m; ls -x; ls -C; ls -w 1; ls --format=commas; ls --format=single-column; ls --format=long | wc -l");
+  assert.equal(result.exitCode, 0);
+  assert.equal(result.stderr, "");
+  assert.equal(result.stdout, "a, b, c\na  b  c\na  b  c\na\nb\nc\na, b, c\na\nb\nc\n4\n");
+});
+
+for (const flags of [["--format=long"], ["--format=verbose"], ["-Cl"], ["--format=long", "-1"]]) {
+  test(`ls long layout: ${flags.join(" ")}`, async () => {
+    const result = await run("ls", flags, { fs: await fixture({ a: "" }) });
+    assert.equal(result.exitCode, 0, result.stderr);
+    assert.ok(result.stdout.startsWith("total 0\n-rw-"), result.stdout);
+    assert.ok(result.stdout.endsWith(" a\n"), result.stdout);
+  });
+}
+
+for (const flags of [["-w"], ["-w-1"], ["--width=no"], ["--format"], ["--format=unknown"]]) {
+  test(`ls rejects invalid layout options: ${flags.join(" ")}`, async () => {
+    const result = await run("ls", flags);
+    assert.equal(result.exitCode, 2);
+    assert.notEqual(result.stderr, "");
+    assert.equal(result.stdout, "");
+  });
+}
+
+test("ls groups file operands and keeps directory layouts separate", async () => {
+  const result = await run("ls", ["-m", "b", "a", "dir"], { fs: await fixture({ a: "", b: "", "dir/c": "", "dir/d": "" }) });
+  assert.equal(result.exitCode, 0, result.stderr);
+  assert.equal(result.stdout, "a, b\n\ndir:\nc, d\n");
+});
+
+test("ls layouts preserve quoting, indicators, recursion and empty directories", async () => {
+  const fs = await fixture({ "dir/a": "", "dir/b": "" });
+  await fs.mkdir("/work/empty");
+  const result = await run("ls", ["-mQpR"], { fs });
+  assert.equal(result.exitCode, 0, result.stderr);
+  assert.equal(result.stdout, '".":\n"dir"/, "empty"/\n\n"./dir":\n"a", "b"\n\n"./empty":\n');
+});
+
+test("ls layout parsing preserves -- operands", async () => {
+  const fs = await fixture({ "-w": "", "--format=commas": "" });
+  const result = await run("ls", ["-m", "--", "-w", "--format=commas"], { fs });
+  assert.equal(result.exitCode, 0, result.stderr);
+  assert.equal(result.stdout, "--format=commas, -w\n");
+  const long = await run("ls", ["-l", "--", "-w"], { fs });
+  assert.equal(long.exitCode, 0, long.stderr);
+  assert.ok(long.stdout.startsWith("-rw-"), long.stdout);
+});
 
 for (const [flags, expected] of [
   [["-a", "-A"], ".hidden\nfile\n"],

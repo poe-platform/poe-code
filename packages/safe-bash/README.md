@@ -355,7 +355,7 @@ binary size suffixes such as `1KiB`, decimal suffixes such as `1KB`, and
 unsqueezed partial final rows. This selects those semantics; custom formats
 and other unsupported options remain unavailable.
 
-`ls --color` and `--colour` accept optional `=never`, `=auto`, or `=always`; listings remain plain text.
+`ls --color` and `--colour` accept optional `=never`, `=auto`, or `=always`; listings remain plain text. `-m` prints comma-separated names, `-x` fills rows, and `-C` fills columns. `-w`/`--width` sets the layout width (80 by default, 0 for unlimited); `--format` accepts `commas`, `horizontal`/`across`, `vertical`, `single-column`, or `long`/`verbose`.
 
 | Purpose | Commands |
 | --- | --- |

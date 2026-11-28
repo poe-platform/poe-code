@@ -852,10 +852,33 @@ export function filesystemCommands(maxDirectoryEntries?: number, maxRecursiveDir
       let sort: "name" | "time" | "size" | "none" | "extension" | "version" = "name";
       let timeKey: "mtimeMs" | "atimeMs" | "ctimeMs" = "mtimeMs";
       let indicator: "none" | "slash" | "file-type" | "classify" = "none";
+      let layout: "single-column" | "long" | "commas" | "vertical" | "horizontal" = "single-column";
+      let width = 80;
+      const selectWidth = (selection: string | undefined): void => {
+        if (selection === undefined) throw new UsageError("option requires an argument -- 'w'");
+        if (!selection || !Array.from(selection).every(char => char >= "0" && char <= "9") || !Number.isSafeInteger(Number(selection))) {
+          throw new UsageError(`invalid line width: '${selection}'`);
+        }
+        width = Number(selection);
+      };
       let ended = false;
       const args: string[] = [];
       for (let index = 0; index < context.args.length; index++) {
         const argument = context.args[index]!;
+        if (!ended && (argument === "--width" || argument.startsWith("--width="))) {
+          selectWidth(argument === "--width" ? context.args[++index] : argument.slice(8));
+          continue;
+        }
+        if (!ended && (argument === "--format" || argument.startsWith("--format="))) {
+          const selection = argument === "--format" ? context.args[++index] : argument.slice(9);
+          if (selection === undefined) throw new UsageError("option '--format' requires an argument");
+          const formats = { across: "horizontal", commas: "commas", horizontal: "horizontal", long: "long", "single-column": "single-column", verbose: "long", vertical: "vertical" } as const;
+          const matches = Object.keys(formats).filter(name => name.startsWith(selection));
+          const name = Object.hasOwn(formats, selection) ? selection : matches.length === 1 ? matches[0] : undefined;
+          if (name === undefined) throw new UsageError(`invalid argument '${selection}' for '--format'`);
+          layout = formats[name as keyof typeof formats];
+          continue;
+        }
         if (!ended && (argument === "--color" || argument === "--colour" || argument.startsWith("--color=") || argument.startsWith("--colour="))) {
           const equals = argument.indexOf("=");
           const selection = equals < 0 ? "always" : argument.slice(equals + 1);
@@ -902,26 +925,36 @@ export function filesystemCommands(maxDirectoryEntries?: number, maxRecursiveDir
         if (!ended && argument === "--classify") indicator = "classify";
         if (!ended && argument === "--file-type") { indicator = "file-type"; continue; }
         if (!ended && argument === "--ignore-backups") { args.push("-B"); continue; }
-        args.push(argument);
         if (argument === "--") ended = true;
-        if (!ended && argument.startsWith("-") && !argument.startsWith("--")) for (const flag of argument.slice(1)) {
-          if (flag === "t") sort = "time";
-          else if (flag === "c") timeKey = "ctimeMs";
-          else if (flag === "u") timeKey = "atimeMs";
-          else if (flag === "S") sort = "size";
-          else if (flag === "U") sort = "none";
-          else if (flag === "f") { sort = "none"; hidden = "all"; }
-          else if (flag === "X") sort = "extension";
-          else if (flag === "v") sort = "version";
-          else if (flag === "F") indicator = "classify";
-          else if (flag === "p") indicator = "slash";
-        }
+        if (!ended && argument.startsWith("-") && !argument.startsWith("--") && argument !== "-") {
+          for (let offset = 1; offset < argument.length; offset++) {
+            const flag = argument[offset]!;
+            if (flag === "w") { selectWidth(argument.slice(offset + 1) || context.args[++index]); break; }
+            if (flag === "l") layout = "long";
+            else if (flag === "1") { if (layout !== "long") layout = "single-column"; }
+            else if (flag === "m") layout = "commas";
+            else if (flag === "x") layout = "horizontal";
+            else if (flag === "C") layout = "vertical";
+            else args.push(`-${flag}`);
+            if (flag === "t") sort = "time";
+            else if (flag === "c") timeKey = "ctimeMs";
+            else if (flag === "u") timeKey = "atimeMs";
+            else if (flag === "S") sort = "size";
+            else if (flag === "U") sort = "none";
+            else if (flag === "f") { sort = "none"; hidden = "all"; }
+            else if (flag === "X") sort = "extension";
+            else if (flag === "v") sort = "version";
+            else if (flag === "F") indicator = "classify";
+            else if (flag === "p") indicator = "slash";
+          }
+        } else args.push(argument);
       }
       const parsed = options(args, "aAl1dFprRLhtSQcuiUfXvB", { inode: "i", "quote-name": "Q", all: "a", "almost-all": "A", directory: "d", classify: "F", reverse: "r", recursive: "R", dereference: "L", "human-readable": "h", "ignore-backups": "B" }, false, undefined, undefined, key => {
         if (key === "f") hidden = "all";
         if (key === "a") hidden = "all";
         else if (key === "A") hidden = "almost-all";
       });
+      if (layout === "long") parsed.flags.add("l");
       if (sort === "name" && timeKey !== "mtimeMs" && !parsed.flags.has("l")) sort = "time";
       const formatName = (name: string): string => {
         if (!parsed.flags.has("Q")) return name;
@@ -1026,6 +1059,54 @@ export function filesystemCommands(maxDirectoryEntries?: number, maxRecursiveDir
         } else await output(context, `${inode}${formatName(display)}${suffix}\n`);
         outputWritten = true;
       };
+      const renderEntries = async (entries: ListingEntry[]): Promise<void> => {
+        if (layout === "long" || layout === "single-column") {
+          for (const entry of entries) await render(entry);
+          return;
+        }
+        const names = entries.map(({ display, stat }) => `${parsed.flags.has("i") ? `${"ino" in stat ? stat.ino ?? "?" : "?"} ` : ""}${formatName(display)}${suffixFor(stat)}`);
+        if (layout === "commas") {
+          let line = "";
+          for (const [index, name] of names.entries()) {
+            if (index % 128 === 0) await yieldTurn(context.signal);
+            const next = name + (index < names.length - 1 ? "," : "");
+            if (line && width && line.length + 1 + next.length > width) {
+              await output(context, line + "\n");
+              line = "";
+            }
+            line += (line ? " " : "") + next;
+          }
+          if (line) await output(context, line + "\n");
+        } else if (names.length) {
+          let columns = width ? Math.min(names.length, Math.max(1, Math.floor((width + 2) / 3))) : names.length;
+          let widths: number[] = [];
+          let rows = 0;
+          for (; columns > 0; columns--) {
+            await yieldTurn(context.signal);
+            rows = Math.ceil(names.length / columns);
+            widths = Array<number>(columns).fill(0);
+            for (let index = 0; index < names.length; index++) {
+              if (index % 128 === 0) await yieldTurn(context.signal);
+              const column = layout === "vertical" ? Math.floor(index / rows) : index % columns;
+              widths[column] = Math.max(widths[column]!, names[index]!.length);
+            }
+            if (!width || columns === 1 || widths.reduce((sum, size) => sum + size, 0) + 2 * (columns - 1) <= width) break;
+          }
+          for (let row = 0; row < rows; row++) {
+            let line = "";
+            for (let column = 0; column < columns; column++) {
+              const index = layout === "vertical" ? column * rows + row : row * columns + column;
+              if (index >= names.length) break;
+              const name = names[index]!;
+              const next = layout === "vertical" ? index + rows : index + 1;
+              line += name;
+              if (column < columns - 1 && next < names.length) line += " ".repeat(widths[column]! - name.length + 2);
+            }
+            await output(context, line + "\n");
+          }
+        }
+        if (entries.length) outputWritten = true;
+      };
       const list = async ({ path, display, stat }: ListingEntry, header: boolean, ancestors = new Set<string>()): Promise<void> => {
         context.signal.throwIfAborted();
         await admitFilesystemModes(context, "ls", ["directory"], [path]);
@@ -1073,7 +1154,7 @@ export function filesystemCommands(maxDirectoryEntries?: number, maxRecursiveDir
             await output(context, `total ${parsed.flags.has("h") ? humanSize(totalBytes, path) : Math.ceil(totalBytes / 1024)}\n`);
             outputWritten = true;
           }
-          for (const child of children) await render(child);
+          await renderEntries(children);
           if (parsed.flags.has("R")) for (const child of children) {
             if (child.display === "." || child.display === "..") continue;
             if (child.stat.type === "directory") await list({ ...child, display: childOperand(display, child.display) }, true, ancestors);
@@ -1091,10 +1172,15 @@ export function filesystemCommands(maxDirectoryEntries?: number, maxRecursiveDir
       const directories = entries.filter(entry => !parsed.flags.has("d") && entry.stat.type === "directory");
       await order(files);
       await order(directories);
-      for (const entry of [...files, ...directories]) {
+      if (layout === "single-column" || layout === "long") {
+        for (const entry of files) {
+          const rendered = await eachOperand(context, [entry.display], async () => render(entry));
+          result.exitCode = Math.max(result.exitCode, rendered.exitCode);
+        }
+      } else await renderEntries(files);
+      for (const entry of directories) {
         const rendered = await eachOperand(context, [entry.display], async () => {
-          if (entry.stat.type !== "directory" || parsed.flags.has("d")) await render(entry);
-          else await list(entry, operands.length > 1 || parsed.flags.has("R"));
+          await list(entry, operands.length > 1 || parsed.flags.has("R"));
         });
         result.exitCode = Math.max(result.exitCode, rendered.exitCode);
       }

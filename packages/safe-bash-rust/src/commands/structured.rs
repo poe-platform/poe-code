@@ -21430,6 +21430,49 @@ fn cmd_sqlite3(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> 
                     cli_csv_mode,
                     dot_mode_csv,
                 );
+            } else if pup == "FOREIGN_KEY_CHECK" {
+                let mut chunk = String::new();
+                for (name, table) in &tables {
+                    let (_, alias, _) = parse_create_table_metadata(&table.create_sql);
+                    let without_rowid = table
+                        .create_sql
+                        .to_ascii_uppercase()
+                        .contains("WITHOUT ROWID");
+                    for (row_index, row) in table.rows.iter().enumerate() {
+                        for (fk_index, fk) in table.foreign_keys.iter().rev().enumerate() {
+                            if sql_foreign_key_satisfied(fk, &table.columns, row, &tables) {
+                                continue;
+                            }
+                            let rowid = if without_rowid {
+                                String::new()
+                            } else {
+                                alias
+                                    .and_then(|index| row.get(index))
+                                    .cloned()
+                                    .unwrap_or_else(|| {
+                                        table
+                                            .rowids
+                                            .get(row_index)
+                                            .copied()
+                                            .unwrap_or((row_index + 1) as i64)
+                                            .to_string()
+                                    })
+                            };
+                            chunk.push_str(&format!(
+                                "{name}|{rowid}|{}|{fk_index}\n",
+                                fk.parent_table
+                            ));
+                        }
+                    }
+                }
+                emit_chunk(
+                    chunk,
+                    &mut once_path,
+                    &output_path,
+                    &mut out,
+                    cli_csv_mode,
+                    dot_mode_csv,
+                );
             } else if pup.starts_with("INTEGRITY_CHECK") {
                 emit_chunk(
                     "ok\n".to_string(),

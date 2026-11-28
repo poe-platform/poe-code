@@ -1524,6 +1524,41 @@ test("ls returns status 2 for inaccessible command-line operands", async context
   assert.equal(result.exitCode, 0);
 });
 
+test("ls groups directories first in shell scripts", async context => {
+  const shell = new Shell({ fs: await fixture(), cwd: "/work" }).use(agentCommands());
+  context.after(() => shell.dispose());
+  const result = await shell.exec('touch a z; mkdir d; ls --group-directories-first; echo "st=$?"');
+  assert.equal(result.stdout, "d\na\nz\nst=0\n");
+  assert.equal(result.stderr, "");
+  assert.equal(result.exitCode, 0);
+});
+
+test("ls directory grouping preserves sorting, symlink and operand rules", async () => {
+  const fs = await fixture({ a: "aaaa", z: "z", ".hidden": "", "--group-directories-first": "" });
+  await fs.mkdir("/work/d");
+  await fs.mkdir("/work/e");
+  await fs.symlink("e", "/work/b");
+  for (const [args, stdout] of [
+    [["--group-directories-first"], "d\ne\n--group-directories-first\na\nb\nz\n"],
+    [["--group-directories-first", "-r"], "e\nd\nz\nb\na\n--group-directories-first\n"],
+    [["--group-directories-first", "-Lp"], "b/\nd/\ne/\n--group-directories-first\na\nz\n"],
+    [["--group-directories-first", "-A"], "d\ne\n--group-directories-first\n.hidden\na\nb\nz\n"],
+    [["--group-directories-first", "-d", "z", "e", "a", "d"], "d\ne\na\nz\n"],
+    [["--group-directories-first", "-Sd", "z", "e", "a", "d"], "d\ne\na\nz\n"],
+    [["--group-directories-first", "-Srd", "z", "e", "a", "d"], "e\nd\nz\na\n"],
+    [["--group-directories-first", "-Ud", "z", "e", "a", "d"], "z\ne\na\nd\n"],
+    [["-Ud", "--group-directories-first", "z", "e", "a", "d"], "z\ne\na\nd\n"],
+    [["--group-directories-first", "--sort=none", "-d", "z", "e", "a", "d"], "z\ne\na\nd\n"],
+    [["--group-directories-first", "-fd", "z", "e", "a", "d"], "z\ne\na\nd\n"],
+    [["--", "--group-directories-first"], "--group-directories-first\n"],
+  ] as const) {
+    const result = await run("ls", args, { fs });
+    assert.equal(result.exitCode, 0, args.join(" "));
+    assert.equal(result.stderr, "", args.join(" "));
+    assert.equal(result.stdout, stdout, args.join(" "));
+  }
+});
+
 test("ls accepts color options in shell scripts", async context => {
   const shell = new Shell({ fs: await fixture(), cwd: "/work" }).use(agentCommands());
   context.after(() => shell.dispose());

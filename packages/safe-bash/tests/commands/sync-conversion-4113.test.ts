@@ -733,10 +733,16 @@ test("evaluates supported ls and tree flags and rejects unavailable options in s
     "zdir,file.a,file.b,ignore.me,#/tmp/w191,├── zdir,└── file.a,\n",
   );
   assert.equal(r.stderr, "");
+  const grouped = await shell.exec("value=$(ls --group-directories-first /tmp/w191); code=$?; printf '%s' \"$value\"; exit \"$code\"");
+  assert.equal(grouped.exitCode, 0);
+  assert.equal(grouped.stdout, "zdir\nfile.a\nfile.a~\nfile.b\nignore.me");
+  assert.equal(grouped.stderr, "");
+  const commaSeparated = await shell.exec("ls -m /tmp/w191");
+  assert.equal(commaSeparated.exitCode, 0);
+  assert.equal(commaSeparated.stdout, "file.a, file.a~, file.b, ignore.me, zdir\n");
+  assert.equal(commaSeparated.stderr, "");
   for (const [command, stderr] of [
-    ["ls --group-directories-first /tmp/w191", "ls: unrecognized option '--group-directories-first'\n"],
     ["ls -I '*.me' /tmp/w191", "ls: invalid option -- 'I'\n"],
-    ["ls -m /tmp/w191", "ls: invalid option -- 'm'\n"],
     ["tree -F /tmp/w191", "tree: unsupported option: -F\n"],
   ]) {
     const rejected = await shell.exec(`value=$(${command}); code=$?; printf '%s' "$value"; exit "$code"`);

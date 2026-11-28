@@ -4,6 +4,17 @@ import { Shell } from "../../src/shell/index.js";
 import { MemoryFileSystem } from "../../src/fs/memory/index.js";
 import { standardCommands } from "../../src/commands/index.js";
 import { textProgramCommands } from "../../src/commands/text-programs/index.js";
+import { agentCommands } from "../../src/plugins/index.js";
+
+test("sed control escapes in replacements and patterns through pipelines", async () => {
+  const shell = new Shell({ fs: new MemoryFileSystem(), cwd: "/work" }).use(agentCommands());
+  try {
+    const result = await shell.exec(String.raw`printf 'a\n' | sed 's/a/\f\v\a/' | od -c | head -1; printf 'a\fb\n' | sed 's/\f/-/'; printf 'a\vb\n' | sed 's/[\v]/-/'`);
+    assert.equal(result.exitCode, 0);
+    assert.equal(result.stderr, "");
+    assert.equal(result.stdout, "0000000  \\f  \\v  \\a  \\n\na-b\na-b\n");
+  } finally { await shell.dispose(); }
+});
 
 const cases = [
   ...[["a+b", "aab"], ["a?b", "ab"], ["foo(1)", "foo1"], ["a|b", "ab"], ["a{2}", "aa"], ["a}b", "ab"]].map(([pattern, other]) => [

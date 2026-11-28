@@ -1815,7 +1815,7 @@ function* caseReplacement(replacement: string, match: Match, encoding?: "utf8" |
         yield "";
         continue;
       }
-      piece = next >= "0" && next <= "9" ? match.groups[Number(next)] ?? "" : next === "n" ? "\n" : next === "t" ? "\t" : next;
+      piece = next >= "0" && next <= "9" ? match.groups[Number(next)] ?? "" : next === "n" ? "\n" : next === "t" ? "\t" : next === "f" ? "\f" : next === "v" ? "\v" : next === "a" ? "\x07" : next;
     }
     if (!piece) yield "";
     for (let offset = 0; offset < piece.length;) {
@@ -1906,7 +1906,7 @@ async function replacementText(replacement: string, match: Match, buffer: Replac
       } else if (next >= "0" && next <= "9") {
         budget.step();
         await buffer.append(match.groups[Number(next)] ?? "");
-      } else await buffer.append(next === "n" ? "\n" : next === "t" ? "\t" : next);
+      } else await buffer.append(next === "n" ? "\n" : next === "t" ? "\t" : next === "f" ? "\f" : next === "v" ? "\v" : next === "a" ? "\x07" : next);
     }
     literal = index + 1;
   }
@@ -1963,7 +1963,7 @@ function getSimpleReplacement(replacement: string, syntax: ReplacementSyntax): S
           if (group === -1) group = next.charCodeAt(0) - 48;
           else group2 = next.charCodeAt(0) - 48;
         } else {
-          const decoded = next === "n" ? "\n" : next === "t" ? "\t" : next;
+          const decoded = next === "n" ? "\n" : next === "t" ? "\t" : next === "f" ? "\f" : next === "v" ? "\v" : next === "a" ? "\x07" : next;
           if (group === -1) prefix += decoded;
           else if (group2 === -1) mid += decoded;
           else suffix += decoded;
@@ -2085,7 +2085,7 @@ function appendReplacementFromOffsetsSync(
           if (gs >= 0 && ge > gs) piece = text.slice(gs, ge);
         }
       } else {
-        piece = next === "n" ? "\n" : next === "t" ? "\t" : next;
+        piece = next === "n" ? "\n" : next === "t" ? "\t" : next === "f" ? "\f" : next === "v" ? "\v" : next === "a" ? "\x07" : next;
       }
     }
     if (out.length + piece.length > maxBufferBytes) throw new ProgramError("text buffer limit exceeded");

@@ -5,6 +5,12 @@ import { Budget } from "./text/budget.js";
 import { Pattern, substitute, trySubstituteSync } from "./text/regex.js";
 
 const cases = [
+  ["a", "a", "\\f\\v\\a", "\f\v\x07"],
+  ["a", "a", "&\\f&\\v&\\a", "a\fa\va\x07"],
+  ["a", "a", "\\U\\f\\v\\a", "\f\v\x07"],
+  ["a", "a", "\\\\f\\\\v\\\\a", "\\f\\v\\a"],
+  ["\\f", "a\fb", "-", "a-b"],
+  ["[\\v]", "a\vb", "-", "a-b"],
   ["(hello) (world)", "hello world", "\\U\\1 \\E\\2", "HELLO world"],
   ["(HELLO) (WORLD)", "HELLO WORLD", "\\L\\1 \\E\\2", "hello WORLD"],
   ["(hello) (world)", "hello world", "\\u\\1 \\u\\2", "Hello World"],

@@ -370,6 +370,7 @@ function tokenizeBc(source: string): Token[] {
         name += clean[i++]!;
       }
       tokens.push({ type: "id", name });
+      if (name === "quit") break;
       continue;
     }
     const two = clean.slice(i, i + 2);
@@ -447,15 +448,13 @@ class BcParser {
     return false;
   }
 
-  parseProgram(): Stmt[] {
-    const stmts: Stmt[] = [];
+  *parseProgram(): Generator<Stmt> {
     while (this.pos < this.tokens.length) {
       while (this.matchPunct(";")) { /* Consume statement separators. */ }
       if (this.pos >= this.tokens.length) break;
-      stmts.push(this.parseStmt());
+      yield this.parseStmt();
       while (this.matchPunct(";")) { /* Consume statement separators. */ }
     }
-    return stmts;
   }
 
   private parseStmt(): Stmt {
@@ -550,7 +549,8 @@ class BcParser {
     }
     if (this.matchId("break")) return { kind: "break" };
     if (this.matchId("continue")) return { kind: "continue" };
-    if (this.matchId("halt") || this.matchId("quit")) return { kind: "halt" };
+    if (this.matchId("quit")) throw new FlowSignal("halt");
+    if (this.matchId("halt")) return { kind: "halt" };
     if (this.matchId("print")) {
       const items: Expr[] = [this.parseExpr()];
       while (this.matchPunct(",")) {

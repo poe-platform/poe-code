@@ -655,3 +655,18 @@ for (const [program, stdout] of [
     assert.deepEqual(await evaluate(program), { exitCode: 0, stdout, stderr: "" });
   });
 }
+
+for (const [program, stdout] of [
+  ["if (0) quit; 5", ""],
+  ["1\nif (0) quit\n2\n", "1\n"],
+  ["1\ndefine f() { quit; }\n2", "1\n"],
+  ["1\nwhile (0) { quit; }\n2", "1\n"],
+  ["1\nquit\n@", "1\n"],
+  ["if (0) halt; 5", "5\n"],
+  ["1; halt; 2", "1\n"],
+  ['"quit"; /* quit */ 5', "quit5\n"],
+] as const) {
+  test(`bc distinguishes read-time quit from runtime halt: ${program}`, async () => {
+    assert.deepEqual(await evaluate(program), { exitCode: 0, stdout, stderr: "" });
+  });
+}

@@ -29,6 +29,11 @@ test("ls time-style regressions remain in active discovery", () => {
   assert.ok(discoverTests(root, loadBoundaries(root)).includes("tests/commands/ls-time-style.test.ts"));
 });
 
+test("rg sorting regressions remain in active discovery", () => {
+  const root = fileURLToPath(new URL("../", import.meta.url));
+  assert.ok(discoverTests(root, loadBoundaries(root)).includes("tests/commands/search/rg-sort.test.ts"));
+});
+
 test("cp parents regressions remain in active discovery", () => {
   const root = fileURLToPath(new URL("../", import.meta.url));
   assert.ok(discoverTests(root, loadBoundaries(root)).includes("tests/commands/cp-parents.test.ts"));

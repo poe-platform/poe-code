@@ -6936,6 +6936,7 @@ fn format_big_with_scale(digits: &[u8], scale: usize, neg: bool) -> String {
 
 #[derive(Default, Clone)]
 struct BcEnv {
+    output: String,
     vars: BTreeMap<String, BcVal>,
     funcs: BTreeMap<String, (Vec<String>, String)>,
     scale: usize,
@@ -7136,6 +7137,7 @@ fn cmd_bc(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Built
         input.push_str(stdin);
     }
     let mut bc = BcEnv {
+        output: String::new(),
         vars: BTreeMap::new(),
         funcs: BTreeMap::new(),
         scale: if mathlib { 20 } else { 0 },
@@ -7182,22 +7184,21 @@ fn cmd_bc(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Built
             _ => no_comments.push(ch),
         }
     }
-    let mut out = String::new();
     for stmt in split_bc_top_stmts(&no_comments) {
         let stmt = extract_bc_defines(&stmt, &mut bc);
-        let flow = exec_bc_stmt(&stmt, &mut bc, &mut out, 0);
+        let flow = exec_bc_stmt(&stmt, &mut bc, 0);
         if matches!(flow, BcFlow::Halt) || bc.halted || bc.runtime_err.is_some() {
             break;
         }
     }
     if let Some(err_msg) = bc.runtime_err {
         return BuiltinOutcome {
-            stdout: out,
+            stdout: bc.output,
             stderr: format!("bc: {err_msg}\n"),
             exit_code: 1,
         };
     }
-    ok_out(&out)
+    ok_out(&bc.output)
 }
 
 #[derive(Clone, Debug)]
@@ -7365,7 +7366,7 @@ fn format_bc_val_line(v: &BcVal, expr_s: &str, bc: &BcEnv) -> String {
     formatted
 }
 
-fn exec_bc_stmt(raw: &str, bc: &mut BcEnv, out: &mut String, depth: usize) -> BcFlow {
+fn exec_bc_stmt(raw: &str, bc: &mut BcEnv, depth: usize) -> BcFlow {
     if bc.halted {
         return BcFlow::Halt;
     }
@@ -7394,7 +7395,7 @@ fn exec_bc_stmt(raw: &str, bc: &mut BcEnv, out: &mut String, depth: usize) -> Bc
     }
     if s.starts_with('{') && s.ends_with('}') {
         for st in split_bc_top_stmts(&s[1..s.len() - 1]) {
-            let flow = exec_bc_stmt(&st, bc, out, depth + 1);
+            let flow = exec_bc_stmt(&st, bc, depth + 1);
             if !matches!(flow, BcFlow::None) {
                 return flow;
             }
@@ -7402,7 +7403,7 @@ fn exec_bc_stmt(raw: &str, bc: &mut BcEnv, out: &mut String, depth: usize) -> Bc
         return BcFlow::None;
     }
     if let Some(literal) = s.strip_prefix('"').and_then(|s| s.strip_suffix('"')) {
-        out.push_str(literal);
+        bc.output.push_str(literal);
         return BcFlow::None;
     }
     if let Some(print_rest) = s.strip_prefix("print ") {
@@ -7437,7 +7438,8 @@ fn exec_bc_stmt(raw: &str, bc: &mut BcEnv, out: &mut String, depth: usize) -> Bc
                     bytes[end] = decoded;
                     end += 1;
                 }
-                out.push_str(&crate::vfs::bytes_to_stream_string(&bytes[..end]));
+                bc.output
+                    .push_str(&crate::vfs::bytes_to_stream_string(&bytes[..end]));
             } else {
                 bc.last_str_out = None;
                 let v = eval_bc_val(t, bc, depth + 1);
@@ -7445,7 +7447,7 @@ fn exec_bc_stmt(raw: &str, bc: &mut BcEnv, out: &mut String, depth: usize) -> Bc
                     return BcFlow::Halt;
                 }
                 bc.last = v.clone();
-                out.push_str(&format_bc_val_line(&v, t, bc));
+                bc.output.push_str(&format_bc_val_line(&v, t, bc));
             }
         }
         return BcFlow::None;
@@ -7461,7 +7463,7 @@ fn exec_bc_stmt(raw: &str, bc: &mut BcEnv, out: &mut String, depth: usize) -> Bc
                 if !eval_bc_val(cond_s, bc, depth + 1).is_truthy() {
                     break;
                 }
-                let flow = exec_bc_stmt(body_s, bc, out, depth + 1);
+                let flow = exec_bc_stmt(body_s, bc, depth + 1);
                 match flow {
                     BcFlow::None => {}
                     BcFlow::Continue => continue,
@@ -7491,7 +7493,7 @@ fn exec_bc_stmt(raw: &str, bc: &mut BcEnv, out: &mut String, depth: usize) -> Bc
                     {
                         break;
                     }
-                    let flow = exec_bc_stmt(body_s, bc, out, depth + 1);
+                    let flow = exec_bc_stmt(body_s, bc, depth + 1);
                     match flow {
                         BcFlow::None | BcFlow::Continue => {}
                         BcFlow::Break => break,
@@ -7515,9 +7517,9 @@ fn exec_bc_stmt(raw: &str, bc: &mut BcEnv, out: &mut String, depth: usize) -> Bc
             let after_cond = r[cp + 1..].trim();
             let (then_s, else_s) = split_bc_if_branches(after_cond);
             if eval_bc_val(cond_s, bc, depth + 1).is_truthy() {
-                return exec_bc_stmt(then_s, bc, out, depth + 1);
+                return exec_bc_stmt(then_s, bc, depth + 1);
             } else if let Some(es) = else_s {
-                return exec_bc_stmt(es, bc, out, depth + 1);
+                return exec_bc_stmt(es, bc, depth + 1);
             }
             return BcFlow::None;
         }
@@ -7533,8 +7535,8 @@ fn exec_bc_stmt(raw: &str, bc: &mut BcEnv, out: &mut String, depth: usize) -> Bc
     }
     bc.last = val.clone();
     let line = format_bc_val_line(&val, s, bc);
-    out.push_str(&line);
-    out.push('\n');
+    bc.output.push_str(&line);
+    bc.output.push('\n');
     BcFlow::None
 }
 
@@ -7881,10 +7883,9 @@ fn eval_bc_func(
         }
     });
     bc.vars.extend(bindings);
-    let mut dummy_out = String::new();
     let mut ret_val = BcVal::default();
     for st in stmts {
-        if let BcFlow::Return(v) = exec_bc_stmt(&st, bc, &mut dummy_out, depth + 1) {
+        if let BcFlow::Return(v) = exec_bc_stmt(&st, bc, depth + 1) {
             ret_val = v;
             break;
         }

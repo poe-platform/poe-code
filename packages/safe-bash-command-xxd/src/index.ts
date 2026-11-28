@@ -621,7 +621,9 @@ export function createXxdCommand(optionsOrMaxBytes?: number | XxdCommandOptions)
     if (parsed.flags.has("C")) identifier = identifier.toUpperCase();
     const upper = parsed.flags.has("u");
     const colorize = (text: string, byte: number) => {
-      const code = byte === 0 ? 37 : byte === 255 ? 34 : byte >= 32 && byte <= 126 ? 32 : byte >= 9 && byte <= 13 ? 33 : 31;
+      const printable = parsed.flags.has("E") ? EBCDIC_CHAR[byte] !== "." || byte === 0x4b : byte >= 32 && byte <= 126;
+      const whitespace = parsed.flags.has("E") ? byte === 5 || byte === 37 || byte === 13 : byte === 9 || byte === 10 || byte === 13;
+      const code = printable ? 32 : whitespace ? 33 : byte === 0 ? 37 : byte === 255 ? 34 : 31;
       return `\x1b[1;${code}m${text}\x1b[0m`;
     };
     const hex = upper ? HEX_UPPER : HEX_LOWER;

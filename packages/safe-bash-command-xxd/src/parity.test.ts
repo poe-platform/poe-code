@@ -2,14 +2,15 @@ import assert from "node:assert/strict";
 import test from "node:test";
 import { execFileSync } from "node:child_process";
 import { createMemoryFileSystem } from "@poe-code/safe-fs";
-import { createCommandArguments, toByteSource } from "safe-bash-contracts";
+import { createCommandArguments, toByteSource, type CommandContext } from "safe-bash-contracts";
 import { createXxdCommand } from "./index.js";
 
-async function run(args: string[], input: string | Uint8Array = "", fs = createMemoryFileSystem()) {
+async function run(args: string[], input: string | Uint8Array = "", fs = createMemoryFileSystem(), context: Partial<Pick<CommandContext, "shellPredicates">> = {}) {
   const values = createCommandArguments(args);
   const chunks: Uint8Array[] = [];
   let stderr = "";
   const result = await createXxdCommand().execute({
+    ...context,
     command: "xxd", args: values.args, argumentValues: values, cwd: "/", env: {}, fs,
     stdin: toByteSource(input), signal: new AbortController().signal,
     stdout: { async write(bytes) { chunks.push(bytes.slice()); } },
@@ -80,4 +81,79 @@ test("file operands write forward and reversed bytes with empty stdout", async (
   assert.equal(reverse.exitCode, 0, reverse.stderr);
   assert.equal(reverse.stdout, "");
   assert.equal(new TextDecoder().decode(await fs.readFile("/output")), "AB");
+});
+
+for (const flag of ["-seek", "-skip"]) {
+  test(`${flag} accepts a seek followed by a long length option`, async () => {
+    const result = await run([flag, "2", "-len", "3"], "abcdefgh");
+    assert.equal(result.exitCode, 0, result.stderr);
+    assert.equal(result.stderr, "");
+    assert.equal(result.stdout, "00000002: 6364 65                                  cde\n");
+  });
+}
+
+for (const when of ["never", "auto"]) {
+  test(`-R ${when} produces plain output on a nonterminal stream`, async () => {
+    const result = await run(["-R", when, "-l", "4"], "abcdefgh");
+    assert.equal(result.exitCode, 0, result.stderr);
+    assert.equal(result.stderr, "");
+    assert.equal(result.stdout, "00000000: 6162 6364                                abcd\n");
+  });
+}
+
+test("-E displays the EBCDIC character column", async () => {
+  const result = await run(["-E"], "abcd");
+  assert.equal(result.exitCode, 0, result.stderr);
+  assert.equal(result.stderr, "");
+  assert.equal(result.stdout, "00000000: 6162 6364                                /...\n");
+});
+
+test("EBCDIC matches native for every byte across full and partial display rows", async () => {
+  const input = Uint8Array.from({ length: 256 }, (_, byte) => byte);
+  for (const args of [["-E"], ["-E", "-c", "13"], ["-E", "-b"], ["-E", "-e"], ["-E", "-p"], ["-E", "-i"]]) {
+    const result = await run(args, input);
+    assert.equal(result.exitCode, 0, result.stderr);
+    assert.equal(result.stdout, execFileSync("/usr/bin/xxd", args, { input }).toString());
+  }
+});
+
+test("-R always colors byte classes in hex, binary, little-endian and EBCDIC dumps", async () => {
+  const input = Uint8Array.from({ length: 256 }, (_, byte) => byte);
+  for (const mode of [[], ["-b"], ["-e"], ["-E"], ["-p"], ["-i"]]) {
+    const args = ["-Ralways", "-c", "16", ...mode];
+    const result = await run(args, input);
+    assert.equal(result.exitCode, 0, result.stderr);
+    assert.equal(result.stdout, execFileSync("/usr/bin/xxd", args, { input }).toString());
+  }
+});
+
+test("color escapes preserve partial row alignment", async () => {
+  for (const mode of [[], ["-b"], ["-e"], ["-E"]]) {
+    const result = await run(["-R", "always", ...mode], "abcd");
+    assert.equal(result.exitCode, 0, result.stderr);
+    assert.equal(result.stdout.replaceAll(/\x1b\[[0-9;]*m/gu, ""), (await run(mode, "abcd")).stdout);
+    assert.ok(result.stdout.includes("\x1b["));
+  }
+});
+
+test("-R auto uses the command's terminal capability and never overrides it", async () => {
+  const context = { shellPredicates: {
+    variable: () => false, reference: () => false, option: () => false,
+    terminal: (descriptor: number) => descriptor === 1,
+  } };
+  for (const when of ["auto", "never"]) {
+    const result = await run(["-R", when], "abcd", undefined, context);
+    assert.equal(result.exitCode, 0, result.stderr);
+    assert.equal(result.stdout.includes("\x1b["), when === "auto");
+  }
+});
+
+test("invalid color policies fail before opening output files", async () => {
+  const fs = createMemoryFileSystem();
+  await fs.writeFile("/output", Buffer.from("keep me"));
+  const result = await run(["-R", "invalid", "-", "/output"], "abcd", fs);
+  assert.equal(result.exitCode, 2);
+  assert.equal(result.stdout, "");
+  assert.equal(result.stderr, "xxd: invalid color mode 'invalid'\n");
+  assert.equal(new TextDecoder().decode(await fs.readFile("/output")), "keep me");
 });

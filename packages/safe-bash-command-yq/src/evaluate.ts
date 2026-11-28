@@ -482,6 +482,20 @@ export class Evaluator {
       for (const node of members) result.items.push(await cloneNode(node as Node, yaml, this.work));
       return result;
     }
+    if (operator === "-" && yaml.isSeq(left) && yaml.isSeq(right)) {
+      const result = await cloneNode(left, yaml, this.work) as YAMLSeq;
+      let retained = 0;
+      for (const item of result.items) {
+        { const t = this.work.tick(); if (t) await t; }
+        let removed = false;
+        for (const unwanted of right.items) {
+          if (await this.sameKey(item as Node, unwanted as Node, 0)) { removed = true; break; }
+        }
+        if (!removed) result.items[retained++] = item;
+      }
+      result.items.length = retained;
+      return result;
+    }
     if (operator === "==" || operator === "!=") {
       let equal = false;
       if (nodeTag(left, yaml) === "!!null") equal = nodeTag(right, yaml) === "!!null";

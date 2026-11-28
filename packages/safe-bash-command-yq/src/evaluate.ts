@@ -657,23 +657,25 @@ export class Evaluator {
         }
         return inputs.map(input => input.isDocumentRoot ? { ...input, node: input.document.doc.contents! } : input);
       }
-      const readOnly = omitMissing || ["+", "==", "!="].includes(operator);
-      const left = await next(expression.left, inputs, false, readOnly);
-      if (operator === "//") { const matches = left.filter(candidate => truth(candidate.node, yaml)); return matches.length ? matches : next(expression.right, inputs, false); }
-      const right = await next(expression.right, inputs, false, readOnly);
       const output: Candidate[] = [];
-      if (operator === "+" && (!left.length || !right.length)) return left.length ? left : right;
-      if ((operator === "==" || operator === "!=") && inputs.length && (!left.length || !right.length)) {
-        const candidates = left.length ? left : right.length ? right : [inputs[0]!];
-        for (const candidate of candidates) {
-          const equal = !left.length && !right.length || nodeTag(candidate.node, yaml) === "!!null";
-          output.push(this.child(scalar(yaml, this.work, operator === "==" ? equal : !equal), candidate));
+      for (const input of inputs) {
+        const readOnly = omitMissing || ["+", "==", "!="].includes(operator);
+        const left = await next(expression.left, [input], false, readOnly);
+        if (operator === "//") { const matches = left.filter(candidate => truth(candidate.node, yaml)); output.push(...(matches.length ? matches : await next(expression.right, [input], false))); continue; }
+        const right = await next(expression.right, [input], false, readOnly);
+        if (operator === "+" && (!left.length || !right.length)) { output.push(...(left.length ? left : right)); continue; }
+        if ((operator === "==" || operator === "!=") && (!left.length || !right.length)) {
+          const candidates = left.length ? left : right.length ? right : [input];
+          for (const candidate of candidates) {
+            const equal = !left.length && !right.length || nodeTag(candidate.node, yaml) === "!!null";
+            output.push(this.child(scalar(yaml, this.work, operator === "==" ? equal : !equal), candidate));
+          }
+          continue;
         }
-        return output;
-      }
-      for (const first of left) for (const second of right) {
-        const node = operator === "and" || operator === "or" ? scalar(yaml, this.work, operator === "and" ? truth(first.node, yaml) && truth(second.node, yaml) : truth(first.node, yaml) || truth(second.node, yaml)) : await this.binary(operator, first.node, second.node);
-        output.push(this.child(node, first));
+        for (const first of left) for (const second of right) {
+          const node = operator === "and" || operator === "or" ? scalar(yaml, this.work, operator === "and" ? truth(first.node, yaml) && truth(second.node, yaml) : truth(first.node, yaml) || truth(second.node, yaml)) : await this.binary(operator, first.node, second.node);
+          output.push(this.child(node, first));
+        }
       }
       return output;
     }

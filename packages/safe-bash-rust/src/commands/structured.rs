@@ -11562,6 +11562,14 @@ fn cmd_csvjson(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> 
                 JVal::Null
             };
         }
+        if !blanks
+            && (t.eq_ignore_ascii_case("null")
+                || t.eq_ignore_ascii_case("none")
+                || t.eq_ignore_ascii_case("na")
+                || t.eq_ignore_ascii_case("n/a"))
+        {
+            return JVal::Null;
+        }
         if no_inference {
             return JVal::Str(raw.to_string());
         }
@@ -11570,14 +11578,6 @@ fn cmd_csvjson(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> 
         }
         if t.eq_ignore_ascii_case("false") {
             return JVal::Bool(false);
-        }
-        if !blanks
-            && (t.eq_ignore_ascii_case("null")
-                || t.eq_ignore_ascii_case("none")
-                || t.eq_ignore_ascii_case("na")
-                || t.eq_ignore_ascii_case("n/a"))
-        {
-            return JVal::Null;
         }
         if is_csvkit_num_str(t, false)
             && let Ok(n) = t.parse::<f64>()

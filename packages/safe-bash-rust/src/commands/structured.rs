@@ -24658,19 +24658,23 @@ fn compare_sql_order_values(a: &str, b: &str, desc: bool, nulls_first: bool) -> 
     if desc { order.reverse() } else { order }
 }
 
-fn parse_sql_limit(clause: &str) -> (usize, usize) {
+fn parse_sql_limit(clause: &str, tables: &BTreeMap<String, SqlTable>) -> (usize, usize) {
     let parts = split_top_level_comma(clause);
     let (count, offset) = if parts.len() == 2 {
         // SQLite's comma form reverses the LIMIT count OFFSET offset order.
         (parts[1], parts[0])
-    } else if let Some(pos) = clause.to_ascii_uppercase().find(" OFFSET ") {
+    } else if let Some(pos) = find_top_sql_bool_kw(&clause.to_ascii_uppercase(), " OFFSET ") {
         (&clause[..pos], &clause[pos + 8..])
     } else {
         (clause, "0")
     };
     (
-        count.trim().parse().unwrap_or(usize::MAX),
-        offset.trim().parse().unwrap_or(0),
+        eval_sql_row_expr(count.trim(), &[], &[], tables)
+            .parse()
+            .unwrap_or(usize::MAX),
+        eval_sql_row_expr(offset.trim(), &[], &[], tables)
+            .parse()
+            .unwrap_or(0),
     )
 }
 
@@ -24786,7 +24790,7 @@ fn exec_sql_select_with_mode(
                 });
             }
             if let Some(lp) = lim_pos {
-                let (limit, offset) = parse_sql_limit(&stmt[lp + 7..]);
+                let (limit, offset) = parse_sql_limit(&stmt[lp + 7..], tables);
                 combined = combined.into_iter().skip(offset).take(limit).collect();
             }
             let mut res = String::new();
@@ -24936,7 +24940,7 @@ fn exec_sql_select_with_mode(
     });
 
     let (limit, offset) = limit_pos
-        .map(|lp| parse_sql_limit(&after_from[lp + 7..]))
+        .map(|lp| parse_sql_limit(&after_from[lp + 7..], tables))
         .unwrap_or((usize::MAX, 0));
 
     let filtered: Vec<&Vec<String>> = tbl

@@ -25566,9 +25566,6 @@ fn exec_sql_select_with_mode(
                             };
                             let wval = if fn_up.starts_with("ROW_NUMBER(") {
                                 (my_pos + 1).to_string()
-                            } else if fn_up.starts_with("RANK(") {
-                                let mut rank = 1usize;
-                                for k in 0..my_pos {
                             } else if fn_up.starts_with("CUME_DIST(")
                                 || fn_up.starts_with("PERCENT_RANK(")
                             {
@@ -25578,6 +25575,9 @@ fn exec_sql_select_with_mode(
                                     fn_up.starts_with("CUME_DIST("),
                                     cmp_rows,
                                 )
+                            } else if fn_up.starts_with("RANK(") {
+                                let mut rank = 1usize;
+                                for k in 0..my_pos {
                                     if cmp_rows(p_indices[k], my_idx) != std::cmp::Ordering::Equal {
                                         rank = k + 2;
                                     }
@@ -25775,18 +25775,18 @@ fn exec_sql_select_with_mode(
                         };
                         let wval = match func {
                             SqlWinFn::RowNumber => (my_pos + 1).to_string(),
-                            SqlWinFn::Rank => {
-                                let mut rank = 1usize;
-                                for k in 0..my_pos {
-                                    if cmp_rows(p_indices[k], my_idx) != std::cmp::Ordering::Equal {
-                                        rank = k + 2;
-                                    }
                             SqlWinFn::CumeDist | SqlWinFn::PercentRank => sql_window_distribution(
                                 &p_indices,
                                 my_pos,
                                 matches!(func, SqlWinFn::CumeDist),
                                 cmp_rows,
                             ),
+                            SqlWinFn::Rank => {
+                                let mut rank = 1usize;
+                                for k in 0..my_pos {
+                                    if cmp_rows(p_indices[k], my_idx) != std::cmp::Ordering::Equal {
+                                        rank = k + 2;
+                                    }
                                 }
                                 rank.to_string()
                             }
@@ -26239,6 +26239,11 @@ fn exec_sql_aggregate_select(
                         (Ok(na), Ok(nb)) => {
                             na.partial_cmp(&nb).unwrap_or(std::cmp::Ordering::Equal)
                         }
+                        _ => va.cmp(&vb),
+                    };
+                    let ord = if *desc { ord.reverse() } else { ord };
+                    if ord != std::cmp::Ordering::Equal {
+                        return ord;
                     }
                 }
                 std::cmp::Ordering::Equal
@@ -26246,11 +26251,6 @@ fn exec_sql_aggregate_select(
             if !order_exprs.is_empty() {
                 p_indices.sort_by(|&a_i, &b_i| cmp_rows(a_i, b_i).then_with(|| a_i.cmp(&b_i)));
             }
-                        _ => va.cmp(&vb),
-                    };
-                    let ord = if *desc { ord.reverse() } else { ord };
-                    if ord != std::cmp::Ordering::Equal {
-                        return ord;
             let mut cur_rank = 1usize;
             let mut cur_dense = 1usize;
             for (pos, &row_i) in p_indices.iter().enumerate() {
@@ -26266,10 +26266,6 @@ fn exec_sql_aggregate_select(
                 }
                 let val = if fn_up.starts_with("ROW_NUMBER(") {
                     (pos + 1).to_string()
-                } else if fn_up.starts_with("DENSE_RANK(") {
-                    cur_dense.to_string()
-                } else {
-                    cur_rank.to_string()
                 } else if fn_up.starts_with("CUME_DIST(") || fn_up.starts_with("PERCENT_RANK(") {
                     sql_window_distribution(
                         &p_indices,
@@ -26277,6 +26273,10 @@ fn exec_sql_aggregate_select(
                         fn_up.starts_with("CUME_DIST("),
                         cmp_rows,
                     )
+                } else if fn_up.starts_with("DENSE_RANK(") {
+                    cur_dense.to_string()
+                } else {
+                    cur_rank.to_string()
                 };
                 win_updates.push((row_i, val));
             }

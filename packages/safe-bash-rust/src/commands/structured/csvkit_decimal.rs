@@ -97,6 +97,27 @@ impl Decimal {
         }
     }
 
+    fn difference(&self, other: &Self) -> f64 {
+        let scale = self.scale.min(other.scale);
+        let coefficient = |value: &Self| -> Option<i128> {
+            let digits = value.digits.parse::<i128>().ok()?;
+            let signed = if value.negative { -digits } else { digits };
+            let shift = u32::try_from(value.scale.checked_sub(scale)?).ok()?;
+            signed.checked_mul(10i128.checked_pow(shift)?)
+        };
+        if let Some(difference) = coefficient(self)
+            .zip(coefficient(other))
+            .and_then(|(a, b)| a.checked_sub(b))
+        {
+            return format!("{difference}e{scale}").parse().unwrap_or(f64::NAN);
+        }
+        // Inferred CSV decimals have at most 28 significant digits. If their
+        // aligned coefficients exceed i128, their magnitudes are too far apart
+        // for subtracting binary64 values to lose a small decimal difference.
+        self.spelling().parse::<f64>().unwrap_or(f64::NAN)
+            - other.spelling().parse::<f64>().unwrap_or(f64::NAN)
+    }
+
     pub(super) fn normalized_key(&self) -> String {
         if self.digits == "0" {
             return "0".into();
@@ -141,6 +162,38 @@ impl Decimal {
             format!("{sign}0.{}{digits}", "0".repeat((-point) as usize))
         }
     }
+}
+
+pub(super) fn sample_stdev(values: &[&str]) -> Option<f64> {
+    if values.len() < 2 {
+        return None;
+    }
+    let Some(origin) = Decimal::parse(values[0], false) else {
+        return Some(f64::NAN);
+    };
+    // Subtract before conversion so a large common offset cannot erase the
+    // differences between nearby decimals.
+    let mut centered: Vec<f64> = values
+        .iter()
+        .map(|value| {
+            Decimal::parse(value, false).map_or(f64::NAN, |value| value.difference(&origin))
+        })
+        .collect();
+    // An unrepresentable difference must not turn the existing infinite
+    // variance of finite inputs into NaN.
+    if centered.iter().any(|value| !value.is_finite()) {
+        for (value, original) in centered.iter_mut().zip(values) {
+            *value = original.parse().unwrap_or(f64::NAN);
+        }
+    }
+    let mean = centered
+        .iter()
+        .map(|value| value / centered.len() as f64)
+        .sum::<f64>();
+    Some(
+        (centered.iter().map(|x| (x - mean).powi(2)).sum::<f64>() / (centered.len() - 1) as f64)
+            .sqrt(),
+    )
 }
 
 /// The portable CSV locale groups in threes. Printf formats first convert

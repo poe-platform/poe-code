@@ -11122,10 +11122,7 @@ fn cmd_csvstat(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> 
                 } else {
                     (nums[n / 2 - 1] + nums[n / 2]) / 2.0
                 };
-                let raw_stdev = (n > 1).then(|| {
-                    (nums.iter().map(|x| (x - raw_mean).powi(2)).sum::<f64>() / (n - 1) as f64)
-                        .sqrt()
-                });
+                let raw_stdev = csvkit_decimal::sample_stdev(&non_empty);
                 for (op, slot, value) in [
                     ("min", &mut min, Some(nums[0])),
                     ("max", &mut max, Some(nums[n - 1])),

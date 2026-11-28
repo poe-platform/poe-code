@@ -19362,7 +19362,7 @@ fn sqlite_encode_record(values: &[SqlBtreeVal]) -> Vec<u8> {
     out
 }
 
-fn sqlite_decode_record(payload: &[u8]) -> Vec<SqlBtreeVal> {
+fn sqlite_decode_record(payload: &[u8], encoding: u32) -> Vec<SqlBtreeVal> {
     if payload.is_empty() {
         return Vec::new();
     }
@@ -19488,9 +19488,19 @@ fn sqlite_decode_record(payload: &[u8]) -> Vec<SqlBtreeVal> {
                 let len = ((n - 13) / 2) as usize;
                 let end = (b_pos + len).min(payload.len());
                 let slice = payload.get(b_pos..end).unwrap_or(&[]);
-                values.push(SqlBtreeVal::Text(
-                    String::from_utf8_lossy(slice).into_owned(),
-                ));
+                let text = match encoding {
+                    2 | 3 => char::decode_utf16(slice.as_chunks::<2>().0.iter().map(|pair| {
+                        if encoding == 2 {
+                            u16::from_le_bytes([pair[0], pair[1]])
+                        } else {
+                            u16::from_be_bytes([pair[0], pair[1]])
+                        }
+                    }))
+                    .map(|ch| ch.unwrap_or(char::REPLACEMENT_CHARACTER))
+                    .collect(),
+                    _ => String::from_utf8_lossy(slice).into_owned(),
+                };
+                values.push(SqlBtreeVal::Text(text));
                 b_pos += len;
             }
             _ => values.push(SqlBtreeVal::Null),
@@ -19586,7 +19596,10 @@ fn sqlite_parse_table_btree_rows(
                 true,
             );
             let next_id = (rows.len() + 1) as i64;
-            rows.push((next_id, sqlite_decode_record(&payload)));
+            rows.push((
+                next_id,
+                sqlite_decode_record(&payload, sqlite_read_u32_be(db_bytes, 56)),
+            ));
         }
         if interior {
             let right_child = sqlite_read_u32_be(db_bytes, page_start + header_offset + 8) as usize;
@@ -19615,7 +19628,10 @@ fn sqlite_parse_table_btree_rows(
                 p_size.max(0) as usize,
                 false,
             );
-            rows.push((r_id, sqlite_decode_record(&payload)));
+            rows.push((
+                r_id,
+                sqlite_decode_record(&payload, sqlite_read_u32_be(db_bytes, 56)),
+            ));
         }
     } else if page_type == 0x05 {
         let right_most_child =

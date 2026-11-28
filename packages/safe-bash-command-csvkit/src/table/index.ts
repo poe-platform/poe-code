@@ -1,6 +1,6 @@
 import type { Runtime } from "../runtime.js";
 import { defaultHeaders, normalizeHeaders } from "./headers.js";
-import { CsvkitBlocked } from "../errors.js";
+import { CsvkitBlocked, CsvkitDiagnostic } from "../errors.js";
 import { inferTable, TableInference, type InferenceOptions, type TypedTable } from "./types.js";
 import { pythonValueText } from "../csv.js";
 import { inputWriteCell } from "../operations/input-cells.js";
@@ -30,6 +30,7 @@ export async function readTable(runtime: Runtime, path?: string, rowLimit?: numb
     rows.push(cells);
     if (rowLimit !== undefined && rows.length >= rowLimit) break;
   }
+  if (headers === undefined && !o.no_header_row && Number(o.sniff_limit ?? 0) !== 0) throw new CsvkitDiagnostic("StopIteration: ");
   const options = inferenceOptions(runtime);
   runtime.retain(64 + rows.length * (64 + (headers?.length ?? 0) * 64));
   return inferTable(headers ?? [], rows, options, runtime.step);
@@ -85,6 +86,7 @@ export async function readReplayTable(runtime: Runtime, path?: string, rowLimit?
     count++;
     if (rowLimit !== undefined && count >= rowLimit) break;
   }
+  if (headers === undefined && !o.no_header_row && Number(o.sniff_limit ?? 0) !== 0) throw new CsvkitDiagnostic("StopIteration: ");
   const selected = new TableInference(headers ?? [], inferenceOptions(runtime), runtime.step);
   await raw.file.seal();
   for await (const row of raw.read()) { selected.observe(row); await runtime.checkpoint(); }

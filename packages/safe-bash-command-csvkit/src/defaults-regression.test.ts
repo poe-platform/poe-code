@@ -29,6 +29,14 @@ async function invoke(name: string, input: string | Uint8Array, args: string[], 
   return { ...result, stdout, stderr };
 }
 
+test.each(["csvlook", "csvjson", "csvsort", "csvstat"])("%s rejects empty input before emitting output", async name => {
+  expect(await invoke(name, "", [])).toEqual({ exitCode: 1, stdout: "", stderr: "StopIteration: \n" });
+});
+
+test.each(["csvlook", "csvjson", "csvsort", "csvstat"])("%s accepts a header without data rows", async name => {
+  expect((await invoke(name, "name\n", [])).exitCode).toBe(0);
+});
+
 test("portable commands normalize missing and duplicate headers", async () => {
   expect(await invoke("csvsort", "a,a\n2,1\n1,2\n", ["-c", "1"])).toEqual({ exitCode: 0, stdout: "a,a_2\n1,2\n2,1\n", stderr: "" });
   const look = await invoke("csvlook", "a,,c\n1,2,3\n", []);

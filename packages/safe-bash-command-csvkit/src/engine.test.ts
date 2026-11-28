@@ -36,6 +36,14 @@ export function fixture(input: string, argv: readonly string[], overrides: Parti
   return { context, result: () => ({ stdout, stderr }), cleanups };
 }
 
+test.each(["csvlook", "csvjson", "csvsort", "csvstat"] as const)("%s rejects empty input without spill storage", async command => {
+  const f = fixture("", [], { sniffing: { suppressWarnings: true } });
+  try {
+    assert.equal(await execute(command, f.context), 1);
+    assert.deepEqual(f.result(), { stdout: "", stderr: "StopIteration: \n" });
+  } finally { await Promise.all(f.cleanups.map(cleanup => cleanup())); }
+});
+
 test("csvsort explicit temporal formats preserve Python whitespace and subminute offsets", async () => {
   for (const [argv, input, stdout] of [
     [["--date-format", "%Y  %m  %d"], "d\n2024 02 29\n2023 12 31\n", "d\n2023-12-31\n2024-02-29\n"],

@@ -40,6 +40,7 @@ mod pandoc_docx;
 mod pandoc_epub;
 mod pandoc_headings;
 mod pandoc_inlines;
+mod pandoc_latex_table;
 mod pandoc_list;
 mod pandoc_lua;
 mod pandoc_metadata;
@@ -37434,6 +37435,18 @@ fn parse_pandoc_latex(input: &str) -> Option<Vec<PandocBlock>> {
             }
             _ => text.push(ch),
         }
+    }
+    if text.contains("\\begin{tabular}") {
+        let mut blocks = Vec::new();
+        let mut rest = text.as_str();
+        while let Some((before, after)) = rest.split_once("\\begin{tabular}") {
+            blocks.extend(parse_pandoc_latex(before)?);
+            let (table, after) = pandoc_latex_table::parse(after)?;
+            blocks.push(PandocBlock::Table(table));
+            rest = after;
+        }
+        blocks.extend(parse_pandoc_latex(rest)?);
+        return Some(blocks);
     }
     let mut md_lines = Vec::new();
     for line in text.lines() {

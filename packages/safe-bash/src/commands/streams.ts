@@ -8,6 +8,7 @@ import { followTail, parseTailFollow } from "./tail-follow.js";
 import { wcDisplayWidth } from "./wc-width.js";
 import { RecordBuffer } from "./record-buffer.js";
 import { PublicDiagnostic } from "../diagnostics.js";
+import { compareCopyIdentity } from "./copy-identity.js";
 import {
   assertInputRequirements, bufferLimit, concatenate, define, diagnostic, encoder, input,
   lines, options, output, outputRange, pathOf, RESOLVED_EXIT_ZERO, RETURN_EXIT_ONE, RETURN_EXIT_ZERO, UsageError, value,
@@ -106,9 +107,9 @@ const streamRequirements: Readonly<Record<string, readonly CommandFileSystemRequ
   wc: countRequirements, tee: teeRequirements, tr: [],
 };
 
-async function* combinedInput(context: CommandContext, names: readonly string[], state: { exitCode: number }): ByteSource {
+async function* combinedInput(context: CommandContext, names: readonly string[], state: { exitCode: number }, checkInput: (name: string) => Promise<void>): ByteSource {
   for (const name of names.length ? names : ["-"]) {
-    try { yield* input(context, name); }
+    try { await checkInput(name); yield* input(context, name); }
     catch (error) { await diagnostic(context, error); state.exitCode = 1; }
   }
 }
@@ -742,6 +743,15 @@ Concatenate FILEs to standard output. With no FILE, or FILE -, read standard inp
   }
   const reqPromise = assertInputRequirements(context, parsed.operands);
   if (reqPromise) await reqPromise;
+  const outputFile = context.stdoutFile;
+  const outputStat = outputFile ? await context.fs.stat(outputFile.path, { signal: context.signal }) : undefined;
+  const checkInput = async (name: string): Promise<void> => {
+    if (outputStat?.type !== "file") return;
+    const inputStat = await context.fs.stat(name === "-" ? "/dev/stdin" : pathOf(context, name), { signal: context.signal });
+    if (compareCopyIdentity(inputStat, outputStat) === "same") {
+      throw new PublicDiagnostic(`${name}: input file is output file`);
+    }
+  };
   if (parsed.flags.has("A")) for (const flag of ["v", "E", "T"]) parsed.flags.add(flag);
   if (parsed.flags.has("e")) { parsed.flags.add("v"); parsed.flags.add("E"); }
   if (parsed.flags.has("t")) { parsed.flags.add("v"); parsed.flags.add("T"); }
@@ -757,6 +767,7 @@ Concatenate FILEs to standard output. With no FILE, or FILE -, read standard inp
     if (parsed.flags.size === 0 || (parsed.flags.size === 1 && parsed.flags.has("u"))) {
       for (const name of parsed.operands.length ? parsed.operands : ["-"]) {
         try {
+          await checkInput(name);
           const iter = input(context, name)[Symbol.asyncIterator]() as AsyncIterator<Uint8Array> & {
             tryNextSync?: () => IteratorResult<Uint8Array> | undefined;
           };
@@ -792,7 +803,7 @@ Concatenate FILEs to standard output. With no FILE, or FILE -, read standard inp
       }
       return state;
     }
-    const source = combinedInput(context, parsed.operands, state);
+    const source = combinedInput(context, parsed.operands, state, checkInput);
     operation?.registerCleanup(async () => { await source[Symbol.asyncIterator]().return?.(); });
     if (![...parsed.flags].some(flag => flag !== "u")) {
       for await (const chunk of source) await output(context, chunk);

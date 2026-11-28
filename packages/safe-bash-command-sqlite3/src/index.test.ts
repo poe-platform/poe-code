@@ -4,6 +4,17 @@ import { createMemoryFileSystem, type FileSystem } from "@poe-code/safe-fs";
 import { collectBytes, CommandRegistry, commandRuntimeIdentity, createBytePipe, createCommandArguments, writeText } from "safe-bash-contracts";
 import { createSqlite3Command, createSqlite3Commands, evalSyncSqlite3, settings, type Sqlite3CommandsOptions } from "./index.js";
 
+test("sqlite3 upper and lower fold only ASCII letters", async () => {
+  const sql = `SELECT upper('héllo'), lower('HÉLLO');
+    SELECT upper('azAZ@[\`{ßİıΣσς😀'), lower('azAZ@[\`{ßİıΣσς😀');
+    SELECT upper(NULL) IS NULL, lower(NULL) IS NULL, upper(123), lower(123), upper(''), lower('');`;
+  const stdout = "HéLLO|hÉllo\nAZAZ@[`{ßİıΣσς😀|azaz@[`{ßİıΣσς😀\n1|1|123|123||\n";
+  assert.deepEqual(await runSqlite3(createMemoryFileSystem(), [":memory:", sql]), {
+    code: 0, stdout, stderr: ""
+  });
+  assert.equal(evalSyncSqlite3(new Uint8Array(), [":memory:", sql]), stdout);
+});
+
 for (const [date, expected] of [
   ["2021-01-01", "2020-W53"],
   ["2021-01-03", "2020-W53"],

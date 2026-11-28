@@ -8493,9 +8493,17 @@ export class SqliteDatabase {
         }
         return encodeSqlText(toSqlString(a0)).byteLength;
       case "UPPER":
-        return a0 === null ? null : toSqlString(a0).toUpperCase();
-      case "LOWER":
-        return a0 === null ? null : toSqlString(a0).toLowerCase();
+      case "LOWER": {
+        if (a0 === null) return null;
+        const first = u === "UPPER" ? 97 : 65;
+        const offset = u === "UPPER" ? -32 : 32;
+        let result = "";
+        for (const char of toSqlString(a0)) {
+          const code = char.charCodeAt(0);
+          result += code >= first && code <= first + 25 ? String.fromCharCode(code + offset) : char;
+        }
+        return result;
+      }
       case "TRIM":
       case "LTRIM":
       case "RTRIM": {

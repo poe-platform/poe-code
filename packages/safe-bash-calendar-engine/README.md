@@ -13,6 +13,8 @@ Absolute date strings also accept fixed timezone abbreviations such as EST, PDT,
 CET, and JST, and east-positive corrections such as `UTC+2` or `GMT-5:30`.
 Abbreviations retain their fixed offset regardless of the date's season.
 
+Month-name dates without a year, such as `Jan 5`, `5 Jan`, or `Dec 25 10:30`, use the current year in the virtual timezone.
+
 Time-only inputs use the current day in the source timezone; explicit dates and time-only inputs accept AM/PM notation.
 
 `%Z` uses tzdb abbreviations, including historical and daylight-saving names, with the runtime Intl label as a fallback.

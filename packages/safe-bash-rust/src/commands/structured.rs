@@ -18537,6 +18537,7 @@ struct SqlTable {
     defaults: BTreeMap<String, String>,
     generated: BTreeMap<String, String>,
     not_null_cols: Vec<String>,
+    not_null_replace_cols: BTreeSet<String>,
     check_exprs: Vec<String>,
     foreign_keys: Vec<SqlForeignKey>,
     // Index name, key columns, and declaration-level ON CONFLICT IGNORE.
@@ -18548,6 +18549,45 @@ struct SqlTable {
 }
 
 impl SqlTable {
+    // Returns false when the statement's IGNORE policy skips the candidate row.
+    fn check_not_null(
+        &self,
+        row: &mut [String],
+        table_name: &str,
+        conflict_action: Option<&str>,
+    ) -> Result<bool, String> {
+        for column in &self.not_null_cols {
+            let Some(index) = find_sql_col(&self.columns, column) else {
+                continue;
+            };
+            if row[index] != SQL_NULL {
+                continue;
+            }
+            let key = column.to_ascii_lowercase();
+            let replace = conflict_action.map_or_else(
+                || self.not_null_replace_cols.contains(&key),
+                |action| action == "REPLACE",
+            );
+            if replace && let Some(default) = self.defaults.get(&key).filter(|v| *v != SQL_NULL) {
+                row[index] = default.clone();
+                apply_sql_row_affinity(
+                    &mut row[index..=index],
+                    self.metadata.get(index..=index).unwrap_or_default(),
+                    &self.columns[index..=index],
+                    table_name,
+                )?;
+                continue;
+            }
+            if conflict_action == Some("IGNORE") {
+                return Ok(false);
+            }
+            return Err(format!(
+                "Error: NOT NULL constraint failed: {table_name}.{column}\n"
+            ));
+        }
+        Ok(true)
+    }
+
     fn push_row(&mut self, row: Vec<String>) {
         // Tables made from CSV or query results initially have consecutive rowids.
         self.rowids
@@ -19957,6 +19997,12 @@ fn synthesize_table_create_sql(tname: &str, tbl: &SqlTable) -> String {
             .any(|c| c.eq_ignore_ascii_case(col))
         {
             def.push_str(" NOT NULL");
+            if tbl
+                .not_null_replace_cols
+                .contains(&col.to_ascii_lowercase())
+            {
+                def.push_str(" ON CONFLICT REPLACE");
+            }
         }
         parts.push(def);
     }
@@ -20035,6 +20081,7 @@ fn parse_create_table_metadata(create_sql: &str) -> (SqlTable, Option<usize>, Ve
     let mut defaults = BTreeMap::new();
     let mut generated = BTreeMap::new();
     let mut not_null_cols = Vec::new();
+    let mut not_null_replace_cols = BTreeSet::new();
     let mut check_exprs = Vec::new();
     let mut foreign_keys = Vec::new();
     let mut unique_indexes = Vec::new();
@@ -20152,12 +20199,17 @@ fn parse_create_table_metadata(create_sql: &str) -> (SqlTable, Option<usize>, Ve
                     generated.insert(cname.to_ascii_lowercase(), gexpr);
                 }
             }
-            if c_up.contains("NOT NULL")
-                && !c_up.contains("SET NULL")
-                && !c_up.contains("DEFAULT ")
+            if let Some((_, rest)) = split_top_level_sql_cmp(&format!("{c_up} "), " NOT NULL ")
                 && !c_up.contains("PRIMARY KEY")
             {
                 not_null_cols.push(cname.clone());
+                if rest
+                    .split_whitespace()
+                    .take(3)
+                    .eq(["ON", "CONFLICT", "REPLACE"])
+                {
+                    not_null_replace_cols.insert(cname.to_ascii_lowercase());
+                }
             }
             if let Some(cp) = c_up.find("CHECK") {
                 let after_c = &c_norm[cp + 5..];
@@ -20208,6 +20260,7 @@ fn parse_create_table_metadata(create_sql: &str) -> (SqlTable, Option<usize>, Ve
             defaults,
             generated,
             not_null_cols,
+            not_null_replace_cols,
             check_exprs,
             foreign_keys,
             unique_indexes,
@@ -23322,6 +23375,13 @@ fn exec_sql_insert(
     let is_or_ignore = upper.starts_with("INSERT OR IGNORE INTO ");
     let is_or_replace =
         upper.starts_with("INSERT OR REPLACE INTO ") || upper.starts_with("REPLACE INTO ");
+    let not_null_action = if is_or_replace {
+        Some("REPLACE")
+    } else {
+        upper
+            .strip_prefix("INSERT OR ")
+            .and_then(|rest| rest.split_whitespace().next())
+    };
     let into_pos = upper.find(" INTO ").map(|p| p + 6).unwrap_or(11);
     let conflict_pos = find_top_sql_bool_kw(&upper, " ON CONFLICT").map(|p| p + 1);
     let ret_pos = find_top_sql_bool_kw(&upper, " RETURNING ").map(|p| p + 1);
@@ -23496,21 +23556,19 @@ fn exec_sql_insert(
     let stmt_snap = tables.clone();
     let mut affected_rows: Vec<Vec<String>> = Vec::new();
     for vals in value_tuples {
-        let (defaults_clone, gen_clone, nn_clone, chk_clone, fk_clone, unique_idx_clone, is_fts5) =
-            tables
-                .get(&tname)
-                .map(|t| {
-                    (
-                        t.defaults.clone(),
-                        t.generated.clone(),
-                        t.not_null_cols.clone(),
-                        t.check_exprs.clone(),
-                        t.foreign_keys.clone(),
-                        t.unique_indexes.clone(),
-                        t.is_fts5,
-                    )
-                })
-                .unwrap_or_default();
+        let (defaults_clone, gen_clone, chk_clone, fk_clone, unique_idx_clone, is_fts5) = tables
+            .get(&tname)
+            .map(|t| {
+                (
+                    t.defaults.clone(),
+                    t.generated.clone(),
+                    t.check_exprs.clone(),
+                    t.foreign_keys.clone(),
+                    t.unique_indexes.clone(),
+                    t.is_fts5,
+                )
+            })
+            .unwrap_or_default();
         let mut row: Vec<String> = t_cols
             .iter()
             .map(|tc| {
@@ -23607,15 +23665,11 @@ fn exec_sql_insert(
                 return Err(e);
             }
         }
-        for nn_col in &nn_clone {
-            if let Some(pos) = find_sql_col(&t_cols, nn_col)
-                && row[pos] == SQL_NULL
-            {
-                *tables = stmt_snap;
-                return Err(format!(
-                    "Error: NOT NULL constraint failed: {tname}.{nn_col}\n"
-                ));
-            }
+        if !tables[&tname]
+            .check_not_null(&mut row, &tname, not_null_action)
+            .inspect_err(|_| *tables = stmt_snap.clone())?
+        {
+            continue;
         }
         for chk in &chk_clone {
             if !eval_sql_where(chk, &t_cols, &tables[&tname].metadata, &row, tables)
@@ -23743,6 +23797,9 @@ fn exec_sql_insert(
                     {
                         continue;
                     }
+                    tables[&tname]
+                        .check_not_null(&mut updated_row, &tname, Some("ABORT"))
+                        .inspect_err(|_| *tables = stmt_snap.clone())?;
                     for (name, terms, _) in &unique_idx_clone {
                         let conflicts = sql_unique_conflicts(
                             &tables[&tname],
@@ -23963,7 +24020,7 @@ fn exec_sql_update(
     let mut affected_rows = Vec::new();
     // Keep original row positions so a replaced row is never updated later.
     let mut surviving_rows: Vec<usize> = (0..target.rows.len()).collect();
-    'rows: for (original_idx, old_r, ur) in updated_pairs {
+    'rows: for (original_idx, old_r, mut ur) in updated_pairs {
         let Ok(mut r_idx) = surviving_rows.binary_search(&original_idx) else {
             continue;
         };
@@ -24008,17 +24065,11 @@ fn exec_sql_update(
                 return Err(e);
             }
         }
-        for nn_col in &tables_snap[&tname].not_null_cols {
-            if let Some(pos) = find_sql_col(&t_cols, nn_col)
-                && ur[pos] == SQL_NULL
-            {
-                if is_or_ignore {
-                    continue 'rows;
-                }
-                let error = format!("Error: NOT NULL constraint failed: {tname}.{nn_col}\n");
-                *tables = tables_snap;
-                return Err(error);
-            }
+        if !tables_snap[&tname]
+            .check_not_null(&mut ur, &tname, is_or_ignore.then_some("IGNORE"))
+            .inspect_err(|_| *tables = tables_snap.clone())?
+        {
+            continue 'rows;
         }
         for check in &checks {
             if !eval_sql_where(check, &t_cols, &tables[&tname].metadata, &ur, tables)

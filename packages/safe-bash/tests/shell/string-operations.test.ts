@@ -7,6 +7,17 @@ import { scanString, nextCodePointOffset, previousCodePointOffset } from "../../
 import { ValueScope } from "../../src/shell/value-state.js";
 import { ShellLimitError } from "../../src/shell/types.js";
 import { registerYieldCheckpoint } from "../../src/contracts/yield.js";
+import { agentCommands } from "../../src/index.js";
+
+test("global parameter replacement accepts an unescaped leading slash pattern", async () => {
+  const shell = new Shell({ fs: new MemoryFileSystem(), cwd: "/work" }).use(agentCommands());
+  try {
+    const result = await shell.exec('t="a/b/c"; echo ${t////-}; echo "${t////}"; p=/usr/local/bin; echo ${p////:}; echo ${t//\\//-}');
+    assert.equal(result.stdout, "a-b-c\nabc\n:usr:local:bin\na-b-c\n");
+    assert.equal(result.stderr, "");
+    assert.equal(result.exitCode, 0);
+  } finally { await shell.dispose(); }
+});
 
 const operations = [
   { name: "length", expression: "${#VALUE}", expected: "3" },
@@ -194,6 +205,9 @@ test("no-match replacement never slices the source into candidate or output copi
 });
 
 for (const fixture of [
+  { value: "a/b/c", expression: "${VALUE///}", expected: "abc" },
+  { value: "a/b/c", expression: "${VALUE///b/X}", expected: "aX/c" },
+  { value: "a/b/c", expression: "${VALUE/////}", expected: "a/b/c" },
   { value: "🙂a🙂", expression: "${VALUE//?a/X}", expected: "X🙂" },
   { value: "🙂a🙂", expression: "${VALUE//*a*/X}", expected: "X" },
   { value: "🙂a🙂", expression: "${VALUE/#/X}", expected: "X🙂a🙂" },

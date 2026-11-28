@@ -1289,7 +1289,15 @@ class Lexer {
           if (operator) {
             if (length) this.error("Invalid length expansion");
             this.position = operatorEnd;
+            // Bash consumes the first slash after // as pattern text, not a separator.
+            const leadingSlash = operator === "//" && this.source[this.position] === "/";
+            if (leadingSlash) this.position++;
             alternate = this.word(operator.startsWith("/") ? "/}" : "}", quoted && !caseOperator && !["#", "##", "%", "%%"].includes(operator) && !operator.startsWith("/"));
+            if (leadingSlash) {
+              this.budget.admit();
+              alternate = { ...alternate, offset: operatorEnd, ...(alternate.plain !== undefined ? { plain: `/${alternate.plain}` } : {}) };
+              alternate.parts.unshift({ kind: "text", value: "/", quoted: false });
+            }
             if (operator.startsWith("/") && this.source[this.position] === "/") {
               this.position++;
               replacement = this.word("}");

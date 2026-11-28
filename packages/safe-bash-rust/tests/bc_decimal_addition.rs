@@ -24,7 +24,7 @@ fn bc_preserves_decimal_coefficients() {
         ("obase=16; 15.25+.75", "10.00\n"),
         (
             "a=.0010+.0002; length(a); scale(a); if(a) 1; a*2",
-            "4\n4\n1\n.0024\n",
+            "2\n4\n1\n.0024\n",
         ),
     ] {
         let (mut shell, _) = Shell::with_memory_fs();

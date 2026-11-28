@@ -8130,11 +8130,11 @@ fn eval_bc_val(expr: &str, bc: &mut BcEnv, depth: usize) -> BcVal {
             "length" => {
                 if let Some(ref d) = first_val.coefficient {
                     let len = if d.len() == 1 && d[0] == 0 {
-                        1
+                        first_val.scale.max(1)
                     } else {
                         d.len()
                     };
-                    return BcVal::from_i64(len.max(first_val.scale) as i64);
+                    return BcVal::from_i64(len as i64);
                 }
                 let raw_tok = raw_args.first().map(|x| x.trim()).unwrap_or("");
                 if let Some(v) = bc.vars.get(raw_tok) {

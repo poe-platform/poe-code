@@ -260,6 +260,7 @@ pub(super) fn html(
         nodes: Vec<HtmlNode>,
         head: &mut bool,
         values: &mut Vec<(String, String)>,
+        base: &mut Option<String>,
     ) -> Vec<HtmlNode> {
         let mut body = Vec::new();
         for mut node in nodes {
@@ -281,14 +282,24 @@ pub(super) fn html(
             match element.tag.as_str() {
                 "html" => {
                     element.children =
-                        envelope(std::mem::take(&mut element.children), head, values);
+                        envelope(std::mem::take(&mut element.children), head, values, base);
                     body.push(node);
                 }
                 "head" => body.extend(envelope(
                     std::mem::take(&mut element.children),
                     head,
                     values,
+                    base,
                 )),
+                "base" if *head => {
+                    if base.is_none() {
+                        *base = element
+                            .attrs
+                            .iter()
+                            .find(|(key, _)| key.eq_ignore_ascii_case("href"))
+                            .map(|(_, value)| value.clone());
+                    }
+                }
                 "title" | "meta" if *head => {
                     let value = if element.tag == "title" {
                         Some((
@@ -325,14 +336,14 @@ pub(super) fn html(
                         }
                     }
                 }
-                "base" | "basefont" | "bgsound" | "link" | "noscript" | "noframes" | "style"
-                | "script" | "template"
+                "basefont" | "bgsound" | "link" | "noscript" | "noframes" | "style" | "script"
+                | "template"
                     if *head => {}
                 _ => {
                     *head = false;
                     if element.tag == "body" {
                         element.children =
-                            envelope(std::mem::take(&mut element.children), head, values);
+                            envelope(std::mem::take(&mut element.children), head, values, base);
                     }
                     body.push(node);
                 }
@@ -364,7 +375,27 @@ pub(super) fn html(
             .ok_or("E_LIMIT: HTML memory limit exceeded")?;
     }
     let mut values = Vec::new();
-    *nodes = envelope(std::mem::take(nodes), &mut true, &mut values);
+    let mut base = None;
+    *nodes = envelope(std::mem::take(nodes), &mut true, &mut values, &mut base);
+    if let Some(base) = base {
+        let mut pending: Vec<_> = nodes.iter_mut().collect();
+        while let Some(node) = pending.pop() {
+            if let HtmlNode::Element(element) = node {
+                for (key, value) in &mut element.attrs {
+                    if (element.tag == "a" && key.eq_ignore_ascii_case("href"))
+                        || (element.tag == "img" && key.eq_ignore_ascii_case("src"))
+                    {
+                        let resolved = super::resolve_relative_url(&base, value);
+                        bytes = bytes
+                            .checked_sub(resolved.len().saturating_sub(value.len()))
+                            .ok_or("E_LIMIT: HTML memory limit exceeded")?;
+                        *value = resolved;
+                    }
+                }
+                pending.extend(&mut element.children);
+            }
+        }
+    }
     let mut metadata = Vec::new();
     for (key, value) in values {
         let mut inlines = Vec::new();

@@ -30662,35 +30662,51 @@ fn find_html_base_href(nodes: &[HtmlNode]) -> Option<String> {
 }
 
 fn resolve_relative_url(base: &str, href: &str) -> String {
-    if href.starts_with("http://")
-        || href.starts_with("https://")
-        || href.starts_with("mailto:")
-        || href.starts_with("data:")
-    {
+    if href.split_once(':').is_some_and(|(scheme, _)| {
+        scheme.starts_with(|ch: char| ch.is_ascii_alphabetic())
+            && scheme
+                .bytes()
+                .all(|ch| ch.is_ascii_alphanumeric() || matches!(ch, b'+' | b'-' | b'.'))
+    }) {
         return href.to_string();
     }
-    let Some(scheme_sep) = base.find("://") else {
+    let Some(scheme_sep) = base.split(['?', '#']).next().unwrap_or(base).find("://") else {
         return href.to_string();
     };
+    if href.starts_with("//") {
+        return format!("{}:{href}", &base[..scheme_sep]);
+    }
+    let base = base.split('#').next().unwrap_or(base);
+    if href.is_empty() || href.starts_with('#') {
+        return format!("{base}{href}");
+    }
+    let base = base.split('?').next().unwrap_or(base);
+    if href.starts_with('?') {
+        return format!("{base}{href}");
+    }
     let after_scheme = &base[scheme_sep + 3..];
     let (host, base_path) = match after_scheme.find('/') {
         Some(slash) => (&after_scheme[..slash], &after_scheme[slash..]),
         None => (after_scheme, "/"),
     };
     let origin = format!("{}://{}", &base[..scheme_sep], host);
-    if href.starts_with('/') {
-        return format!("{origin}{href}");
-    }
     let base_dir = match base_path.rfind('/') {
         Some(last_slash) => &base_path[..=last_slash],
         None => "/",
     };
-    let combined = format!("{base_dir}{href}");
+    let suffix_start = href.find(['?', '#']).unwrap_or(href.len());
+    let (path, suffix) = href.split_at(suffix_start);
+    let combined = if path.starts_with('/') {
+        path.to_string()
+    } else {
+        format!("{base_dir}{path}")
+    };
     let mut stack: Vec<&str> = Vec::new();
-    let trailing_slash = combined.ends_with('/');
-    for part in combined.split('/') {
+    let trailing_slash =
+        combined.ends_with('/') || combined.ends_with("/.") || combined.ends_with("/..");
+    for part in combined[1..].split('/') {
         match part {
-            "" | "." => {}
+            "." => {}
             ".." => {
                 stack.pop();
             }
@@ -30701,7 +30717,7 @@ fn resolve_relative_url(base: &str, href: &str) -> String {
     if trailing_slash && !norm.ends_with('/') {
         norm.push('/');
     }
-    format!("{origin}{norm}")
+    format!("{origin}{norm}{suffix}")
 }
 
 fn resolve_selected_html_urls(matched: &mut [HtmlElement], base: &str) {

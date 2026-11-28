@@ -55,6 +55,122 @@ fn pdf_string(text: &str) -> String {
 }
 
 #[test]
+fn html_base_resolves_links_through_shell_pipeline() {
+    let (mut sh, _) = shell();
+    let result = sh.exec_with_options(
+        r#"printf %s '<html><head><base href="https://example.org/manual/"></head><body><a href="next">Next</a></body></html>' | pandoc -f html -t json | jq -c '[..|objects|select(.t?=="Link")|.c[2][0]]'"#,
+        ExecOptions::default(),
+    ).unwrap();
+    assert_eq!(result.exit_code, 0, "{}", result.stderr);
+    assert_eq!(result.stdout, "[\"https://example.org/manual/next\"]\n");
+}
+
+#[test]
+fn html_base_resolves_nested_links_and_images() {
+    let (mut sh, _) = shell();
+    for (target, expected) in [
+        ("next", "https://example.org/manual/next"),
+        ("../image.png", "https://example.org/image.png"),
+        ("/root", "https://example.org/root"),
+        (
+            "//cdn.example.org/image.png",
+            "https://cdn.example.org/image.png",
+        ),
+        ("#part", "https://example.org/manual/page.html?old=1#part"),
+        ("?new=2", "https://example.org/manual/page.html?new=2"),
+        ("", "https://example.org/manual/page.html?old=1"),
+        ("https://other.org/next", "https://other.org/next"),
+        ("tel:123", "tel:123"),
+        (
+            "../next?path=/../#part/..",
+            "https://example.org/next?path=/../#part/..",
+        ),
+        ("nested//next", "https://example.org/manual/nested//next"),
+        ("..", "https://example.org/"),
+    ] {
+        let source = format!(
+            r#"<head><base href="https://example.org/manual/page.html?old=1"><base href="https://ignored.org/"></head><body><p><em><a href="{target}">Link</a></em><img src="{target}" alt="Image"></p></body>"#
+        );
+        let result = sh.exec_with_options(
+            r#"pandoc -f html -t json | jq -c '[..|objects|select(.t?=="Link" or .t?=="Image")|.c[2][0]]'"#,
+            ExecOptions { stdin: Some(source.clone()), ..Default::default() },
+        ).unwrap();
+        assert_eq!(result.exit_code, 0, "{target}: {}", result.stderr);
+        assert_eq!(
+            result.stdout,
+            format!("[\"{expected}\",\"{expected}\"]\n"),
+            "{target}"
+        );
+        let result = sh
+            .exec_with_options(
+                "htmlq -B -a href a",
+                ExecOptions {
+                    stdin: Some(source),
+                    ..Default::default()
+                },
+            )
+            .unwrap();
+        assert_eq!(result.exit_code, 0, "{target}: {}", result.stderr);
+        assert_eq!(result.stdout, format!("{expected}\n"), "htmlq: {target}");
+    }
+}
+
+#[test]
+fn html_base_is_scoped_to_each_input_document() {
+    let (mut sh, fs) = shell();
+    fs.write_file(
+        "/a.html",
+        br#"<base href="https://example.org/manual/"><a href="next">Next</a>"#,
+    )
+    .unwrap();
+    fs.write_file("/b.html", br#"<a href="next">Next</a>"#)
+        .unwrap();
+    let result = sh.exec(r#"pandoc -f html --file-scope /a.html /b.html -t json | jq -c '[..|objects|select(.t?=="Link")|.c[2][0]]'"#).unwrap();
+    assert_eq!(result.exit_code, 0, "{}", result.stderr);
+    assert_eq!(
+        result.stdout,
+        "[\"https://example.org/manual/next\",\"next\"]\n"
+    );
+}
+
+#[test]
+fn html_base_reaches_binary_hyperlinks() {
+    let (mut sh, fs) = shell();
+    let result = run(
+        &mut sh,
+        r#"<base href="https://example.org/manual/"><p><a href="next">Next</a></p>"#,
+        "-t docx -o /output",
+    );
+    assert_eq!(result.exit_code, 0, "{}", result.stderr);
+    assert!(
+        part(
+            &fs.read_file("/output").unwrap(),
+            "word/_rels/document.xml.rels"
+        )
+        .contains("https://example.org/manual/next")
+    );
+}
+
+#[test]
+fn html_base_expansion_respects_memory_limit() {
+    let (mut sh, fs) = shell();
+    sh.set_limits(ShellLimits {
+        max_memory_bytes: 4096,
+        ..Default::default()
+    });
+    fs.write_file("/saved", b"KEEP").unwrap();
+    let source = format!(
+        "<base href='https://example.org/{}/'>{}",
+        "a".repeat(1000),
+        "<a href='next'>Link</a>".repeat(8)
+    );
+    let result = run(&mut sh, &source, "-t json -o /saved");
+    assert_ne!(result.exit_code, 0);
+    assert!(result.stderr.contains("E_LIMIT"), "{}", result.stderr);
+    assert_eq!(fs.read_file("/saved").unwrap(), b"KEEP");
+}
+
+#[test]
 fn authored_html_metadata_and_head_boundaries_match_public_reader() {
     let Value::Array(fixtures) = json::parse(
         include_bytes!("fixtures/pandoc-html-metadata.json"),

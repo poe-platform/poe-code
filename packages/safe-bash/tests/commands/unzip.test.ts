@@ -8,6 +8,20 @@ import type { ArchiveCommandsOptions } from "../../src/commands/archive/internal
 
 interface Member { name: string; body?: string | Uint8Array; mode?: number; method?: number; extra?: Uint8Array; crc?: number; flags?: number }
 
+test("unzip double-quiet listings compose with awk and wc", async () => {
+  const fs = createMemoryFileSystem();
+  await fs.mkdir("/work");
+  const shell = new Shell({ fs, cwd: "/work" }).use(agentCommands());
+  try {
+    const result = await shell.exec("echo hi > a; zip -q z.zip a; unzip -qq -l z.zip | awk '{print $1, $4}'; unzip -qql z.zip | wc -l");
+    assert.equal(result.exitCode, 0);
+    assert.equal(result.stderr, "");
+    assert.equal(result.stdout, "3 a\n1\n");
+  } finally {
+    await shell.dispose();
+  }
+});
+
 function crc32(bytes: Uint8Array): number {
   let crc = 0xffffffff;
   for (const byte of bytes) {

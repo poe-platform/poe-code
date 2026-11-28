@@ -210,7 +210,7 @@ export function evalSyncUnzip(
         if (m.extraLen !== 0) return undefined;
       }
       let out = quiet === 0 ? `Archive:  ${filteredZipName(chosenArchive)}\n` : "";
-      out += "  Length      Date    Time    Name\n---------  ---------- -----   ----\n";
+      if (quiet < 2) out += "  Length      Date    Time    Name\n---------  ---------- -----   ----\n";
       let totalSize = 0;
       const pad2 = (v: number) => String(v).padStart(2, "0");
       for (const m of selectedMembers) {
@@ -223,7 +223,7 @@ export function evalSyncUnzip(
         const dStr = `${year}-${pad2(month)}-${pad2(day)} ${pad2(hour)}:${pad2(minute)}`;
         out += `${String(m.uncompSize).padStart(9)}  ${dStr}   ${filteredZipName(m.name)}\n`;
       }
-      out += `---------                     -------\n${String(totalSize).padStart(9)}                     ${selectedMembers.length} file${selectedMembers.length === 1 ? "" : "s"}\n`;
+      if (quiet < 2) out += `---------                     -------\n${String(totalSize).padStart(9)}                     ${selectedMembers.length} file${selectedMembers.length === 1 ? "" : "s"}\n`;
       return out;
     }
 

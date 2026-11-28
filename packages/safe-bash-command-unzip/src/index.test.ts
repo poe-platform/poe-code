@@ -28,3 +28,25 @@ test("standalone unzip works with only portable filesystem and command contracts
   assert.equal(result.exitCode, 0, result.stderr);
   assert.equal(result.stdout, "hello\n");
 });
+
+for (const args of [["-qq", "-l"], ["-qql"], ["-q", "-q", "-l"], ["-qqv"]]) {
+  test(`unzip ${args.join(" ")} lists only member rows`, async () => {
+    const result = await run(createUnzipCommand(), [...args, "/archive.zip"]);
+    assert.equal(result.exitCode, 0);
+    assert.equal(result.stderr, "");
+    const rows = result.stdout.trim().split("\n");
+    assert.equal(rows.length, 1);
+    assert.equal(rows[0]!.trim().split(/\s+/)[0], "6");
+    assert.ok(rows[0]!.endsWith("hello.txt"));
+  });
+}
+
+test("unzip -ql keeps listing headers and totals without the archive banner", async () => {
+  const result = await run(createUnzipCommand(), ["-ql", "/archive.zip"]);
+  assert.equal(result.exitCode, 0);
+  assert.equal(result.stderr, "");
+  assert.equal(result.stdout.trim().split("\n").length, 5);
+  assert.ok(result.stdout.includes("Length"));
+  assert.ok(result.stdout.includes("1 file"));
+  assert.ok(!result.stdout.includes("Archive:"));
+});

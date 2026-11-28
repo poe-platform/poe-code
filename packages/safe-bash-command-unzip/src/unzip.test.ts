@@ -11,6 +11,13 @@ import { createUnzipCommand, evalSyncUnzip } from "./index.js";
 
 interface Member { name: string; body?: string | Uint8Array; mode?: number; method?: number; extra?: Uint8Array; centralExtra?: Uint8Array; crc?: number; flags?: number }
 
+for (const args of [["-qq", "-l"], ["-qql"], ["-q", "-q", "-l"]]) {
+  test(`synchronous unzip ${args.join(" ")} lists only member rows`, () => {
+    const archive = zip([{ name: "a", body: "hi\n" }]);
+    assert.equal(evalSyncUnzip([...args, "z.zip"], () => archive), "        3  2024-01-02 03:04   a\n");
+  });
+}
+
 function crc32(bytes: Uint8Array): number {
   let crc = 0xffffffff;
   for (const byte of bytes) {

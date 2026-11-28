@@ -144,7 +144,7 @@ export function createUnzipCommand(options: ArchiveCommandsOptions = {}): Comman
         }
         return { exitCode: selected ? 0 : 11 };
       }
-      if (parsed.list) await budget.output(parsed.verbose
+      if (parsed.list && parsed.quiet < 2) await budget.output(parsed.verbose
         ? " Length   Method    Size  Cmpr    Date    Time   CRC-32   Name\n--------  ------  ------- ---- ---------- ----- --------  ----\n"
         : "  Length      Date    Time    Name\n---------  ---------- -----   ----\n");
       const rootRaw = parsed.destination === undefined ? context.cwd : vfsPath(context.cwd, parsed.destination);
@@ -329,10 +329,11 @@ export function createUnzipCommand(options: ArchiveCommandsOptions = {}): Comman
           await budget.output(`skipping: ${filtered(entry.name)}  incorrect password\n`, true);
         }
       }
-      if (parsed.list) await budget.output(parsed.verbose
+      if (parsed.list) {
+        if (parsed.quiet < 2) await budget.output(parsed.verbose
         ? `--------          -------  ---                            -------\n${String(total).padStart(8)}         ${String(compressedTotal).padStart(8)} ${String(total ? Math.round(100 * (total - compressedTotal) / total) : 0).padStart(3)}%                            ${selected} file${selected === 1 ? "" : "s"}\n`
         : `---------                     -------\n${String(total).padStart(9)}                     ${selected} file${selected === 1 ? "" : "s"}\n`);
-      else {
+      } else {
         if (links.size && !parsed.quiet) await budget.output("finishing deferred symbolic links:\n");
         for await (const link of links.values()) {
           await extraction.parents(root, link.path, false);

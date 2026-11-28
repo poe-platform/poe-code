@@ -17,7 +17,7 @@ const result = await shell.exec("unzip -o -d /extracted /archive.zip");
 await shell.dispose();
 ```
 
-Supported operations include listing (`-l`, `-v`, `-Z1`), integrity testing (`-t`),
+Supported operations include listing (`-l`, `-v`, `-Z1`; `-qq` omits listing headers and totals), integrity testing (`-t`),
 member streaming (`-p`, `-c`), include/exclude patterns (`-x`), case-insensitive
 matching (`-C`), destination selection (`-d`), overwrite policy (`-o`, `-n`),
 update/freshen (`-u`, `-f`), and flattened paths (`-j`). Unsafe member paths and

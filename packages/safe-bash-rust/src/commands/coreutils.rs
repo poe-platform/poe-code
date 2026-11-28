@@ -7182,9 +7182,9 @@ fn cmd_bc(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Built
             _ => no_comments.push(ch),
         }
     }
-    let body = extract_bc_defines(&no_comments, &mut bc);
     let mut out = String::new();
-    for stmt in split_bc_top_stmts(&body) {
+    for stmt in split_bc_top_stmts(&no_comments) {
+        let stmt = extract_bc_defines(&stmt, &mut bc);
         let flow = exec_bc_stmt(&stmt, &mut bc, &mut out, 0);
         if matches!(flow, BcFlow::Halt) || bc.halted || bc.runtime_err.is_some() {
             break;

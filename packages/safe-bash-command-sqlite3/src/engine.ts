@@ -7609,12 +7609,14 @@ export class SqliteDatabase {
           positionalParams,
           cteScope
         );
+        const width = subquery.kind === "in_subquery" && subquery.expr.kind === "row"
+          ? subquery.expr.items.length : 1;
         if (
           !(subquery.kind === "subquery" && subquery.exists) &&
           result &&
-          result.columns.length !== 1
+          result.columns.length !== width
         ) {
-          throw new Error(`sub-select returns ${result.columns.length} columns - expected 1`);
+          throw new Error(`sub-select returns ${result.columns.length} columns - expected ${width}`);
         }
       } finally {
         this.outerRows.pop();
@@ -8028,8 +8030,13 @@ export class SqliteDatabase {
         return expr.not ? 1 : 0;
       }
       case "in_subquery": {
-        const v = yield* this.evalExprSteps(expr.expr, row, positionalParams, cteScope, evaluation);
-        const collation = this.expressionCollation(expr.expr, row);
+        const items = expr.expr.kind === "row" ? expr.expr.items : [expr.expr];
+        const values: SqlValue[] = [];
+        const collations = items.map((item) => this.expressionCollation(item, row));
+        for (const item of items) {
+          yield;
+          values.push(yield* this.evalExprSteps(item, row, positionalParams, cteScope, evaluation));
+        }
         this.outerRows.push(row);
         let res: QueryResultSet;
         try {
@@ -8041,19 +8048,25 @@ export class SqliteDatabase {
         } finally {
           this.outerRows.pop();
         }
-        if (res.columns.length !== 1)
-          throw new Error(`sub-select returns ${res.columns.length} columns - expected 1`);
-        if (v === null) {
-          return res.rows.length === 0 ? (expr.not ? 1 : 0) : null;
-        }
+        if (res.columns.length !== items.length)
+          throw new Error(`sub-select returns ${res.columns.length} columns - expected ${items.length}`);
         let sawNull = false;
         for (const r of res.rows) {
           yield;
-          const iv = r[0] ?? null;
-          if (iv === null) {
+          let matched = true;
+          let unknown = false;
+          for (let i = 0; i < values.length; i++) {
+            yield;
+            const equal = sqlEquals(values[i]!, r[i] ?? null, collations[i]);
+            if (equal === false) {
+              matched = false;
+              break;
+            }
+            if (equal === null) unknown = true;
+          }
+          if (matched) {
+            if (!unknown) return expr.not ? 0 : 1;
             sawNull = true;
-          } else if (sqlEquals(v, iv, collation) === true) {
-            return expr.not ? 0 : 1;
           }
         }
         if (sawNull) {

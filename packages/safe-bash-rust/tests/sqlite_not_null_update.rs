@@ -11,6 +11,9 @@ fn sqlite3_update_enforces_not_null() {
 
     let result = shell.exec("sqlite3 /required.db \"CREATE TABLE t(k TEXT NOT NULL, replacement TEXT); INSERT INTO t VALUES('first','changed'),('keep',NULL);\"").unwrap();
     assert_eq!(result.exit_code, 0, "{}", result.stderr);
+    let result = shell.exec("sqlite3 /required.db \"UPDATE t SET k=NULL WHERE k='absent'; UPDATE t SET k='valid' WHERE k='first'; SELECT k FROM t; UPDATE t SET k='first' WHERE k='valid';\"").unwrap();
+    assert_eq!(result.exit_code, 0, "{}", result.stderr);
+    assert_eq!(result.stdout, "valid\nkeep\n");
     for update in [
         "UPDATE t SET k=replacement RETURNING k",
         "WITH replacement(value) AS (SELECT NULL) UPDATE t SET k=NULL",
@@ -27,7 +30,4 @@ fn sqlite3_update_enforces_not_null() {
             .unwrap();
         assert_eq!(result.stdout, "first\nkeep\n");
     }
-    let result = shell.exec("sqlite3 /required.db \"DROP TRIGGER bad; UPDATE t SET k=NULL WHERE k='absent'; UPDATE t SET k='valid' WHERE k='first'; SELECT k FROM t;\"").unwrap();
-    assert_eq!(result.exit_code, 0, "{}", result.stderr);
-    assert_eq!(result.stdout, "valid\nkeep\n");
 }

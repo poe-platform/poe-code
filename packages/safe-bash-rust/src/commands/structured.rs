@@ -22498,7 +22498,7 @@ fn cmd_sqlite3(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> 
 
     BuiltinOutcome {
         stdout: out,
-        exit_code: if errors.starts_with("Error: stepping, UNIQUE constraint failed: index ") {
+        exit_code: if errors.starts_with("Error: stepping, UNIQUE constraint failed:") {
             19
         } else {
             i32::from(!errors.is_empty())
@@ -23463,7 +23463,7 @@ fn exec_sql_update(
         }
     }
     let mut affected_rows = Vec::new();
-    for (r_idx, old_r, ur) in updated_pairs {
+    'rows: for (r_idx, old_r, ur) in updated_pairs {
         if is_view {
             match fire_sql_triggers(
                 &tname,
@@ -23520,10 +23520,23 @@ fn exec_sql_update(
                 return Err(format!("Error: CHECK constraint failed: {check}\n"));
             }
         }
-        for (name, terms, _) in tables[&tname].unique_indexes.clone() {
+        for (name, terms, ignore) in tables[&tname].unique_indexes.clone() {
             let conflicts = sql_unique_conflicts(&tables[&tname], &terms, &ur, Some(r_idx), tables);
             if !conflicts.is_empty() {
+                if ignore {
+                    continue 'rows;
+                }
                 let error = sql_unique_error(&tname, &tables[&tname], &name, &terms);
+                let error = if let Some(message) =
+                    error.strip_prefix("Error: UNIQUE constraint failed: ")
+                {
+                    format!(
+                        "Error: stepping, UNIQUE constraint failed: {} (19)\n",
+                        message.trim_end()
+                    )
+                } else {
+                    error
+                };
                 *tables = tables_snap;
                 return Err(error);
             }
@@ -44281,6 +44294,31 @@ mod tests {
                 assert_eq!(fs.read_file("/result").unwrap(), b"existing output");
             }
         }
+    }
+
+    #[test]
+    fn sqlite_update_primary_key_failure_rolls_back_all_rows() {
+        let (mut table, _, _) =
+            parse_create_table_metadata("CREATE TABLE t(id INTEGER PRIMARY KEY)");
+        table.push_row(vec!["1".into()]);
+        table.push_row(vec!["2".into()]);
+        let mut tables = BTreeMap::from([("t".into(), table)]);
+        let before = tables["t"].rows.clone();
+        let result = exec_sql_update(
+            "UPDATE t SET id=3 RETURNING id",
+            &mut tables,
+            &BTreeMap::new(),
+            &[],
+            false,
+            false,
+            false,
+            "|",
+        );
+        assert_eq!(
+            result.unwrap_err(),
+            "Error: stepping, UNIQUE constraint failed: t.id (19)\n"
+        );
+        assert_eq!(tables["t"].rows, before);
     }
 
     #[test]

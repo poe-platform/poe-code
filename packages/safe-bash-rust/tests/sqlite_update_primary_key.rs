@@ -13,9 +13,12 @@ fn sqlite_update_rejects_duplicate_integer_primary_key_through_shell() {
             },
         )
         .unwrap();
-    assert_eq!(result.exit_code, 1, "{result:?}");
+    assert_eq!(result.exit_code, 19, "{result:?}");
     assert_eq!(result.stdout, "");
-    assert_eq!(result.stderr, "Error: UNIQUE constraint failed: t.id\n");
+    assert_eq!(
+        result.stderr,
+        "Error: stepping, UNIQUE constraint failed: t.id (19)\n"
+    );
 }
 
 #[test]
@@ -30,9 +33,12 @@ fn sqlite_primary_key_update_failure_rolls_back_rows_and_triggers() {
         let setup = shell.exec("sqlite3 /db 'CREATE TABLE t(id INTEGER PRIMARY KEY, replacement); INSERT INTO t VALUES(1,3),(2,3); CREATE TABLE audit(id); CREATE TRIGGER changed AFTER UPDATE ON t BEGIN INSERT INTO audit VALUES(NEW.id); END; CREATE TABLE source(n); INSERT INTO source VALUES(3);'").unwrap();
         assert_eq!(setup.exit_code, 0, "{setup:?}");
         let result = shell.exec(&format!("sqlite3 /db '{update}'")).unwrap();
-        assert_eq!(result.exit_code, 1, "{update}: {result:?}");
+        assert_eq!(result.exit_code, 19, "{update}: {result:?}");
         assert_eq!(result.stdout, "", "{update}");
-        assert_eq!(result.stderr, "Error: UNIQUE constraint failed: t.id\n");
+        assert_eq!(
+            result.stderr,
+            "Error: stepping, UNIQUE constraint failed: t.id (19)\n"
+        );
         let stored = shell.exec("sqlite3 /db 'SELECT id FROM t ORDER BY id; SELECT count(*) FROM audit; SELECT n FROM source;'").unwrap();
         assert_eq!(stored.exit_code, 0, "{stored:?}");
         assert_eq!(stored.stdout, "1\n2\n0\n3\n", "{update}");
@@ -56,9 +62,12 @@ fn sqlite_primary_key_updates_allow_unchanged_and_available_keys() {
 fn sqlite_primary_key_update_checks_conflicts_after_before_triggers() {
     let (mut shell, _) = Shell::with_memory_fs();
     let result = shell.exec("sqlite3 /db 'CREATE TABLE t(id INTEGER PRIMARY KEY); INSERT INTO t VALUES(1); CREATE TRIGGER reserve BEFORE UPDATE ON t BEGIN INSERT INTO t VALUES(2); END; UPDATE t SET id=2;'").unwrap();
-    assert_eq!(result.exit_code, 1, "{result:?}");
+    assert_eq!(result.exit_code, 19, "{result:?}");
     assert_eq!(result.stdout, "");
-    assert_eq!(result.stderr, "Error: UNIQUE constraint failed: t.id\n");
+    assert_eq!(
+        result.stderr,
+        "Error: stepping, UNIQUE constraint failed: t.id (19)\n"
+    );
     let stored = shell.exec("sqlite3 /db 'SELECT id FROM t;'").unwrap();
     assert_eq!(stored.stdout, "1\n");
 }
@@ -71,8 +80,11 @@ fn sqlite_update_checks_complete_unique_keys_and_allows_nulls() {
     let result = shell
         .exec("sqlite3 /db 'UPDATE t SET b=1 WHERE b=3;'")
         .unwrap();
-    assert_eq!(result.exit_code, 1, "{result:?}");
-    assert_eq!(result.stderr, "Error: UNIQUE constraint failed: t.a, t.b\n");
+    assert_eq!(result.exit_code, 19, "{result:?}");
+    assert_eq!(
+        result.stderr,
+        "Error: stepping, UNIQUE constraint failed: t.a, t.b (19)\n"
+    );
     let valid = shell
         .exec("sqlite3 /db 'UPDATE t SET b=NULL; SELECT count(*) FROM t;'")
         .unwrap();

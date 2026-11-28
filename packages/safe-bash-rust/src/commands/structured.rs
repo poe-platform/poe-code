@@ -23764,8 +23764,11 @@ fn exec_sql_update(
     let Some(set_pos) = upper.find(" SET ") else {
         return Ok(String::new());
     };
+    let is_or_replace = upper.starts_with("UPDATE OR REPLACE ");
     let is_or_ignore = upper.starts_with("UPDATE OR IGNORE ");
-    let table_start = if is_or_ignore {
+    let table_start = if is_or_replace {
+        "UPDATE OR REPLACE ".len()
+    } else if is_or_ignore {
         "UPDATE OR IGNORE ".len()
     } else {
         "UPDATE ".len()
@@ -23886,7 +23889,12 @@ fn exec_sql_update(
         }
     }
     let mut affected_rows = Vec::new();
-    'rows: for (r_idx, old_r, ur) in updated_pairs {
+    // Keep original row positions so a replaced row is never updated later.
+    let mut surviving_rows: Vec<usize> = (0..target.rows.len()).collect();
+    'rows: for (original_idx, old_r, ur) in updated_pairs {
+        let Ok(mut r_idx) = surviving_rows.binary_search(&original_idx) else {
+            continue;
+        };
         if is_view {
             match fire_sql_triggers(
                 &tname,
@@ -23951,10 +23959,15 @@ fn exec_sql_update(
                 return Err(format!("Error: CHECK constraint failed: {check}\n"));
             }
         }
+        let mut replace_conflicts = BTreeSet::new();
         for (name, terms, ignore) in tables[&tname].unique_indexes.clone() {
             let conflicts = sql_unique_conflicts(&tables[&tname], &terms, &ur, Some(r_idx), tables)
                 .inspect_err(|_| *tables = tables_snap.clone())?;
             if !conflicts.is_empty() {
+                if is_or_replace {
+                    replace_conflicts.extend(conflicts);
+                    continue;
+                }
                 if is_or_ignore || ignore {
                     continue 'rows;
                 }
@@ -23971,6 +23984,16 @@ fn exec_sql_update(
                 };
                 *tables = tables_snap;
                 return Err(error);
+            }
+        }
+        if let Some(tbl) = tables.get_mut(&tname) {
+            for index in replace_conflicts.into_iter().rev() {
+                tbl.rows.remove(index);
+                tbl.rowids.remove(index);
+                surviving_rows.remove(index);
+                if index < r_idx {
+                    r_idx -= 1;
+                }
             }
         }
         if let Some(tbl) = tables.get_mut(&tname)

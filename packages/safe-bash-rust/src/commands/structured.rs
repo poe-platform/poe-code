@@ -23784,6 +23784,23 @@ fn resolve_sql_from_table(
             } else {
                 hdr_line.split('\x1f').map(|s| s.to_string()).collect()
             };
+            let alias = trimmed[close + 1..].trim();
+            let alias = alias
+                .split_once(char::is_whitespace)
+                .filter(|(keyword, _)| keyword.eq_ignore_ascii_case("AS"))
+                .map_or(alias, |(_, name)| name.trim())
+                .trim_matches('"')
+                .trim_matches('`');
+            let cols = cols
+                .into_iter()
+                .map(|col| {
+                    if alias.is_empty() {
+                        col
+                    } else {
+                        format!("{alias}.{col}")
+                    }
+                })
+                .collect();
             let rows: Vec<Vec<String>> = lines
                 .map(|l| l.split('\x1f').map(|s| s.to_string()).collect())
                 .collect();

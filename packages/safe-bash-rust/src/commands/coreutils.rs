@@ -7483,7 +7483,7 @@ fn exec_bc_stmt(raw: &str, bc: &mut BcEnv, out: &mut String, depth: usize) -> Bc
             if parts.len() == 3 {
                 let body_s = r[cp + 1..].trim();
                 if !parts[0].trim().is_empty() {
-                    let _ = exec_bc_stmt(parts[0], bc, out, depth + 1);
+                    let _ = eval_bc_val(parts[0], bc, depth + 1);
                 }
                 for _ in 0..100_000 {
                     if !parts[1].trim().is_empty()
@@ -7499,7 +7499,7 @@ fn exec_bc_stmt(raw: &str, bc: &mut BcEnv, out: &mut String, depth: usize) -> Bc
                         BcFlow::Return(v) => return BcFlow::Return(v),
                     }
                     if !parts[2].trim().is_empty() {
-                        let _ = exec_bc_stmt(parts[2], bc, out, depth + 1);
+                        let _ = eval_bc_val(parts[2], bc, depth + 1);
                     }
                 }
                 return BcFlow::None;
@@ -7521,20 +7521,6 @@ fn exec_bc_stmt(raw: &str, bc: &mut BcEnv, out: &mut String, depth: usize) -> Bc
             }
             return BcFlow::None;
         }
-    }
-    if let Some(v) = s.strip_suffix("++").or_else(|| s.strip_prefix("++")) {
-        let key = resolve_bc_lvalue_key(v, bc, depth);
-        let cur = bc.vars.get(&key).cloned().unwrap_or_default();
-        let next = apply_bc_binop(&cur, &BcVal::from_i64(1), "+", bc);
-        bc.vars.insert(key, next);
-        return BcFlow::None;
-    }
-    if let Some(v) = s.strip_suffix("--").or_else(|| s.strip_prefix("--")) {
-        let key = resolve_bc_lvalue_key(v, bc, depth);
-        let cur = bc.vars.get(&key).cloned().unwrap_or_default();
-        let next = apply_bc_binop(&cur, &BcVal::from_i64(1), "-", bc);
-        bc.vars.insert(key, next);
-        return BcFlow::None;
     }
     for (op, bin_op) in [
         ("+=", "+"),

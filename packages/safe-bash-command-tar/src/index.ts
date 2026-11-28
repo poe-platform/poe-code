@@ -111,6 +111,7 @@ Create, read or modify USTAR/PAX archives in the virtual filesystem.
       --no-verbatim-files-from Enable supported file-list directory options
       --exclude=PATTERN   Exclude paths from subsequent sources
       --exclude-caches    Keep cache directories and tags, omit other contents
+      --ignore-failed-read Warn instead of failing for missing creation inputs
       --no-recursion      Archive subsequent directories without their contents
       --recursion         Recurse into subsequent directories (default)
       --sort=ORDER        Order directory children by name or none (default)

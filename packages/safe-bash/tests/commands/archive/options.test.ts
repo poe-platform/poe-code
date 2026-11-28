@@ -3,6 +3,16 @@ import test from "node:test";
 import { MockS3Client, S3FileSystem } from "../../../src/fs/s3/index.js";
 import { archive, binary, direct, fixture, gate, member, record, source, wrapped } from "./helpers.js";
 
+test("tar --ignore-failed-read keeps backup scripts successful with missing inputs", async () => {
+  const { shell } = await fixture();
+  try {
+    const result = await shell.exec('echo hi > a; tar cf t.tar --ignore-failed-read a nope; echo "st=$?"; tar tf t.tar');
+    assert.equal(result.exitCode, 0);
+    assert.equal(result.stdout, "st=0\na\n");
+    assert.equal(result.stderr, "tar: nope: Warning: Cannot stat: No such file or directory\n");
+  } finally { await shell.dispose(); }
+});
+
 for (const backend of ["memory", "s3-mock"]) test(`stdout extraction on ${backend} accepts short, long and traditional options without publishing members`, async () => {
   const adapter = backend === "s3-mock" ? new S3FileSystem({ bucket: "bucket", transport: new MockS3Client({ buckets: ["bucket"] }) }) : undefined;
   const { fs, shell } = await fixture({}, adapter);

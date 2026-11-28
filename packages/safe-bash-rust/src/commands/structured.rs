@@ -18673,24 +18673,6 @@ enum SqlWinFn {
     },
 }
 
-fn split_sql_aggregate_filter(expr: &str) -> Option<(&str, &str)> {
-    let open = expr.find('(')?;
-    let close = open + find_matching_paren(&expr[open..])?;
-    let suffix = expr[close + 1..].trim();
-    if !suffix.get(..6)?.eq_ignore_ascii_case("FILTER") {
-        return None;
-    }
-    let filter = suffix[6..].trim();
-    if !filter.starts_with('(') || find_matching_paren(filter)? != filter.len() - 1 {
-        return None;
-    }
-    let predicate = filter[1..filter.len() - 1].trim();
-    if !predicate.get(..5)?.eq_ignore_ascii_case("WHERE") {
-        return None;
-    }
-    Some((&expr[..=close], predicate[5..].trim()))
-}
-
 fn sql_window_distribution(
     indices: &[usize],
     pos: usize,
@@ -27853,7 +27835,7 @@ fn eval_sql_row_value(
             return Ok(format!("X'{hex}'"));
         }
         if let Some(text) = v.strip_prefix(SQL_TEXT_PREFIX) {
-            return format!("'{}'", text.replace('\'', "''"));
+            return Ok(format!("'{}'", text.replace('\'', "''")));
         }
         if is_str_lit {
             return Ok(format!("'{}'", sql_value_text(&v).replace('\'', "''")));

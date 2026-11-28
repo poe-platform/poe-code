@@ -513,3 +513,22 @@ for (const mode of ["-rf", "-uf", "--delete", "-Af"]) test(`tar mutation ${mode}
   assert.equal(publications, 1);
   assert.equal((await run(createTarCommand(), ["-tf", "/archive.tar"], "", fs)).stdout, mode === "--delete" ? "" : "a\nb\n");
 });
+
+for (const flags of [["-I", "zstd"], ["--use-compress-program=gzip"], ["-I", "gzip -9"], ["-Ibzip2"], ["--use-compress-program", "xz"]]) test(`tar compression program ${flags.join(" ")} round trips`, async () => {
+  const fs = createMemoryFileSystem();
+  await fs.writeFile("/a", new TextEncoder().encode("hi\n"));
+  const created = await run(createTarCommand(), [...flags, "-cf", "archive", "a"], "", fs);
+  assert.equal(created.exitCode, 0, created.stderr);
+  assert.equal(created.stderr, "");
+  const extracted = await run(createTarCommand(), [...flags, "-xOf", "archive"], "", fs);
+  assert.equal(extracted.exitCode, 0, extracted.stderr);
+  assert.equal(extracted.stderr, "");
+  assert.equal(extracted.stdout, "hi\n");
+  if (flags.includes("gzip -9")) assert.equal((await fs.readFile("/archive"))[8], 2);
+});
+
+for (const flags of [["-I"], ["--use-compress-program"], ["-I", ""], ["-I", "unknown"], ["-I", "gzip --unknown"], ["-I", "gzip -0"], ["-I", "gzip -9 extra"], ["-z", "-I", "xz"]]) test(`tar rejects invalid compression program ${JSON.stringify(flags)}`, async () => {
+  const result = await run(createTarCommand(), ["-cf", "archive", "a", ...flags]);
+  assert.equal(result.exitCode, 2);
+  assert.ok(!result.stderr.includes("Cannot stat"), result.stderr);
+});

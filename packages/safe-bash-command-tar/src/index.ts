@@ -42,7 +42,7 @@ export function createTarCommand(options: ArchiveCommandsOptions = {}): CommandD
       if (parsed.mode === "c") {
         const prepared = await manifest(context, parsed, budget);
         let source: ByteSource = bounded(recorded(createArchive(context, prepared.entries, parsed, budget), parsed, budget), limits.maxArchiveBytes, signal, limits.chunkSize);
-        if (parsed.compression) source = compressed(source, false, signal, limits, parsed.compression);
+        if (parsed.compression) source = compressed(source, false, signal, limits, parsed.compression, parsed.compressionLevel);
         if (prepared.output) {
           const existing = await maybeStat(context, prepared.output);
           if (existing && existing.type !== "file") fail("output archive changed to a non-file");

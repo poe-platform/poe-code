@@ -8,6 +8,7 @@ export interface TarOptions {
   mode: "c" | "t" | "x" | "r" | "u" | "d" | "delete" | "A";
   archive: string;
   compression?: "gzip" | "bzip2" | "xz" | "zstd";
+  compressionLevel?: number;
   verbose: boolean;
   toStdout: boolean;
   utc: boolean;
@@ -37,6 +38,7 @@ export async function parseOptions(context: CommandContext, limits: ArchiveLimit
   let mode: TarOptions["mode"] | undefined;
   let archive = "-";
   let compression: TarOptions["compression"];
+  let compressionLevel: number | undefined;
   let autoCompress = false;
   let verbose = false;
   let toStdout = false;
@@ -118,6 +120,14 @@ export async function parseOptions(context: CommandContext, limits: ArchiveLimit
       const selected = flag === "z" ? "gzip" : flag === "j" ? "bzip2" : flag === "J" ? "xz" : "zstd";
       if (compression && compression !== selected) fail("conflicting compression options");
       compression = selected;
+    } else if (flag === "I") {
+      const words = value!.split(" ").flatMap(word => word.split("\t")).filter(Boolean);
+      const [program, level, ...extra] = words;
+      if (program !== "gzip" && program !== "bzip2" && program !== "xz" && program !== "zstd") fail(`unsupported compression program: ${value}`);
+      if (extra.length || (level !== undefined && (level.length !== 2 || level[0] !== "-" || !"123456789".includes(level[1]!)))) fail(`unsupported compression program arguments: ${value}`);
+      if (compression && compression !== program) fail("conflicting compression options");
+      compression = program;
+      compressionLevel = level === undefined ? undefined : Number(level[1]);
     } else if (flag === "a") autoCompress = true;
     else if (flag === "v") verbose = true;
     else if (flag === "O" || flag === "to-stdout") toStdout = true;
@@ -220,8 +230,8 @@ export async function parseOptions(context: CommandContext, limits: ArchiveLimit
     else if (flag === "no-verbatim-files-from") verbatim = false;
     else fail(`unsupported option: ${flag}`);
   };
-  const long: Record<string, string> = { create: "c", list: "t", extract: "x", get: "x", append: "r", update: "u", compare: "d", diff: "d", catenate: "A", concatenate: "A", file: "f", gzip: "z", bzip2: "j", xz: "J", "auto-compress": "a", verbose: "v", directory: "C", "files-from": "T", "exclude-from": "X", xform: "transform", "blocking-factor": "b", "read-full-records": "B", "ignore-zeros": "i", seek: "n" };
-  const values = new Set(["f", "C", "T", "X", "exclude", "strip-components", "format", "transform", "mtime", "owner", "group", "mode", "sort", "b", "record-size", "quoting-style"]);
+  const long: Record<string, string> = { "use-compress-program": "I", create: "c", list: "t", extract: "x", get: "x", append: "r", update: "u", compare: "d", diff: "d", catenate: "A", concatenate: "A", file: "f", gzip: "z", bzip2: "j", xz: "J", "auto-compress": "a", verbose: "v", directory: "C", "files-from": "T", "exclude-from": "X", xform: "transform", "blocking-factor": "b", "read-full-records": "B", "ignore-zeros": "i", seek: "n" };
+  const values = new Set(["I", "f", "C", "T", "X", "exclude", "strip-components", "format", "transform", "mtime", "owner", "group", "mode", "sort", "b", "record-size", "quoting-style"]);
   // Lists without an explicit decoding mode also accept trailing mode flags.
   // Explicit mode changes, directories and operands retain their original order.
   const actions: (() => void | Promise<void>)[] = [];
@@ -248,7 +258,7 @@ export async function parseOptions(context: CommandContext, limits: ArchiveLimit
       if (!values.has(flag) && flag !== "atime-preserve" && flag !== "occurrence" && value !== undefined) fail(`option --${name} does not take an argument`);
       if (flag === "help") return "help";
       await schedule(flag, value);
-    } else if (!end && ((argument.startsWith("-") && argument !== "-") || (index === 0 && argument.length > 0 && [...argument].every(flag => "ctxrudAzjJavfCTXmpkhbBinO".includes(flag))))) {
+    } else if (!end && ((argument.startsWith("-") && argument !== "-") || (index === 0 && argument.length > 0 && [...argument].every(flag => "ctxrudAzjJavfCTXmpkhbBinOI".includes(flag))))) {
       const old = !argument.startsWith("-");
       const cluster = old ? argument : argument.slice(1);
       for (let offset = 0; offset < cluster.length; offset++) {
@@ -277,7 +287,7 @@ export async function parseOptions(context: CommandContext, limits: ArchiveLimit
       : archive.endsWith(".xz") || archive.endsWith(".txz") ? "xz"
       : archive.endsWith(".zst") || archive.endsWith(".tzst") ? "zstd" : undefined;
   }
-  return { mode, archive, ...(compression ? { compression } : {}), verbose, toStdout, utc, recordSize, ignoreZeros, totals, quotingStyle, showTransformedNames, transforms, strip, format, cwd, operands, excludes, sort, dereference, excludeCaches, recursion, wildcards, ...(occurrence !== undefined ? { occurrence } : {}), metadata, overwrite };
+  return { mode, archive, ...(compression ? { compression } : {}), ...(compressionLevel !== undefined ? { compressionLevel } : {}), verbose, toStdout, utc, recordSize, ignoreZeros, totals, quotingStyle, showTransformedNames, transforms, strip, format, cwd, operands, excludes, sort, dereference, excludeCaches, recursion, wildcards, ...(occurrence !== undefined ? { occurrence } : {}), metadata, overwrite };
 }
 
 function unquoteFileName(name: string): string {

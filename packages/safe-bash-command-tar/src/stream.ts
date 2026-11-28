@@ -8,7 +8,7 @@ const profiles = [...sharedProfiles, xzProfile];
 import { readBytes,type ByteSource } from "safe-bash-contracts";
 import { bounded,fail,type ArchiveLimits,type Budget } from "safe-bash-io-engine/commands/archive/internal";
 
-export async function* compressed(source: ByteSource, decode: boolean, signal: AbortSignal, limits: ArchiveLimits, format: NonNullable<TarOptions["compression"]> = "gzip"): ByteSource {
+export async function* compressed(source: ByteSource, decode: boolean, signal: AbortSignal, limits: ArchiveLimits, format: NonNullable<TarOptions["compression"]> = "gzip", level?: number): ByteSource {
   signal.throwIfAborted();
   const controller = new AbortController();
   const combined = AbortSignal.any([signal, controller.signal]);
@@ -20,8 +20,8 @@ export async function* compressed(source: ByteSource, decode: boolean, signal: A
         if (!hasFailure) { hasFailure = true; failure = error; controller.abort(error); }
     };
     const output = format === "gzip"
-      ? codec(reader, { mode: decode ? "gunzip" : "gzip", chunkSize: limits.chunkSize, onFailure }, combined)
-      : boundedCodec(reader, { format, decompress: decode, level: profiles.find(profile => profile.format === format)!.level, onFailure }, combined);
+      ? codec(reader, { mode: decode ? "gunzip" : "gzip", ...(level !== undefined ? { level } : {}), chunkSize: limits.chunkSize, onFailure }, combined)
+      : boundedCodec(reader, { format, decompress: decode, level: level ?? profiles.find(profile => profile.format === format)!.level, onFailure }, combined);
     yield* bounded(output, limits.maxArchiveBytes, combined, limits.chunkSize);
   } catch (error) {
     signal.throwIfAborted();

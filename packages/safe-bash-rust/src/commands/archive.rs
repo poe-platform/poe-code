@@ -3558,7 +3558,7 @@ fn cmd_tar(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Buil
     let mut strip_components = 0usize;
     let mut pax = true;
     let mut override_mode: Option<u32> = None;
-    let mut override_mtime: Option<u64> = None;
+    let mut override_mtime: Option<f64> = None;
     let mut override_uid: Option<u32> = None;
     let mut override_gid: Option<u32> = None;
     let mut excludes: Vec<String> = Vec::new();
@@ -3826,37 +3826,19 @@ fn cmd_tar(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Buil
                 i += 1;
                 continue;
             }
-            if a == "--mtime" && i + 1 < args.len() {
-                i += 1;
-                let raw_mt = &args[i];
-                let clean = raw_mt.trim_matches(|c| c == '\'' || c == '"');
-                if clean.is_empty() || clean == "@" {
-                    return err_out(&format!("tar: invalid mtime: {raw_mt}\n"), 2);
-                }
-                if let Some(sec) = clean.strip_prefix('@') {
-                    if sec.parse::<f64>().is_err() {
-                        return err_out(&format!("tar: invalid mtime: {raw_mt}\n"), 2);
-                    }
-                    override_mtime = sec.parse::<u64>().ok();
-                } else if !clean.chars().any(|c| c.is_ascii_digit()) {
-                    return err_out(&format!("tar: invalid mtime: {raw_mt}\n"), 2);
-                }
-                i += 1;
-                continue;
-            }
-            if let Some(mt) = a.strip_prefix("--mtime=") {
+            if a.starts_with("--mtime=") || a == "--mtime" && i + 1 < args.len() {
+                let mt = if let Some(mt) = a.strip_prefix("--mtime=") {
+                    mt
+                } else {
+                    i += 1;
+                    &args[i]
+                };
                 let clean = mt.trim_matches(|c| c == '\'' || c == '"');
-                if clean.is_empty() || clean == "@" {
+                let Ok((seconds, nanos, _)) = super::coreutils::parse_absolute_date_spec(clean, 0)
+                else {
                     return err_out(&format!("tar: invalid mtime: {mt}\n"), 2);
-                }
-                if let Some(sec) = clean.strip_prefix('@') {
-                    if sec.parse::<f64>().is_err() {
-                        return err_out(&format!("tar: invalid mtime: {mt}\n"), 2);
-                    }
-                    override_mtime = sec.parse::<u64>().ok();
-                } else if !clean.chars().any(|c| c.is_ascii_digit()) {
-                    return err_out(&format!("tar: invalid mtime: {mt}\n"), 2);
-                }
+                };
+                override_mtime = Some(seconds as f64 + f64::from(nanos) / 1_000_000_000.);
                 i += 1;
                 continue;
             }
@@ -4691,7 +4673,7 @@ fn cmd_tar(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Buil
             entry.mode = mode;
         }
         if let Some(mtime) = override_mtime {
-            entry.mtime = mtime as f64;
+            entry.mtime = mtime;
         }
         if let Some(uid) = override_uid {
             entry.uid = uid;

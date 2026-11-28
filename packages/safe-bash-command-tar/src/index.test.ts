@@ -111,6 +111,101 @@ for (const members of [["f", "nope"], ["nope", "f"], ["nope"]]) test(`tar publis
   }
 });
 
+for (const [archive, flag, destination] of [
+  ["pkg.tar", "--one-top-level", "pkg"],
+  ["pkg.tar", "--one-top-level=top", "top"],
+  ["pkg.tar.gz", "--one-top-level", "pkg"],
+  ["pkg.tgz", "--one-top-level", "pkg"],
+  ["pkg.tar.xz", "--one-top-level", "pkg"],
+  ["pkg.tar.bz2", "--one-top-level", "pkg"],
+  ["pkg.tar.zst", "--one-top-level", "pkg"],
+  ["pkg.tar", "--one-top-level=nested/top", "nested/top"],
+  ["pkg.tar", "--one-top-level=", ""],
+] as const) test(`tar extracts ${archive} with ${flag}`, async () => {
+  const fs = createMemoryFileSystem();
+  await fs.mkdir("/archives");
+  await fs.mkdir("/out");
+  await fs.writeFile("/a", Buffer.from("hi\n"));
+  const created = await run(createTarCommand(), ["cf", `/archives/${archive}`, "a"], "", fs);
+  assert.equal(created.exitCode, 0, created.stderr);
+  await fs.rm("/a");
+  const extracted = await run(createTarCommand(), ["xf", `/archives/${archive}`, "-C", "/out", flag, "a"], "", fs);
+  assert.deepEqual(extracted, { exitCode: 0, stdout: "", stderr: "" });
+  assert.equal(new TextDecoder().decode(await fs.readFile(`/out/${destination ? destination + "/" : ""}a`)), "hi\n");
+});
+
+for (const archive of ["-", "unknown", ".tar"]) test(`tar requires an explicit top-level directory for ${archive}`, async () => {
+  const result = await run(createTarCommand(), ["xf", archive, "--one-top-level"]);
+  assert.equal(result.exitCode, 2);
+  assert.ok(result.stderr.includes("Cannot deduce top-level directory name"), result.stderr);
+});
+
+test("tar extracts stdin into an explicit top-level directory", async () => {
+  const fs = createMemoryFileSystem();
+  await fs.writeFile("/a", Buffer.from("hi\n"));
+  const created = await run(createTarCommand(), ["cf", "-", "a"], "", fs);
+  assert.equal(created.exitCode, 0, created.stderr);
+  const result = await run(createTarCommand(), ["xf", "-", "--one-top-level=top"], created.stdout, fs);
+  assert.deepEqual(result, { exitCode: 0, stdout: "", stderr: "" });
+  assert.equal(new TextDecoder().decode(await fs.readFile("/top/a")), "hi\n");
+});
+
+test("tar keeps existing top-level prefixes and relocates hardlinks", async () => {
+  const fs = createMemoryFileSystem();
+  await fs.mkdir("/top");
+  await fs.mkdir("/out");
+  await fs.writeFile("/top/a", Buffer.from("hi\n"));
+  await fs.link!("/top/a", "/top/b");
+  await fs.symlink!("a", "/top/link");
+  const created = await run(createTarCommand(), ["cf", "pkg.tar", "top/a", "top/b", "top/link"], "", fs);
+  assert.equal(created.exitCode, 0, created.stderr);
+  const result = await run(createTarCommand(), ["xf", "pkg.tar", "-C", "/out", "--one-top-level=top"], "", fs);
+  assert.deepEqual(result, { exitCode: 0, stdout: "", stderr: "" });
+  assert.equal(new TextDecoder().decode(await fs.readFile("/out/top/b")), "hi\n");
+  assert.equal(await fs.readlink!("/out/top/link"), "a");
+  assert.equal((await fs.stat("/out/top/a")).ino, (await fs.stat("/out/top/b")).ino);
+});
+
+for (const kind of ["file", "symlink"]) test(`tar refuses a ${kind} as the top-level directory`, async () => {
+  const fs = createMemoryFileSystem();
+  await fs.mkdir("/out");
+  await fs.mkdir("/outside");
+  await fs.writeFile("/a", Buffer.from("hi\n"));
+  assert.equal((await run(createTarCommand(), ["cf", "pkg.tar", "a"], "", fs)).exitCode, 0);
+  if (kind === "file") await fs.writeFile("/out/top", Buffer.from("keep"));
+  else await fs.symlink!("/outside", "/out/top");
+  const result = await run(createTarCommand(), ["xf", "pkg.tar", "-C", "/out", "--one-top-level=top"], "", fs);
+  assert.equal(result.exitCode, 2);
+  assert.deepEqual(await fs.readdir("/outside"), []);
+  if (kind === "file") assert.equal(new TextDecoder().decode(await fs.readFile("/out/top")), "keep");
+  else assert.equal(await fs.readlink!("/out/top"), "/outside");
+});
+
+test("tar displays top-level names after transforms and stripping", async () => {
+  const fs = createMemoryFileSystem();
+  await fs.mkdir("/source");
+  await fs.mkdir("/out");
+  await fs.writeFile("/source/a", Buffer.from("hi\n"));
+  assert.equal((await run(createTarCommand(), ["cf", "pkg.tar", "source/a"], "", fs)).exitCode, 0);
+  const result = await run(createTarCommand(), ["xvf", "pkg.tar", "-C", "/out", "--one-top-level=top",
+    "--strip-components=1", "--transform=s,a,b,", "--show-transformed-names"], "", fs);
+  assert.deepEqual(result, { exitCode: 0, stdout: "top/b\n", stderr: "" });
+  assert.equal(new TextDecoder().decode(await fs.readFile("/out/top/b")), "hi\n");
+});
+
+test("tar refuses links escaping the selected top-level directory", async () => {
+  const fs = createMemoryFileSystem();
+  await fs.mkdir("/out");
+  await fs.writeFile("/out/a", Buffer.from("keep"));
+  await fs.symlink!("../a", "/link");
+  assert.equal((await run(createTarCommand(), ["cf", "pkg.tar", "link"], "", fs)).exitCode, 0);
+  const result = await run(createTarCommand(), ["xf", "pkg.tar", "-C", "/out", "--one-top-level=top"], "", fs);
+  assert.equal(result.exitCode, 2);
+  assert.ok(result.stderr.includes("symlink target escapes extraction root"), result.stderr);
+  assert.equal(new TextDecoder().decode(await fs.readFile("/out/a")), "keep");
+  await assert.rejects(fs.lstat("/out/top/link"), { code: "ENOENT" });
+});
+
 test("tar lists and extracts the legacy Opus release archive", async () => {
   const fs = createMemoryFileSystem();
   await fs.writeFile("/archive.tar.gz", await readFile(new URL("../../media-codecs/vendor/sources/opus-1.5.2.tar.gz", import.meta.url)));

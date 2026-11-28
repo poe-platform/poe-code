@@ -21,6 +21,7 @@ export interface TarOptions {
   showTransformedNames: boolean;
   transforms: NameTransform[];
   strip: number;
+  oneTopLevel?: string;
   format: "pax" | "ustar";
   cwd: string;
   operands: Operand[];
@@ -59,6 +60,7 @@ export async function parseOptions(context: CommandContext, limits: ArchiveLimit
   const transforms: NameTransform[] = [];
   let overwrite: TarOptions["overwrite"] = "replace";
   let strip = 0;
+  let oneTopLevel: string | undefined;
   let format: TarOptions["format"] = "pax";
   let cwd = context.cwd;
   let nullFiles: boolean | undefined;
@@ -234,6 +236,7 @@ export async function parseOptions(context: CommandContext, limits: ArchiveLimit
       if (!count || ![...count].every(character => "0123456789".includes(character)) || !Number.isSafeInteger(Number(count)) || Number(count) < 1) fail("invalid occurrence count");
       occurrence = Number(count);
     }
+    else if (flag === "one-top-level") oneTopLevel = value === "" ? undefined : value ?? "";
     else if (flag === "strip-components") {
       if (!/^[0-9]+$/u.test(value!) || !Number.isSafeInteger(Number(value))) fail("invalid strip-components count");
       strip = Number(value);
@@ -271,7 +274,7 @@ export async function parseOptions(context: CommandContext, limits: ArchiveLimit
       if (values.has(flag) && value === undefined) value = context.args[++index];
       if (values.has(flag) && value === undefined) fail(`missing argument for --${name}`);
       if (flag === "atime-preserve" && value === undefined) value = "replace";
-      if (!values.has(flag) && flag !== "atime-preserve" && flag !== "occurrence" && value !== undefined) fail(`option --${name} does not take an argument`);
+      if (!values.has(flag) && flag !== "atime-preserve" && flag !== "occurrence" && flag !== "one-top-level" && value !== undefined) fail(`option --${name} does not take an argument`);
       if (flag === "help") return "help";
       await schedule(flag, value);
     } else if (!end && ((argument.startsWith("-") && argument !== "-") || (index === 0 && argument.length > 0 && [...argument].every(flag => "ctxrudAzjJavfCTXmpkhbBinOI".includes(flag))))) {
@@ -303,7 +306,14 @@ export async function parseOptions(context: CommandContext, limits: ArchiveLimit
       : archive.endsWith(".xz") || archive.endsWith(".txz") ? "xz"
       : archive.endsWith(".zst") || archive.endsWith(".tzst") ? "zstd" : undefined;
   }
-  return { mode, archive, ...(compression ? { compression } : {}), ...(compressionLevel !== undefined ? { compressionLevel } : {}), verbose, toStdout, utc, recordSize, ignoreZeros, totals, quotingStyle, showTransformedNames, transforms, strip, format, cwd, operands, excludes, sort, dereference, excludeCaches, excludeVcsIgnores, recursion, wildcards, ...(occurrence !== undefined ? { occurrence } : {}), metadata, overwrite };
+  if (oneTopLevel === "") {
+    const basename = archive.slice(archive.lastIndexOf("/") + 1);
+    const suffix = [".tar.gz", ".tar.bz2", ".tar.xz", ".tar.zst", ".tar.Z", ".tar.lz", ".tar.lzma", ".tar.lzo", ".tar.lz4", ".tgz", ".taz", ".tbz2", ".tbz", ".txz", ".tzst", ".tlz", ".tar", ".gz", ".bz2", ".xz", ".zst", ".Z", ".lz", ".lzma", ".lzo", ".lz4"].find(suffix => basename.endsWith(suffix));
+    if (!suffix || basename.length === suffix.length) fail("Cannot deduce top-level directory name; please set it explicitly with --one-top-level=DIR");
+    oneTopLevel = basename.slice(0, -suffix.length);
+  }
+  if (oneTopLevel !== undefined) checkPath(oneTopLevel, limits);
+  return { mode, archive, ...(oneTopLevel !== undefined ? { oneTopLevel } : {}), ...(compression ? { compression } : {}), ...(compressionLevel !== undefined ? { compressionLevel } : {}), verbose, toStdout, utc, recordSize, ignoreZeros, totals, quotingStyle, showTransformedNames, transforms, strip, format, cwd, operands, excludes, sort, dereference, excludeCaches, excludeVcsIgnores, recursion, wildcards, ...(occurrence !== undefined ? { occurrence } : {}), metadata, overwrite };
 }
 
 function unquoteFileName(name: string): string {

@@ -118,6 +118,7 @@ Create, read or modify USTAR/PAX archives in the virtual filesystem.
       --wildcards         Select archive members with anchored glob patterns
       --no-wildcards      Select literal member names (default)
       --occurrence[=NUM]  Select only occurrence NUM of each operand (default 1)
+      --one-top-level[=DIR] Extract into DIR (default: archive name without suffix)
       --strip-components=NUM Remove leading components when reading archives
       --transform=EXPR    Substitute member names (s/old/new/[gix])
       --show-transformed-names Display transformed names in archive listings

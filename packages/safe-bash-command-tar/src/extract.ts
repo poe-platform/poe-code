@@ -33,6 +33,11 @@ function relativeName(name: string, strip: number): string | undefined {
   return stripped.join("/");
 }
 
+function extractionPath(directory: string, root: string, name: string): string {
+  const path = resolvePath(directory, name);
+  return isPathWithin(root, path) ? path : resolvePath(root, name);
+}
+
 async function checkRoot(context: CommandContext, root: string): Promise<FileStagingEntry[]> {
   const ancestors: FileStagingEntry[] = [];
   const slashStat = await operation(context, () => context.fs.lstat("/", { signal: context.signal }));
@@ -417,7 +422,14 @@ export async function readArchive(context: CommandContext, source: ByteSource, o
         await reader.padding(entry.size);
         continue;
       }
-      const path = resolvePath(root, relative);
+      const directory = root;
+      if (options.oneTopLevel !== undefined) {
+        root = resolvePath(directory, options.oneTopLevel);
+        checkPath(root, budget.limits);
+        // Include the top-level directory itself in conditional ancestor creation.
+        await parents(context, directory, `${root}/`, true);
+      }
+      const path = extractionPath(directory, root, relative);
       if (path === root && entry.type !== "5") fail("non-directory entry would replace extraction root");
       let hardTarget: string | undefined;
       if (entry.type === "2") {
@@ -429,7 +441,7 @@ export async function readArchive(context: CommandContext, source: ByteSource, o
         checkPath(entry.linkname, budget.limits);
         const targetName = relativeName(entry.linkname, options.strip);
         if (targetName === undefined) fail("hardlink target removed by strip-components");
-        hardTarget = resolvePath(root, targetName);
+        hardTarget = extractionPath(directory, root, targetName);
         if (hardTarget === path) fail("self-referential hardlink entry is unsupported");
         if (!published.has(hardTarget)) fail(`hardlink target was not previously extracted (forward or unselected target): ${display(entry.linkname)}`);
         await parents(context, root, hardTarget, false);
@@ -490,9 +502,12 @@ export async function readArchive(context: CommandContext, source: ByteSource, o
         published.set(path, await operation(context, () => context.fs.lstat(path, { signal: context.signal })));
       }
       await reader.padding(entry.size);
-      const shownExtractName = options.showTransformedNames
+      let shownExtractName = options.showTransformedNames
         ? (options.strip > 0 && relative !== undefined ? (effectiveEntryName.endsWith("/") && relative ? `${relative}/` : relative) : effectiveEntryName)
         : entry.name;
+      if (options.showTransformedNames && options.oneTopLevel !== undefined) {
+        shownExtractName = path.slice(directory === "/" ? 1 : directory.length + 1) + (entry.type === "5" ? "/" : "");
+      }
       if (options.verbose) await budget.output(`${quoteName(shownExtractName, options.quotingStyle)}\n`);
     }
     for (let index = 0; index < options.operands.length; index++) if (!matched.has(index)) fail(`member not found: ${display(options.operands[index]!.name)}`);

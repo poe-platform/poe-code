@@ -214,7 +214,7 @@ function renderVerticalNcalMonth(
 ): string[] {
   const cellWidth = options.julian ? 3 : 2;
   const title = options.includeYearInHeader ? `${MONTH_NAMES[month - 1]} ${year}` : MONTH_NAMES[month - 1]!;
-  const header = (" " + centerText(title, 19)).padEnd(22, " ");
+  const header = "    " + title.padEnd((cellWidth + 1) * 6, " ");
   const sunDays = ["Su", "Mo", "Tu", "We", "Th", "Fr", "Sa"];
   const orderedDays = options.mondayFirst ? [...sunDays.slice(1), sunDays[0]!] : sunDays;
 
@@ -301,7 +301,7 @@ export function createCalCommand(options: CalCommandsOptions = {}): CommandDefin
 
       const isNcalDefault = context.command === "ncal";
       let verticalLayout = isNcalDefault;
-      let mondayFirst = isNcalDefault;
+      let mondayFirst = false;
       let julian = false;
       let wholeYear = false;
       let spanMonths = 1;
@@ -535,14 +535,13 @@ export function createCalCommand(options: CalCommandsOptions = {}): CommandDefin
           }));
         }
         const verticalPerRow = wholeYear ? (julian ? 3 : 4) : perRow;
-        const lines: string[] = wholeYear ? [centerText(String(year), (julian ? 26 : 22) * verticalPerRow)] : [];
+        const lines: string[] = wholeYear ? [centerText(String(year), (julian ? 24 : 18) * verticalPerRow)] : [];
         for (let start = 0; start < grids.length; start += verticalPerRow) {
           await yieldTurn(context.signal);
           const group = grids.slice(start, start + verticalPerRow);
           for (let line = 0; line < group[0]!.length; line++) {
             lines.push(group.map((grid, index) => {
-              const text = line === 0 || index === 0 ? grid[line]! : "  " + grid[line]!.slice(2);
-              return text.padEnd(julian ? 26 : 22);
+              return index === 0 ? grid[line]! : grid[line]!.slice(line === 0 ? 4 : 2);
             }).join(""));
           }
           if (start + verticalPerRow < grids.length) lines.push("");
@@ -654,7 +653,7 @@ export function evalSyncCal(
 ): string | undefined {
   const isNcalDefault = cmdName === "ncal";
   let verticalLayout = isNcalDefault;
-  let mondayFirst = isNcalDefault;
+  let mondayFirst = false;
   let julian = false;
   let wholeYear = false;
   let spanMonths = 1;
@@ -803,13 +802,12 @@ export function evalSyncCal(
       }));
     }
     const verticalPerRow = wholeYear ? (julian ? 3 : 4) : perRow;
-    const lines: string[] = wholeYear ? [centerText(String(year), (julian ? 26 : 22) * verticalPerRow)] : [];
+    const lines: string[] = wholeYear ? [centerText(String(year), (julian ? 24 : 18) * verticalPerRow)] : [];
     for (let start = 0; start < grids.length; start += verticalPerRow) {
       const group = grids.slice(start, start + verticalPerRow);
       for (let line = 0; line < group[0]!.length; line++) {
         lines.push(group.map((grid, index) => {
-          const text = line === 0 || index === 0 ? grid[line]! : "  " + grid[line]!.slice(2);
-          return text.padEnd(julian ? 26 : 22);
+          return index === 0 ? grid[line]! : grid[line]!.slice(line === 0 ? 4 : 2);
         }).join(""));
       }
       if (start + verticalPerRow < grids.length) lines.push("");

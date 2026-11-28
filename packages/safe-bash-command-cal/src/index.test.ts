@@ -71,13 +71,13 @@ test("ncal renders vertical month layout by default, supports -w ISO week number
     feb2024.stdout,
     [
       "    February 2024     ",
+      "Su     4 11 18 25   ",
       "Mo     5 12 19 26   ",
       "Tu     6 13 20 27   ",
       "We     7 14 21 28   ",
       "Th  1  8 15 22 29   ",
       "Fr  2  9 16 23      ",
       "Sa  3 10 17 24      ",
-      "Su  4 11 18 25      ",
       "",
     ].join("\n")
   );

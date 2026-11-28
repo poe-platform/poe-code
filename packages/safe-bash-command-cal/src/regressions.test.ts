@@ -96,3 +96,28 @@ test("combined offsets accept the quota boundary and reject the next month", asy
   assert.equal((await run(command, context(["-A", "1", "-B", "1"]))).exitCode, 0);
   assert.equal((await run(command, context(["-A", "2", "-B", "1"]))).exitCode, 1);
 });
+
+for (const [label, args, expected] of [
+  ["January", ["1", "2024"], "    January 2024      \nSu     7 14 21 28   \nMo  1  8 15 22 29   "],
+  ["annual Sunday row", ["-h", "2024"], "                                  2024\n    January           February          March             April             \nSu     7 14 21 28        4 11 18 25        3 10 17 24 31     7 14 21 28   "],
+  ["three months", ["-h", "-3", "1", "2024"], "    December 2023     January 2024      February 2024     \nSu     3 10 17 24 31     7 14 21 28        4 11 18 25   "],
+  ["Julian year", ["-h", "-j", "2024"], "                                  2024\n    January                 February                March                   \nSu       7  14  21  28          35  42  49  56          63  70  77  84  91"],
+] as const) {
+  test(`ncal defaults to Sunday-first ${label} in both execution paths`, async () => {
+    const result = await run(createCalCommand(), { ...context([...args]), command: "ncal" });
+    assert.equal(result.exitCode, 0);
+    assert.equal(result.stderr, "");
+    assert.equal(result.stdout.split("\n").slice(0, expected.split("\n").length).join("\n"), expected);
+    assert.equal(evalSyncCal("ncal", args) + "\n", result.stdout);
+  });
+}
+
+test("ncal uses Monday-first rows only when requested", async () => {
+  for (const args of [["-M", "1", "2024"], ["-hM", "1", "2024"]]) {
+    const result = await run(createCalCommand(), { ...context(args), command: "ncal" });
+    assert.equal(result.exitCode, 0);
+    assert.equal(result.stderr, "");
+    assert.equal(result.stdout.split("\n")[1], "Mo  1  8 15 22 29   ");
+    assert.equal(evalSyncCal("ncal", args) + "\n", result.stdout);
+  }
+});

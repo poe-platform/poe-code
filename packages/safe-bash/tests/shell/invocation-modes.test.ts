@@ -55,7 +55,7 @@ test("unimplemented invocation flags reject explicitly before source consumption
   const { shell } = setup();
   let reads = 0;
   const stdin: ByteSource = { async *[Symbol.asyncIterator]() { reads++; yield Buffer.from("say bad"); } };
-  for (const name of ["bash", "sh"]) for (const flag of ["-x", "+s", "-csx"]) {
+  for (const name of ["bash", "sh"]) for (const flag of ["-v", "+s", "-csv"]) {
     const result = await shell.exec(`${name} ${quote(flag)}`, { stdin });
     assert.equal(result.exitCode, 2, result.stderr);
     assert.match(result.stderr, /unsupported option/u);

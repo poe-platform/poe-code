@@ -20463,6 +20463,13 @@ fn deserialize_sql_db(
                         let mut row_strs = Vec::with_capacity(tbl.columns.len());
                         for col_i in 0..tbl.columns.len() {
                             let cell_s = match r_vals.get(col_i) {
+                                // ALTER TABLE ADD COLUMN leaves older records shorter.
+                                // Only absent fields inherit defaults; stored NULLs stay NULL.
+                                None if Some(col_i) != rowid_alias_col => tbl
+                                    .defaults
+                                    .get(&tbl.columns[col_i].to_ascii_lowercase())
+                                    .cloned()
+                                    .unwrap_or_else(|| SQL_NULL.to_string()),
                                 None | Some(SqlBtreeVal::Null) => {
                                     if Some(col_i) == rowid_alias_col {
                                         rowid.to_string()

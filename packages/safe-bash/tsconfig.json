@@ -1425,6 +1425,12 @@
       "safe-bash-command-enable/*": [
         "../safe-bash-command-enable/src/*.ts",
         "../safe-bash-command-enable/src/*"
+      ],
+      "safe-bash-command-col": [
+        "../safe-bash-command-col/src/index.ts"
+      ],
+      "safe-bash-command-colrm": [
+        "../safe-bash-command-colrm/src/index.ts"
       ]
     },
     "baseUrl": "."

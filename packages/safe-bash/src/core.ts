@@ -227,3 +227,6 @@ export { createSoxiCommand, createSoxiCommands, soxiCommands, type SoxiCommandsO
 export { createAudioCommand, createAudioCommands, audioCommands, type AudioCommandsOptions } from "./lazy-optional.js";
 
 export { createSortCommand, createSortCommands, sortCommands, defaultSortLimits, type SortCommandsOptions, type SortLimits } from "./commands/sort/index.js";
+
+export * from "./commands/col/index.js";
+export * from "./commands/colrm/index.js";

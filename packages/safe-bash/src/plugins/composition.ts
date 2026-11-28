@@ -1,3 +1,5 @@
+import { createColCommands, type ColCommandsOptions } from "../commands/col/index.js";
+import { createColrmCommands, type ColrmCommandsOptions } from "../commands/colrm/index.js";
 import type { GhCommandOptions } from "../lazy-gh.js";
 import { CommandRegistry, type CommandDefinition, type CommandHandler } from "../contracts/index.js";
 import { PublicDiagnostic } from "../diagnostics.js";
@@ -71,6 +73,8 @@ function createExtraAgentCommands(options?: { bc?: Omit<BcCommandsOptions, "repl
 }
 
 export interface AgentCommandsOptions {
+  readonly col?: Omit<ColCommandsOptions, "replace">;
+  readonly colrm?: Omit<ColrmCommandsOptions, "replace">;
   readonly gh?: GhCommandOptions;
   readonly predicateIdentity?: StandardCommandsOptions["predicateIdentity"];
   readonly execution?: ExecutionCommandsOptions;
@@ -165,6 +169,8 @@ function getDefaultStatelessFamilies() {
       ...createFileCommands({}),
     ]),
     beforeExpr: Object.freeze([
+      ...createColCommands(),
+      ...createColrmCommands(),
       ...createColumnCommands({}),
       ...createHtmlToMarkdownCommands({}),
       ...createDuCommands({}),
@@ -204,6 +210,8 @@ function hasCustomFamilyOptions(options: AgentCommandsOptions): boolean {
     options.timeEnv !== undefined ||
     options.tree !== undefined ||
     options.file !== undefined ||
+    options.col !== undefined ||
+    options.colrm !== undefined ||
     options.column !== undefined ||
     options.htmlToMarkdown !== undefined ||
     options.du !== undefined ||
@@ -284,6 +292,8 @@ export function composeRawAgentCommands(options: AgentCommandsOptions, executors
     ...createTreeCommands({ ...options.tree }),
     ...createFileCommands({ ...options.file }),
     ...createGrepAliases(createGrepCommands(executors.aliases, { ergonomicRegex: useErgonomicGrep })[0]!),
+    ...createColCommands(options.col),
+    ...createColrmCommands(options.colrm),
     ...createColumnCommands({ ...options.column }),
     ...createHtmlToMarkdownCommands({ ...options.htmlToMarkdown }),
     ...createDuCommands({ ...options.du }),

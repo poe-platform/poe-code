@@ -2251,6 +2251,30 @@
             "safe-bash-byte-input-engine": "*"
           },
           "portable": true
+        },
+        "safe-bash-command-col": {
+          "version": "0.0.1",
+          "dependencies": {},
+          "devDependencies": {
+            "safe-bash-contracts": "*",
+            "@poe-code/safe-fs": "*",
+            "safe-bash-text-stream-engine": "*",
+            "safe-bash-io-engine": "*",
+            "safe-bash-command-fold": "*"
+          },
+          "portable": true
+        },
+        "safe-bash-command-colrm": {
+          "version": "0.0.1",
+          "dependencies": {},
+          "devDependencies": {
+            "safe-bash-contracts": "*",
+            "@poe-code/safe-fs": "*",
+            "safe-bash-text-stream-engine": "*",
+            "safe-bash-io-engine": "*",
+            "safe-bash-command-fold": "*"
+          },
+          "portable": true
         }
       },
       "peerProfile": "checkout-root"
@@ -3594,6 +3618,18 @@
       "workerd": "./dist/commands/basenc/index.js",
       "browser": "./dist/commands/basenc/index.js",
       "import": "./dist/commands/basenc/index.js"
+    },
+    "./commands/col": {
+      "types": "./dist/commands/col/index.d.ts",
+      "workerd": "./dist/commands/col/index.js",
+      "browser": "./dist/commands/col/index.js",
+      "import": "./dist/commands/col/index.js"
+    },
+    "./commands/colrm": {
+      "types": "./dist/commands/colrm/index.d.ts",
+      "workerd": "./dist/commands/colrm/index.js",
+      "browser": "./dist/commands/colrm/index.js",
+      "import": "./dist/commands/colrm/index.js"
     }
   },
   "sideEffects": [
@@ -3869,7 +3905,9 @@
     "safe-bash-command-ocrmypdf": "*",
     "safe-bash-command-trash": "*",
     "safe-bash-command-enable": "*",
-    "safe-bash-command-basenc": "*"
+    "safe-bash-command-basenc": "*",
+    "safe-bash-command-col": "*",
+    "safe-bash-command-colrm": "*"
   },
   "main": "./dist/index.js",
   "imports": {

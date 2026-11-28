@@ -18368,7 +18368,8 @@ struct SqlTable {
     not_null_cols: Vec<String>,
     check_exprs: Vec<String>,
     foreign_keys: Vec<SqlForeignKey>,
-    unique_indexes: Vec<(String, Vec<String>)>,
+    // Index name, key columns, and declaration-level ON CONFLICT IGNORE.
+    unique_indexes: Vec<(String, Vec<String>, bool)>,
     index_sql: BTreeMap<String, String>,
     is_fts5: bool,
     next_seq: usize,
@@ -19734,7 +19735,11 @@ fn parse_create_table_metadata(create_sql: &str) -> (SqlTable, Option<usize>, Ve
                                     .to_string()
                             })
                             .collect();
-                    unique_indexes.push((String::new(), key_cols));
+                    let ignore = c_up[open + close + 1..]
+                        .split_whitespace()
+                        .take(3)
+                        .eq(["ON", "CONFLICT", "IGNORE"]);
+                    unique_indexes.push((String::new(), key_cols, ignore));
                 }
                 if is_primary_key {
                     pk_col_count += 2;
@@ -19754,8 +19759,12 @@ fn parse_create_table_metadata(create_sql: &str) -> (SqlTable, Option<usize>, Ve
                 }
                 continue;
             }
-            if split_top_level_sql_cmp(&format!("{c_up} "), " UNIQUE ").is_some() {
-                unique_indexes.push((String::new(), vec![cname.clone()]));
+            if let Some((_, rest)) = split_top_level_sql_cmp(&format!("{c_up} "), " UNIQUE ") {
+                let ignore = rest
+                    .split_whitespace()
+                    .take(3)
+                    .eq(["ON", "CONFLICT", "IGNORE"]);
+                unique_indexes.push((String::new(), vec![cname.clone()], ignore));
             }
             if let Some(dp) = c_up.find(" DEFAULT ") {
                 let after_d = c_norm[dp + 9..].trim();
@@ -19810,7 +19819,13 @@ fn parse_create_table_metadata(create_sql: &str) -> (SqlTable, Option<usize>, Ve
                 .unwrap_or("")
                 .to_ascii_uppercase();
             if c_up.contains("PRIMARY KEY") {
-                unique_indexes.push((String::new(), vec![cname.clone()]));
+                let ignore =
+                    split_top_level_sql_cmp(&c_up, " PRIMARY KEY").is_some_and(|(_, rest)| {
+                        rest.split_whitespace()
+                            .take(3)
+                            .eq(["ON", "CONFLICT", "IGNORE"])
+                    });
+                unique_indexes.push((String::new(), vec![cname.clone()], ignore));
                 pk_col_count += 1;
                 if type_tok == "INTEGER" && !upper.contains("WITHOUT ROWID") {
                     rowid_alias_col = Some(cols.len());
@@ -20007,10 +20022,10 @@ fn serialize_sql_db(
         }
         let mut found_unique: Option<(String, Vec<String>)> = None;
         for (tname, tbl) in tables {
-            if let Some((_, ucols)) = tbl
+            if let Some((_, ucols, _)) = tbl
                 .unique_indexes
                 .iter()
-                .find(|(uname, _)| uname.eq_ignore_ascii_case(idx_name))
+                .find(|(uname, _, _)| uname.eq_ignore_ascii_case(idx_name))
             {
                 found_unique = Some((tname.clone(), ucols.clone()));
                 break;
@@ -20276,9 +20291,9 @@ fn deserialize_sql_db(
                             && !tbl
                                 .unique_indexes
                                 .iter()
-                                .any(|(n, _)| n.eq_ignore_ascii_case(&m_name))
+                                .any(|(n, _, _)| n.eq_ignore_ascii_case(&m_name))
                         {
-                            tbl.unique_indexes.push((m_name, ucols));
+                            tbl.unique_indexes.push((m_name, ucols, false));
                         }
                     }
                 }
@@ -21506,7 +21521,7 @@ fn cmd_sqlite3(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> 
                 tbl.index_sql
                     .retain(|n, _| !n.eq_ignore_ascii_case(idx_name));
                 tbl.unique_indexes
-                    .retain(|(n, _)| !n.eq_ignore_ascii_case(idx_name));
+                    .retain(|(n, _, _)| !n.eq_ignore_ascii_case(idx_name));
             }
             continue;
         }
@@ -21561,9 +21576,9 @@ fn cmd_sqlite3(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> 
                             && !tbl
                                 .unique_indexes
                                 .iter()
-                                .any(|(n, _)| n.eq_ignore_ascii_case(&idx_name))
+                                .any(|(n, _, _)| n.eq_ignore_ascii_case(&idx_name))
                         {
-                            tbl.unique_indexes.push((idx_name, ucols));
+                            tbl.unique_indexes.push((idx_name, ucols, false));
                         }
                     }
                 }
@@ -22944,8 +22959,9 @@ fn exec_sql_insert(
 
         let mut unique_conflict_idx: Option<(usize, Vec<String>)> = None;
         let mut replace_conflicts = BTreeSet::new();
+        let mut ignore_conflict = is_do_nothing;
         if let Some(tbl) = tables.get(&tname) {
-            for (_uname, ucols) in &unique_idx_clone {
+            for (_uname, ucols, declared_ignore) in &unique_idx_clone {
                 let col_positions: Vec<usize> = ucols
                     .iter()
                     .filter_map(|uc| find_sql_col(&t_cols, uc))
@@ -22961,6 +22977,9 @@ fn exec_sql_insert(
                             .all(|&p| existing_row.get(p) == row.get(p))
                         {
                             unique_conflict_idx.get_or_insert_with(|| (dup_idx, ucols.clone()));
+                            if !upper.starts_with("INSERT OR ") && !is_or_replace && !is_do_update {
+                                ignore_conflict |= *declared_ignore;
+                            }
                             if is_or_replace {
                                 replace_conflicts.insert(dup_idx);
                             } else {
@@ -22975,7 +22994,7 @@ fn exec_sql_insert(
             }
         }
         if let Some((_, ref ucols)) = unique_conflict_idx
-            && !(is_do_nothing || is_or_replace || is_do_update)
+            && !(ignore_conflict || is_or_replace || is_do_update)
         {
             *tables = stmt_snap;
             let col_desc = ucols
@@ -22989,9 +23008,9 @@ fn exec_sql_insert(
         let existing_idx = unique_conflict_idx.map(|(idx, _)| idx);
         if let Some(e_idx) = existing_idx
             && !is_or_replace
-            && (is_do_nothing || is_do_update)
+            && (ignore_conflict || is_do_update)
         {
-            if is_do_nothing {
+            if ignore_conflict {
                 continue;
             }
             if let Some(ref du_str) = do_update_clause {

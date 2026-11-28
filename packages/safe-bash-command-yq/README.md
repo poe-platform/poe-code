@@ -35,6 +35,8 @@ original document. Use `.a | (upcase, length)` to apply both operations to `.a`.
 Filter with `select(.tags | contains(["x"]))`; `contains` matches string substrings,
 array subsets, and recursively contained map values.
 Format values with string interpolation, for example `"name=\(.name)"`.
+Join array values into a string with `join(", ")`, or select names first with
+`.items | map(.name) | join(",")`.
 Bind values with `.a as $v | {"k": $v}`, or merge files with
 `yq ea '. as $item ireduce ({}; . * $item)' a.yml b.yml`.
 Use `.a |= sub("o", "0")` to replace every regex match in a string while preserving

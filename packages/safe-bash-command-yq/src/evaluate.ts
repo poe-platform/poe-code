@@ -907,6 +907,24 @@ export class Evaluator {
         output.push(this.child(node, input));
         continue;
       }
+      if (name === "join") {
+        const argument = (await next(expression.args[0]!, [input], false))[0];
+        const separator = argument && yaml.isScalar(argument.node) ? scalarText(argument.node, yaml) : "";
+        if (!yaml.isSeq(base.node)) throw new MikeError(`cannot join with ${nodeTag(base.node, yaml)}, can only join arrays of scalars`);
+        { const t = this.work.tick(separator.length); if (t) await t; }
+        const separatorBytes = utf8ByteLength(separator);
+        const parts: string[] = [];
+        let bytes = 0;
+        for (const member of base.node.items) {
+          const text = yaml.isScalar(member) && nodeTag(member, yaml) !== "!!null" ? scalarText(member, yaml) : "";
+          { const t = this.work.tick(1 + text.length + (parts.length ? separator.length : 0)); if (t) await t; }
+          bytes += utf8ByteLength(text) + (parts.length ? separatorBytes : 0);
+          if (bytes > this.work.limits.maxScalarBytes) throw new MikeError("yq limit exceeded: maxScalarBytes");
+          parts.push(text);
+        }
+        output.push(this.child(scalar(yaml, this.work, parts.join(separator)), input));
+        continue;
+      }
       if (name === "test" || name === "split") {
         if (nodeTag(base.node, yaml) !== "!!str") throw new MikeError(`cannot ${name} ${nodeTag(base.node, yaml)}, can only ${name} strings`);
         const text = String(value(base.node, yaml));

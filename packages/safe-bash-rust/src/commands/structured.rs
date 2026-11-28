@@ -27770,6 +27770,23 @@ fn eval_sql_row_value(
         }
         return Ok("0".to_string());
     }
+    if upper.starts_with("JULIANDAY(") && s.ends_with(')') {
+        let args = split_top_level_comma(&s[10..s.len() - 1]);
+        let Some(base) = args.first() else {
+            return Ok(SQL_NULL.to_string());
+        };
+        let base = eval_sql_row_expr(base, cols, row, tables)?;
+        let Some((y, m, d, hh, mm, ss)) = apply_sql_datetime_modifiers(&base, &args[1..]) else {
+            return Ok(SQL_NULL.to_string());
+        };
+        let days = super::coreutils::days_from_civil(y.into(), m.into(), d.into());
+        let julian = days as f64 + 2_440_587.5 + f64::from(hh * 3600 + mm * 60 + ss) / 86400.0;
+        return Ok(if julian.fract() == 0.0 {
+            format!("{julian:.1}")
+        } else {
+            julian.to_string()
+        });
+    }
     if upper.starts_with("ROUND(") && s.ends_with(')') {
         let args = split_top_level_comma(&s[6..s.len() - 1]);
         if let Some(first) = args.first() {

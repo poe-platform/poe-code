@@ -213,7 +213,7 @@ test("xxd reverses rows larger than its output buffer", async () => {
 });
 
 test("xxd forced color preserves dump content and validates WHEN", async () => {
-  const input = new Uint8Array([0, 9, 65, 255]);
+  const input = new Uint8Array([0, 9, 65, 193, 255]);
   for (const mode of [[], ["-b"], ["-e"], ["-E"]]) {
     let colored = await runParity(["-R", "always", ...mode], input);
     assert.ok(colored.includes("\x1b[1;32m"));

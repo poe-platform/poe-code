@@ -312,8 +312,13 @@ const HEX_UPPER = HEX_LOWER.map(s => s.toUpperCase());
 const BIN_TABLE = Array.from({ length: 256 }, (_, i) => i.toString(2).padStart(8, "0"));
 const ASCII_CHAR = Array.from({ length: 256 }, (_, i) => (i >= 32 && i <= 126 ? String.fromCharCode(i) : "."));
 
-// Printable EBCDIC characters used by xxd; all other bytes display as dots.
-const EBCDIC_CHAR = "................................................................ ...........<(+|&.........!$*);~-/.........,%_>?.........`:#@'=\".abcdefghi.......jklmnopqr^.......stuvwxyz...[...............]..{ABCDEFGHI......}JKLMNOPQR......\\.STUVWXYZ......0123456789......";
+// xxd's EBCDIC character column, indexed by the original input byte.
+const EBCDIC_CHAR = [
+  "................", "................", "................", "................",
+  " ...........<(+|", "&.........!$*);~", "-/.........,%_>?", ".........`:#@'=\"",
+  ".abcdefghi......", ".jklmnopqr^.....", "..stuvwxyz...[..", ".............]..",
+  "{ABCDEFGHI......", "}JKLMNOPQR......", "\\.STUVWXYZ......", "0123456789......",
+].join("");
 
 function hexDigit(byte: number): number {
   if (byte >= 48 && byte <= 57) return byte - 48;
@@ -628,13 +633,13 @@ export function createXxdCommand(optionsOrMaxBytes?: number | XxdCommandOptions)
     };
     const hex = upper ? HEX_UPPER : HEX_LOWER;
     const hexTable = color && !plain && !include ? hex.map(colorize) : hex;
-    const byteTable = binary ? (color ? BIN_TABLE.map(colorize) : BIN_TABLE) : hexTable;
+    const byteTable = binary ? BIN_TABLE : hexTable;
     const characters = parsed.flags.has("E") ? Array.from(EBCDIC_CHAR) : ASCII_CHAR;
     const charTable = color ? characters.map(colorize) : characters;
     const decimalAddress = parsed.flags.has("d");
     const octets = Math.min(group || columns, columns);
     const width = littleEndian
-      ? Math.ceil(columns / octets) * (octets * 2 + 1) - 1
+      ? Math.ceil(columns / octets) * (octets * 2 + 1)
       : columns * (binary ? 8 : 2) + (group ? Math.floor((columns - 1) / group) : 0);
     let outBuf = "";
     let flushedFirst = false;
@@ -704,7 +709,7 @@ export function createXxdCommand(optionsOrMaxBytes?: number | XxdCommandOptions)
           else {
             const address = offset.toString(decimalAddress ? 10 : 16).padStart(8, "0");
             // Each colored byte adds an 11-character ANSI prefix/reset pair.
-            const formatted = `${address}: ${data.padEnd(width + (color ? row.length * 11 : 0))}  ${ascii}\n`;
+            const formatted = `${address}: ${data.padEnd(width + (color && !binary ? row.length * 11 : 0))}  ${ascii}\n`;
             if (parsed.flags.has("a") && row.length === columns && row.every(byte => byte === 0)) {
               if (zeroRun === 0) outBuf += formatted;
               if (zeroRun === 1) zeroSecond = formatted;

@@ -6,7 +6,10 @@ use super::super::{
     pdf_string,
     pdf_update::encode_name,
 };
-use super::{ObjectId, Objects, PageSource, PageTree, Value, attribute, geometry, media_box};
+use super::{
+    ID, Matrix, ObjectId, Objects, PageSource, PageTree, Value, attribute, concat, geometry,
+    media_box,
+};
 use std::collections::{BTreeMap, BTreeSet};
 
 const BAD: &str = "invalid PDF stamp";
@@ -181,6 +184,197 @@ fn qpdf_placement(dst: [f64; 4], src: [f64; 4], rotation: f64) -> String {
         if n == 0. { "0".into() } else { n.to_string() }
     });
     format!("q\n{} cm\n", parts.join(" "))
+}
+
+fn numbers<'a, const N: usize>(obj: &mut Objects<'a>, value: &Value<'a>) -> Option<[f64; N]> {
+    let (_, Value::Array(items)) = obj.lookup_value(value)? else {
+        return None;
+    };
+    if items.len() != N {
+        return None;
+    }
+    let mut result = [0.; N];
+    for (n, item) in result.iter_mut().zip(items) {
+        *n = obj.lookup_value(&item)?.1.number()?;
+        if !n.is_finite() {
+            return None;
+        }
+    }
+    Some(result)
+}
+
+fn numeric_array(values: impl IntoIterator<Item = f64>) -> Value<'static> {
+    Value::Array(
+        values
+            .into_iter()
+            .map(|n| {
+                let n = format!("{n:.6}").parse::<f64>().unwrap();
+                Value::Word(
+                    if n == 0. {
+                        b"0".to_vec()
+                    } else {
+                        n.to_string().into_bytes()
+                    }
+                    .into(),
+                )
+            })
+            .collect(),
+    )
+}
+
+fn transformed_rect([x0, y0, x1, y1]: [f64; 4], [a, b, c, d, e, f]: Matrix) -> [f64; 4] {
+    let points = [(x0, y0), (x0, y1), (x1, y0), (x1, y1)]
+        .map(|(x, y)| (a * x + c * y + e, b * x + d * y + f));
+    let mut bounds = [
+        f64::INFINITY,
+        f64::INFINITY,
+        f64::NEG_INFINITY,
+        f64::NEG_INFINITY,
+    ];
+    for (x, y) in points {
+        bounds[0] = bounds[0].min(x);
+        bounds[1] = bounds[1].min(y);
+        bounds[2] = bounds[2].max(x);
+        bounds[3] = bounds[3].max(y);
+    }
+    bounds
+}
+
+// qpdf copies annotations with the form placement matrix, before the source
+// form's own rotation/UserUnit matrix. Its placement rectangle is the TrimBox.
+fn annotation_page<'a>(
+    obj: &mut Objects<'a>,
+    tree: &PageTree<'a>,
+    page: &Value<'a>,
+    inverse: bool,
+) -> ([f64; 4], Matrix) {
+    let bounds = [b"TrimBox".as_slice(), b"CropBox", b"MediaBox"]
+        .into_iter()
+        .find_map(|key| attribute(obj, tree, page, key, |o, v| numbers(o, &v)))
+        .unwrap_or([0., 0., 612., 792.]);
+    let mut scale = attribute(obj, tree, page, b"UserUnit", |_, v| v.number()).unwrap_or(1.);
+    let mut rotate = attribute(obj, tree, page, b"Rotate", |_, v| v.number()).unwrap_or(0.);
+    if inverse {
+        if scale == 0. {
+            return (bounds, ID);
+        }
+        scale = 1. / scale;
+        rotate = 360. - rotate;
+    }
+    let (w, h) = (bounds[2] - bounds[0], bounds[3] - bounds[1]);
+    let matrix = match rotate {
+        90. => [0., -scale, scale, 0., 0., w * scale],
+        180. => [-scale, 0., 0., -scale, w * scale, h * scale],
+        270. => [0., scale, -scale, 0., h * scale, 0.],
+        _ => [scale, 0., 0., scale, 0., 0.],
+    };
+    (bounds, matrix)
+}
+
+fn annotation_placement((dst, to): ([f64; 4], Matrix), (src, from): ([f64; 4], Matrix)) -> Matrix {
+    let bounds = transformed_rect(src, concat(from, to));
+    let (w, h) = (bounds[2] - bounds[0], bounds[3] - bounds[1]);
+    if w == 0. || h == 0. {
+        return ID;
+    }
+    let scale = 1_f64.min((dst[2] - dst[0]) / w).min((dst[3] - dst[1]) / h);
+    let x = (dst[0] + dst[2] - scale * (bounds[0] + bounds[2])) / 2.;
+    let y = (dst[1] + dst[3] - scale * (bounds[1] + bounds[3])) / 2.;
+    concat(to, [scale, 0., 0., scale, x, y])
+}
+
+impl Stamp<'_> {
+    fn appearance<'a>(
+        &mut self,
+        obj: &mut Objects<'a>,
+        value: &Value<'a>,
+        matrix: Matrix,
+        depth: usize,
+    ) -> Result<Value<'static>, String> {
+        let Some((id, mut dict, cursor)) = obj.lookup_object(value) else {
+            return self.copy(obj, value.clone(), 0);
+        };
+        if let (Some(id), Some(cursor)) = (id, cursor) {
+            let raw = obj.raw_stream(id, &mut dict, cursor).ok_or(BAD)?;
+            let data = if self.mode.is_some() {
+                obj.decode(&dict, raw).ok_or(BAD)?
+            } else {
+                raw
+            };
+            let old = dict
+                .get(b"Matrix")
+                .and_then(|v| numbers(obj, v))
+                .unwrap_or(ID);
+            let Value::Dict(mut fields) = self.copy(obj, dict, 0)? else {
+                return Err(BAD.into());
+            };
+            set(&mut fields, b"Matrix", numeric_array(concat(matrix, old)));
+            let mut body = Vec::new();
+            write_stream(&mut body, Value::Dict(fields), &data, self.mode, self.left)?;
+            let id = self.allocate()?;
+            self.store(id, body)?;
+            return Ok(Value::Ref(id));
+        }
+        if depth < 2
+            && let Value::Dict(fields) = dict
+        {
+            let mut copied = Vec::new();
+            for (key, value) in fields {
+                copied.push((
+                    key.into_owned().into(),
+                    self.appearance(obj, &value, matrix, depth + 1)?,
+                ));
+            }
+            return Ok(Value::Dict(copied));
+        }
+        self.copy(obj, value.clone(), 0)
+    }
+
+    fn annotations<'a>(
+        &mut self,
+        obj: &mut Objects<'a>,
+        items: Vec<Value<'a>>,
+        source: ObjectId,
+        target: ObjectId,
+        matrix: Matrix,
+    ) -> Result<Vec<Value<'static>>, String> {
+        // A repeated source page needs fresh annotations and appearance streams.
+        // Reserve annotation IDs first so popup/reply links stay within this copy.
+        let resource_copies = std::mem::take(&mut self.copies);
+        self.copies.insert(source.0, target);
+        let mut annotations = Vec::new();
+        for item in items {
+            if let Some((old, Value::Dict(fields))) = obj.lookup_value(&item) {
+                let id = self.allocate()?;
+                if let Some(old) = old {
+                    self.copies.insert(old.0, id);
+                }
+                annotations.push((id, fields));
+            }
+        }
+        let mut result = Vec::new();
+        for (id, fields) in annotations {
+            let mut copied = Vec::new();
+            for (key, value) in fields {
+                let name = pdf_string::name(&key);
+                let value = match name.as_str() {
+                    "Rect" => numeric_array(transformed_rect(
+                        numbers(obj, &value).unwrap_or([0.; 4]),
+                        matrix,
+                    )),
+                    "AP" => self.appearance(obj, &value, matrix, 0)?,
+                    _ => self.copy(obj, value, 0)?,
+                };
+                copied.push((encode_name(&name).into(), value));
+            }
+            let mut body = Vec::new();
+            encode(&Value::Dict(copied), &mut body)?;
+            self.store(id, body)?;
+            result.push(Value::Ref(id));
+        }
+        self.copies = resource_copies;
+        Ok(result)
+    }
 }
 
 fn names(data: &[u8], rename: &BTreeMap<String, String>, limit: usize) -> Result<Vec<u8>, String> {
@@ -447,6 +641,20 @@ impl PageSource<'_> {
             } else {
                 pdftk_placement(dst_size, src_size)
             };
+            let annotations = if qpdf {
+                match other.get(b"Annots").and_then(|v| src.lookup_value(v)) {
+                    Some((_, Value::Array(items))) if !items.is_empty() => {
+                        let matrix = annotation_placement(
+                            annotation_page(dst, tree, &page, true),
+                            annotation_page(src, &self.tree, &other, false),
+                        );
+                        edit.annotations(src, items, sid, id, matrix)?
+                    }
+                    _ => Vec::new(),
+                }
+            } else {
+                Vec::new()
+            };
             let existing = page.get(b"Resources").and_then(|v| dst.lookup_value(v));
             let (owner, mut res) = match existing {
                 Some((owner, Value::Dict(d))) => (
@@ -470,6 +678,22 @@ impl PageSource<'_> {
                 Value::Dict(d) => d,
                 _ => return Err(BAD.into()),
             };
+            if !annotations.is_empty() {
+                let mut items = fields
+                    .iter()
+                    .find(|(k, _)| k.as_ref() == b"Annots")
+                    .and_then(|(_, v)| dst.lookup_value(v))
+                    .and_then(|(_, v)| {
+                        if let Value::Array(a) = v {
+                            Some(a)
+                        } else {
+                            None
+                        }
+                    })
+                    .unwrap_or_default();
+                items.extend(annotations);
+                set(&mut fields, b"Annots", Value::Array(items));
+            }
             let mut renames = BTreeMap::new();
             let mut paint = Vec::new();
             if qpdf {

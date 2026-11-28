@@ -225,6 +225,8 @@ fn parse_html_children(
                         || matches!(
                             (st, close_name.as_str()),
                             ("dt" | "dd", "dl")
+                                | ("option", "optgroup")
+                                | ("option" | "optgroup", "select" | "datalist")
                                 | ("td" | "th", "tr")
                                 | ("td" | "th" | "tr", "thead" | "tbody" | "tfoot")
                                 | ("td" | "th" | "tr" | "thead" | "tbody" | "tfoot", "table")
@@ -285,6 +287,8 @@ fn parse_html_children(
                                 | "ul"
                                 | "xmp"
                         ) | ("li", "li")
+                            | ("option", "option" | "optgroup")
+                            | ("optgroup", "optgroup")
                             | ("dt" | "dd", "dt" | "dd")
                             | ("td" | "th", "td" | "th" | "tr")
                             | ("tr", "tr")

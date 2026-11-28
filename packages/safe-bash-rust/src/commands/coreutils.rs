@@ -7682,6 +7682,30 @@ fn apply_bc_binop(l: &BcVal, r: &BcVal, op: &str, bc: &mut BcEnv) -> BcVal {
             scale,
         };
     }
+    if op == "/"
+        && let (Some(la), Some(ra)) = (&l.coefficient, &r.coefficient)
+    {
+        // Align coefficients so integer division truncates at the requested scale.
+        let mut numerator = la.clone();
+        let mut denominator = ra.clone();
+        let numerator_scale = bc.scale + r.scale;
+        if numerator_scale >= l.scale {
+            numerator.extend(std::iter::repeat_n(0, numerator_scale - l.scale));
+        } else {
+            denominator.extend(std::iter::repeat_n(0, l.scale - numerator_scale));
+        }
+        let (digits, _) = big_div_rem(&numerator, &denominator);
+        let neg = (l.neg ^ r.neg) && digits != [0];
+        let val = format_big_with_scale(&digits, bc.scale, neg)
+            .parse::<f64>()
+            .unwrap_or(0.0);
+        return BcVal {
+            val,
+            coefficient: Some(digits),
+            neg,
+            scale: bc.scale,
+        };
+    }
     if op == "^"
         && let Some(la) = &l.coefficient
     {
@@ -7725,20 +7749,6 @@ fn apply_bc_binop(l: &BcVal, r: &BcVal, op: &str, bc: &mut BcEnv) -> BcVal {
                 return BcVal {
                     val: if neg && !is_zero { -f } else { f },
                     coefficient: Some(digits),
-                    neg: neg && !is_zero,
-                    scale: 0,
-                };
-            }
-            "/" if bc.scale == 0 => {
-                let (quot, _) = big_div_rem(la, ra);
-                let neg = l.neg ^ r.neg;
-                let is_zero = quot.len() == 1 && quot[0] == 0;
-                let f = quot
-                    .iter()
-                    .fold(0.0f64, |acc, &d| acc * 10.0 + f64::from(d));
-                return BcVal {
-                    val: if neg && !is_zero { -f } else { f },
-                    coefficient: Some(quot),
                     neg: neg && !is_zero,
                     scale: 0,
                 };

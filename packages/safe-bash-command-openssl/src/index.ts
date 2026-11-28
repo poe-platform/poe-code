@@ -6,7 +6,7 @@ import { commandRuntimeIdentity, getCommandArguments, writeText, type CommandCon
 import { PublicDiagnostic } from "safe-bash-contracts/diagnostics";
 import { yieldTurn } from "safe-bash-contracts/yield";
 import { Arguments, base64, hex, Io, text, unbase64, utf8 } from "./io.js";
-import { encrypt } from "./encryption.js";
+import { cipherFlags, encrypt } from "./encryption.js";
 import { ecdsaDer, ecdsaRaw, importKey, keys, publicPart, signingAlgorithm } from "./keys.js";
 import { certificates } from "./certificates.js";
 import { cryptPassword } from "./password.js";
@@ -102,7 +102,7 @@ async function execute(context: CommandContext, limits: OpensslLimits): Promise<
     const values = { "-v": "OpenSSL compatible safe-bash toolkit (Web Crypto)", "-b": "built on: portable JavaScript", "-o": "options: Web Crypto, in-memory VFS", "-f": "compiler: TypeScript", "-p": "platform: portable", "-d": "OPENSSLDIR: virtual filesystem" };
     await io.write(Object.entries(values).filter(([flag]) => !args.length && flag === "-v" || a.has("-a") || a.has(flag)).map(([, value]) => value).join("\n") + "\n");
   } else if (sub === "dgst" || Object.hasOwn(hashes, sub)) return digest(sub, args, io);
-  else if (sub === "enc") await encrypt(args, io, limits.maxIterations, limits.maxPasswordBytes);
+  else if (sub === "enc" || cipherFlags.includes(`-${sub}`)) await encrypt(sub === "enc" ? args : [`-${sub}`, ...args], io, limits.maxIterations, limits.maxPasswordBytes);
   else if (["genpkey", "genrsa", "rsa", "ecparam", "ec", "pkey"].includes(sub)) await keys(sub, args, io, limits.maxKeyBits);
   else if (sub === "req" || sub === "x509") return certificates(sub, args, io, limits.maxKeyBits);
   else if (sub === "rand") {

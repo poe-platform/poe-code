@@ -3,10 +3,12 @@ import { concatBytes } from "@noble/hashes/utils.js";
 import { PublicDiagnostic } from "safe-bash-contracts/diagnostics";
 import { Arguments, base64, Io, text, unbase64, unhex, utf8 } from "./io.js";
 
+export const cipherFlags = ["-aes-128-cbc", "-aes-256-cbc", "-aes-256-ctr"];
+
 export async function encrypt(args: readonly string[], io: Io, maxIterations: number, maxPasswordBytes: number): Promise<void> {
-  const a = new Arguments(args, "-aes-128-cbc -aes-256-cbc -aes-256-ctr -d -e -a -base64 -A -salt -nosalt -pbkdf2", "-k -pass -K -iv -S -iter -in -out");
+  const a = new Arguments(args, `${cipherFlags.join(" ")} -d -e -a -base64 -A -salt -nosalt -pbkdf2`, "-k -pass -K -iv -S -iter -in -out");
   if (a.positional.length) throw new PublicDiagnostic("unexpected enc argument");
-  const ciphers = ["-aes-128-cbc", "-aes-256-cbc", "-aes-256-ctr"].filter(c => a.has(c));
+  const ciphers = cipherFlags.filter(c => a.has(c));
   const encoded = a.has("-a") || a.has("-base64");
   if (!ciphers.length && encoded) {
     const input = await io.read(a.get("-in"));

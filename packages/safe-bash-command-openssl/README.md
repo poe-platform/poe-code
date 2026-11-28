@@ -8,7 +8,7 @@ Compute digests, encrypt files, generate keys, and create or inspect real certif
 | --- | --- |
 | `dgst`, `md5`, `sha1`, `sha256`, `sha384`, `sha512` | Digests/HMAC, `-binary`, `-hex`, `-r`, `-out`; RSA and ECDSA SHA signatures with `-sign`, `-verify`, `-signature` |
 | `rand` | Secure raw bytes, `-hex`, `-base64`, `-out` |
-| `enc` | AES-128-CBC, AES-256-CBC, AES-256-CTR; cipher-free Base64 with `-a`/`-base64`; `-e`/`-d`, `-a`/`-base64`, `-A`, raw `-K`/`-iv`, passwords, salts, PBKDF2 |
+| `enc`, `aes-128-cbc`, `aes-256-cbc`, `aes-256-ctr` | AES-128-CBC, AES-256-CBC, AES-256-CTR; cipher-free Base64 with `-a`/`-base64`; `-e`/`-d`, `-a`/`-base64`, `-A`, raw `-K`/`-iv`, passwords, salts, PBKDF2 |
 | `base64` | Encode/decode binary stdin or `-in`, optionally write `-out`; `-A` disables wrapping |
 | `genpkey`, `genrsa`, `ecparam`, `rsa`, `ec`, `pkey` | RSA, Ed25519, P-256/P-384/P-521 keys, PEM/DER, public extraction, `-noout`, `-text`, RSA `-modulus` |
 | `req`, `x509` | Signed PKCS#10 CSRs and self-signed X.509 certificates; subject, issuer, validity, serial, fingerprint, extension and expiry inspection |
@@ -31,6 +31,8 @@ await shell.exec("openssl req -new -x509 -nodes -key /tls.key -days 30 -subj /CN
 await shell.exec("openssl x509 -in /tls.pem -noout -subject -dates -fingerprint");
 await shell.dispose();
 ```
+
+A cipher name can be used directly as the subcommand: `openssl aes-256-cbc ...` is equivalent to `openssl enc -aes-256-cbc ...`.
 
 Use `-pass pass:value`, `-pass env:NAME`, `-pass file:/virtual/path`, or `-pass stdin` with `enc`. The environment is the Shell invocation's environment; a password file contributes its first line. `stdin` consumes one password line and leaves the remaining bytes for the payload. `-k value` supplies a literal password.
 

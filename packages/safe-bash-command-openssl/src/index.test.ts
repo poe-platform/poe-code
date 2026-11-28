@@ -92,6 +92,23 @@ for (const [flags, input, stdout] of [
   });
 }
 
+for (const cipher of ["aes-128-cbc", "aes-256-cbc", "aes-256-ctr"]) {
+  test(`cipher subcommand ${cipher} encrypts stdin and decrypts files like enc`, async () => {
+    const fs = createMemoryFileSystem();
+    const options = ["-pbkdf2", "-pass", "pass:x", "-S", "0102030405060708", "-a"];
+    const stdout = execFileSync(nativeOpenssl, [cipher, ...options], { input: "hello\n", encoding: "utf8" });
+    if (cipher === "aes-256-cbc") assert.equal(stdout, "8C8axrIWCYFb6wdKgjAGAQ==\n");
+    const encrypted = await runOpenssl(fs, [cipher, ...options], "hello\n");
+    assert.deepEqual(encrypted, { exitCode: 0, stdout, stderr: "" });
+    assert.deepEqual(encrypted, await runOpenssl(fs, ["enc", `-${cipher}`, ...options], "hello\n"));
+    await fs.writeFile("/encrypted", new TextEncoder().encode(stdout));
+    assert.deepEqual(await runOpenssl(fs, [cipher, "-d", "-in", "/encrypted", "-out", "/plain", ...options]), {
+      exitCode: 0, stdout: "", stderr: "",
+    });
+    assert.equal(new TextDecoder().decode(await fs.readFile("/plain")), "hello\n");
+  });
+}
+
 test("AES ciphers interoperate with native OpenSSL for raw keys, EVP and PBKDF2", async () => {
   const fs = createMemoryFileSystem();
   const payload = new TextEncoder().encode("payload with binary\u0000\u00ff and more than one AES block\n");

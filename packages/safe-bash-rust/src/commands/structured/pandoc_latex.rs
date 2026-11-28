@@ -56,6 +56,43 @@ pub(super) fn inlines(
                 .find(|ch: char| !ch.is_ascii_alphabetic())
                 .map_or(input.len(), |end| command_start + end);
             let command = &input[command_start..end];
+            let accent = match (command, input[end..].chars().next()) {
+                ("", Some('\'')) => Some((
+                    end + 1,
+                    "AaCcEeGgIiKkLlMmNnOoPpRrSsUuWwYyZz",
+                    "ÁáĆćÉéǴǵÍíḰḱĹĺḾḿŃńÓóṔṕŔŕŚśÚúẂẃÝýŹź",
+                    '\u{301}',
+                )),
+                ("c", _) => Some((
+                    end,
+                    "CcDdEeGgHhKkLlNnRrSsTt",
+                    "ÇçḐḑȨȩĢģḨḩĶķĻļŅņŖŗŞşŢţ",
+                    '\u{327}',
+                )),
+                _ => None,
+            };
+            if let Some((start, bases, composed, mark)) = accent {
+                let rest = input[start..].trim_start();
+                let grouped = rest.starts_with('{');
+                let argument = if grouped { &rest[1..] } else { rest };
+                if let Some(base) = argument.chars().next()
+                    && !matches!(base, '\\' | '{' | '}')
+                    && (!grouped || argument[base.len_utf8()..].starts_with('}'))
+                {
+                    if let Some((_, accented)) = bases
+                        .chars()
+                        .zip(composed.chars())
+                        .find(|&(c, _)| c == base)
+                    {
+                        text.push(accented);
+                    } else {
+                        text.push(base);
+                        text.push(mark);
+                    }
+                    pos = input.len() - argument.len() + base.len_utf8() + usize::from(grouped);
+                    continue;
+                }
+            }
             let (node, consumed) = if command == "verb" {
                 let (code, consumed) = verbatim(&input[end..])?;
                 (

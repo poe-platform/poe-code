@@ -38,6 +38,8 @@ Use `key` to get a selected node's map key or array index, and `parent` or
 `parent(n)` to select its containing node or an ancestor `n` levels up.
 Filter with `select(.tags | contains(["x"]))`; `contains` matches string substrings,
 array subsets, and recursively contained map values.
+Check lists with `any` or `all`, or apply a predicate with `any_c(. > 3)` and
+`all_c(. > 3)`. Empty lists yield `false` for `any` and `true` for `all`.
 Decode embedded documents with `.c | from_json | .d` or `.a | from_yaml | .b`.
 Format values with string interpolation, for example `"name=\(.name)"`.
 Join array values into a string with `join(", ")`, or select names first with

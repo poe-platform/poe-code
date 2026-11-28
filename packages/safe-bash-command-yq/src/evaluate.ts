@@ -871,6 +871,22 @@ export class Evaluator {
         continue;
       }
       const base = dereference(input, yaml, this.work);
+      if (name === "any" || name === "all" || name === "any_c" || name === "all_c") {
+        const all = name === "all" || name === "all_c";
+        if (!yaml.isSeq(base.node)) throw new MikeError(`${all ? "all" : "any"} only supports arrays, was ${nodeTag(base.node, yaml)}`);
+        let result = all;
+        for (let slot = 0; slot < base.node.items.length; slot++) {
+          { const t = this.work.tick(); if (t) await t; }
+          const member = this.child(base.node.items[slot] as Node, base, base.node, slot);
+          const candidate = expression.args[0] ? (await next(expression.args[0], [member], false))[0] : member;
+          if (candidate && truth(candidate.node, yaml) !== all) {
+            result = !all;
+            break;
+          }
+        }
+        output.push(this.child(scalar(yaml, this.work, result), input));
+        continue;
+      }
       if (name === "contains") {
         for (const argument of await next(expression.args[0]!, [input], false)) {
           output.push(this.child(scalar(yaml, this.work, await this.contains(base, argument)), input));

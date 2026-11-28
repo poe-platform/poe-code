@@ -490,6 +490,14 @@ structure!(NamedExpression {
     position,
     compiled
 });
+structure!(Hyperlink {
+    reference,
+    target,
+    target_mode,
+    location,
+    display,
+    tooltip
+});
 structure!(ArrayFormula<String>{range,expression,openformula,formula_display});
 impl Sheet<String> {
     fn json_styles(&self, definitions: &BTreeMap<&Style, &str>) -> Json {
@@ -523,6 +531,14 @@ impl Sheet<String> {
             ("merges", self.merges.json()),
             ("arrays", self.arrays.json()),
             ("comments", self.comments.json()),
+            (
+                "hyperlinks",
+                if self.hyperlinks.is_empty() {
+                    Json::Null
+                } else {
+                    self.hyperlinks.json()
+                },
+            ),
             (
                 "validations",
                 if self.validations.is_empty() {
@@ -565,6 +581,11 @@ impl Sheet<String> {
             merges: Codec::read(v.get("merges").unwrap_or(&Json::Null))?,
             arrays: Codec::read(v.get("arrays").unwrap_or(&Json::Null))?,
             comments: Codec::read(v.get("comments").unwrap_or(&Json::Null))?,
+            hyperlinks: v
+                .get("hyperlinks")
+                .map(Codec::read)
+                .transpose()?
+                .unwrap_or_default(),
             validations: v
                 .get("validations")
                 .map(Codec::read)

@@ -301,7 +301,16 @@ pub struct Workbook {
     // ODS cell-style assignments suppress automatic formula formatting.
     pub explicit_formula_styles: BTreeSet<(usize, usize, usize)>,
 }
+pub struct Hyperlink {
+    pub reference: String,
+    pub target: Option<String>,
+    pub target_mode: Option<String>,
+    pub location: Option<String>,
+    pub display: Option<String>,
+    pub tooltip: Option<String>,
+}
 pub struct Sheet<S> {
+    pub hyperlinks: Vec<Hyperlink>,
     pub validations: Vec<super::validation::DataValidation>,
     pub name: S,
     pub state: &'static str,
@@ -978,8 +987,64 @@ pub(in crate::commands) fn write_cells(
             Some(Scale::Percentage(s)) => (0, 0., 0., s),
             None => (0, 0., 0., 100.),
         };
-        let mut table_parts = String::new();
+        let mut hyperlinks = String::new();
         let mut sheet_rels = String::new();
+        if !sh.hyperlinks.is_empty() {
+            hyperlinks.push_str("<hyperlinks>");
+            for (index, link) in sh.hyperlinks.iter().enumerate() {
+                let escape = |s: &str| {
+                    xml_escape_text(s)
+                        .replace('\r', "&#13;")
+                        .replace('\n', "&#10;")
+                        .replace('\t', "&#9;")
+                };
+                work = work.checked_sub(
+                    256 + link.reference.len()
+                        + [
+                            &link.target,
+                            &link.target_mode,
+                            &link.location,
+                            &link.display,
+                            &link.tooltip,
+                        ]
+                        .into_iter()
+                        .flatten()
+                        .map(String::len)
+                        .sum::<usize>(),
+                )?;
+                write!(
+                    hyperlinks,
+                    r#"<hyperlink ref="{}""#,
+                    escape(&link.reference)
+                )
+                .ok()?;
+                if let Some(target) = &link.target {
+                    write!(hyperlinks, r#" r:id="hyperlink{index}""#).ok()?;
+                    write!(
+                        sheet_rels,
+                        r#"<Relationship Id="hyperlink{index}" Type="{REL}/hyperlink" Target="{}""#,
+                        escape(target)
+                    )
+                    .ok()?;
+                    if let Some(mode) = &link.target_mode {
+                        write!(sheet_rels, r#" TargetMode="{}""#, escape(mode)).ok()?;
+                    }
+                    sheet_rels.push_str("/>");
+                }
+                for (name, value) in [
+                    ("location", &link.location),
+                    ("display", &link.display),
+                    ("tooltip", &link.tooltip),
+                ] {
+                    if let Some(value) = value {
+                        write!(hyperlinks, r#" {name}="{}""#, escape(value)).ok()?;
+                    }
+                }
+                hyperlinks.push_str("/>");
+            }
+            hyperlinks.push_str("</hyperlinks>");
+        }
+        let mut table_parts = String::new();
         for (index, _) in workbook
             .tables
             .iter()
@@ -1027,6 +1092,7 @@ pub(in crate::commands) fn write_cells(
         }
         let file = format!(
             include_str!("xlsx/worksheet.xml"),
+            hyperlinks = hyperlinks,
             validations = super::validation::write(&sh.validations, &mut work)?,
             conditional = conditional,
             extensions = if extensions.is_empty() {

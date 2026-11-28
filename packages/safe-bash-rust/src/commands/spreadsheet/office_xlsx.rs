@@ -1421,6 +1421,7 @@ fn read(
             arrays: Vec::new(),
             comments: Vec::new(),
             validations: Vec::new(),
+            hyperlinks: Vec::new(),
             empty_headers: false,
             default_row_height: None,
             frozen_rows: 0,
@@ -1671,6 +1672,7 @@ fn read(
             arrays: Vec::new(),
             comments: Vec::new(),
             validations: Vec::new(),
+            hyperlinks: Vec::new(),
             empty_headers: true,
             default_row_height: None,
             frozen_rows: 0,
@@ -2151,6 +2153,112 @@ pub(super) fn workbook(
 mod tests {
     use super::*;
     use crate::commands::structured::{JVal, parse_json_stream, write_zip_stored};
+
+    #[test]
+    fn editable_xlsx_roundtrip_preserves_hyperlink_destinations() {
+        use super::super::Spreadsheet;
+        let base = Spreadsheet::new().export_xlsx(1_000_000).unwrap();
+        for (external, location) in [(false, true), (true, false), (true, true)] {
+            let mut parts = read_office_archive(&base);
+            let relationship = if external { r#" r:id="ticket""# } else { "" };
+            let location_attribute = if location {
+                r#" location="'Sheet1'!A1""#
+            } else {
+                ""
+            };
+            parts.insert("xl/worksheets/sheet1.xml".into(), format!(r#"<worksheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships"><sheetData><row r="2"><c r="D2" t="inlineStr"><is><t>Support</t></is></c></row></sheetData><hyperlinks><hyperlink ref="D2"{relationship}{location_attribute} tooltip="Open &amp; inspect" display="Support"/></hyperlinks></worksheet>"#).into_bytes());
+            if external {
+                parts.insert("xl/worksheets/_rels/sheet1.xml.rels".into(), br#"<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="ticket" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/hyperlink" Target="https://example.org/ticket/123?a=1&amp;b=2" TargetMode="External"/></Relationships>"#.to_vec());
+            }
+            let input = write_zip_stored(
+                &parts
+                    .iter()
+                    .map(|(k, v)| (k.as_str(), v.as_slice()))
+                    .collect::<Vec<_>>(),
+            );
+            if external {
+                let mut broken = parts.clone();
+                broken.remove("xl/worksheets/_rels/sheet1.xml.rels");
+                let broken = write_zip_stored(
+                    &broken
+                        .iter()
+                        .map(|(k, v)| (k.as_str(), v.as_slice()))
+                        .collect::<Vec<_>>(),
+                );
+                assert!(
+                    Spreadsheet::import_xlsx(&broken, 1_000_000)
+                        .err()
+                        .unwrap()
+                        .contains("hyperlink relationship")
+                );
+            }
+            let mut book = Spreadsheet::import_xlsx(&input, 1_000_000).unwrap();
+            book.sheets[0].comments.push(super::super::model::Comment {
+                row: 1,
+                column: 3,
+                author: "Reviewer".into(),
+                runs: Vec::new(),
+            });
+            book.edit(&[(0, 0, 0, "changed")], 1_000_000).unwrap();
+            for book in [
+                Spreadsheet::from_json(&book.to_json(), 1_000_000).unwrap(),
+                book,
+            ] {
+                let output = read_office_archive(&book.export_xlsx(1_000_000).unwrap());
+                // Inspect the actual package, independently of the workbook importer.
+                let sheet = xml::parse(
+                    std::str::from_utf8(&output["xl/worksheets/sheet1.xml"]).unwrap(),
+                    None,
+                    None,
+                )
+                .unwrap();
+                let links = elements(&sheet.nodes, "hyperlink");
+                assert_eq!(links.len(), 1);
+                let link = links[0];
+                assert_eq!(attr(link, "ref"), Some("D2"));
+                assert_eq!(attr(link, "location"), location.then_some("'Sheet1'!A1"));
+                assert_eq!(attr(link, "tooltip"), Some("Open & inspect"));
+                assert_eq!(attr(link, "display"), Some("Support"));
+                assert!(
+                    std::str::from_utf8(&output["xl/worksheets/sheet1.xml"])
+                        .unwrap()
+                        .contains("Support")
+                );
+                if external {
+                    let rels = xml::parse(
+                        std::str::from_utf8(&output["xl/worksheets/_rels/sheet1.xml.rels"])
+                            .unwrap(),
+                        None,
+                        None,
+                    )
+                    .unwrap();
+                    let relations = elements(&rels.nodes, "Relationship");
+                    let ids = relations
+                        .iter()
+                        .map(|r| attr(r, "Id").unwrap())
+                        .collect::<std::collections::BTreeSet<_>>();
+                    assert_eq!(ids.len(), relations.len());
+                    assert!(
+                        relations
+                            .iter()
+                            .any(|r| attr(r, "Type").unwrap().ends_with("/comments"))
+                    );
+                    let relation = relations
+                        .into_iter()
+                        .find(|r| attr(r, "Id") == attr(link, "id"))
+                        .unwrap();
+                    assert_eq!(
+                        attr(relation, "Target"),
+                        Some("https://example.org/ticket/123?a=1&b=2")
+                    );
+                    assert_eq!(attr(relation, "TargetMode"), Some("External"));
+                    assert!(attr(relation, "Type").unwrap().ends_with("/hyperlink"));
+                } else {
+                    assert_eq!(attr(link, "id"), None);
+                }
+            }
+        }
+    }
 
     #[test]
     fn formula_rendering_retains_native_non_ascii_space_tokens() {

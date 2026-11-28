@@ -213,7 +213,7 @@ mod editor_tables;
 mod wildcard;
 pub use model::{
     ArrayFormula, Axis, CalculatedColumn, ColorFilter, DynamicFilter, Filter, FilterField,
-    NamedExpression, Sheet, Style, Table, TableStyle, TopFilter, TypedCell, Value,
+    Hyperlink, NamedExpression, Sheet, Style, Table, TableStyle, TopFilter, TypedCell, Value,
     Workbook as WorkbookOptions,
 };
 

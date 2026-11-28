@@ -636,10 +636,57 @@ pub(super) fn retain(
         } else {
             format!("{directory}/_rels/{name}.rels")
         };
-        if !entries.contains_key(&rel_path) {
-            continue;
+        let rels = if entries.contains_key(&rel_path) {
+            load(entries, &rel_path)?
+        } else {
+            Vec::new()
+        };
+        let relationships: BTreeMap<_, _> = elements(&rels, "Relationship")
+            .into_iter()
+            .filter_map(|rel| attr(rel, "Id").map(|id| (id, rel)))
+            .collect();
+        for link in elements(&nodes, "hyperlink") {
+            let reference = attr(link, "ref").ok_or("Missing XLSX hyperlink reference")?;
+            area(reference).ok_or("Invalid XLSX hyperlink range")?;
+            let relation = attr(link, "id")
+                .map(|id| {
+                    relationships
+                        .get(id)
+                        .copied()
+                        .filter(|rel| attr(rel, "Type").is_some_and(|t| t.ends_with("/hyperlink")))
+                        .ok_or("Missing XLSX hyperlink relationship")
+                })
+                .transpose()?;
+            let target = relation
+                .map(|rel| attr(rel, "Target").ok_or("Missing XLSX hyperlink target"))
+                .transpose()?;
+            let target_mode = relation.and_then(|rel| attr(rel, "TargetMode"));
+            let location = attr(link, "location");
+            if target.is_none() && location.is_none() {
+                return Err("Missing XLSX hyperlink destination".into());
+            }
+            let display = attr(link, "display");
+            let tooltip = attr(link, "tooltip");
+            imported.remaining = imported
+                .remaining
+                .checked_sub(
+                    256 + reference.len()
+                        + [target, target_mode, location, display, tooltip]
+                            .into_iter()
+                            .flatten()
+                            .map(str::len)
+                            .sum::<usize>(),
+                )
+                .ok_or(LIMIT)?;
+            sheet.hyperlinks.push(super::super::model::Hyperlink {
+                reference: reference.into(),
+                target: target.map(str::to_owned),
+                target_mode: target_mode.map(str::to_owned),
+                location: location.map(str::to_owned),
+                display: display.map(str::to_owned),
+                tooltip: tooltip.map(str::to_owned),
+            });
         }
-        let rels = load(entries, &rel_path)?;
         for relation in elements(&rels, "Relationship") {
             if attr(relation, "TargetMode") == Some("External") {
                 continue;

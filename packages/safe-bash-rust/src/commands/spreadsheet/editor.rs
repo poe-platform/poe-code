@@ -86,6 +86,7 @@ impl Spreadsheet {
             arrays: Vec::new(),
             comments: Vec::new(),
             validations: Vec::new(),
+            hyperlinks: Vec::new(),
             empty_headers: false,
             default_row_height: Some(21.),
             default_column_width: Some(90.),

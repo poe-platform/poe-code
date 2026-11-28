@@ -1362,6 +1362,7 @@ mod tests {
                 arrays: Vec::new(),
                 comments: Vec::new(),
                 validations: Vec::new(),
+                hyperlinks: Vec::new(),
                 empty_headers: false,
                 default_row_height: None,
                 frozen_rows: 0,

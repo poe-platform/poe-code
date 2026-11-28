@@ -1002,6 +1002,7 @@ function assertSource7Discovery(files) {
     "tests/shell/prefix-names.test.ts",
     "tests/shell/nameref-sync-replay.test.ts",
     "tests/shell/parameter-transforms.test.ts",
+    "tests/shell/literal-slash-replacement.test.ts",
     "tests/shell/indirect-parameter.test.ts",
     "tests/shell/select.test.ts",
     "tests/shell/arithmetic-for.test.ts",

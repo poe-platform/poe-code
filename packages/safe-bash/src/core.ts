@@ -52,6 +52,7 @@ export * from "./commands/du/index.js";
 export * from "./commands/expr/index.js";
 export * from "./commands/which/index.js";
 export * from "./commands/timeout/index.js";
+export * from "./commands/stdbuf/index.js";
 export * from "./commands/apply-patch/index.js";
 export * from "./commands/xml/index.js";
 export * from "./commands/csplit/index.js";
@@ -238,4 +239,3 @@ export * from "./commands/zcmp/index.js";
 export * from "./commands/zless/index.js";
 export * from "./commands/zmore/index.js";
 
-export * from "./commands/stdbuf/index.js";

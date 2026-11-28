@@ -28,11 +28,12 @@ for (const command of ["hexdump -C", "hd"]) {
   });
 }
 
-test("hexdump dialect selection preserves the default BSD profile", async () => {
+test("hexdump dialect selection retains explicit BSD count parsing", async () => {
   for (const options of [{}, { dialect: "bsd" as const }]) {
     const shell = new entry.Shell({ fs: entry.createMemoryFileSystem() }).use(entry.hexdumpCommands(options));
     try {
-      assert.equal((await shell.exec("hexdump -C -n0x1", { stdin: "abc" })).stdout, "");
+      assert.equal((await shell.exec("hexdump -C -n0x1", { stdin: "abc" })).stdout,
+        options.dialect === "bsd" ? "" : "00000000  61                                                |a|\n00000001\n");
       const result = await shell.exec("hd", { stdin: "abcdefghijklmnopabc" });
       assert.equal(result.stdout, "00000000  61 62 63 64 65 66 67 68  69 6a 6b 6c 6d 6e 6f 70  |abcdefghijklmnop|\n00000010  61 62 63                                          |abc|\n00000013\n");
     } finally { await shell.dispose(); }

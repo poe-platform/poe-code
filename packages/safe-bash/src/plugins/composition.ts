@@ -1,4 +1,3 @@
-import { createStdbufCommands } from "../commands/stdbuf/index.js";
 import { createColCommands, type ColCommandsOptions } from "../commands/col/index.js";
 import { createColrmCommands, type ColrmCommandsOptions } from "../commands/colrm/index.js";
 import type { GhCommandOptions } from "../lazy-gh.js";
@@ -31,6 +30,7 @@ import { createExprCommandWithExecutor } from "safe-bash-command-expr/command";
 import type { ExprCommandsOptions } from "safe-bash-command-expr/internal";
 import { createWhichCommands, type WhichCommandsOptions } from "../commands/which/index.js";
 import { createTimeoutCommands, type TimeoutCommandsOptions } from "../commands/timeout/index.js";
+import { createStdbufCommands, type StdbufCommandsOptions } from "../commands/stdbuf/index.js";
 import { createApplyPatchCommands, type ApplyPatchCommandsOptions } from "../commands/apply-patch/index.js";
 import { createXmlCommands, type XmlCommandsOptions } from "../commands/xml/index.js";
 import { createCsplitCommandWithExecutor } from "safe-bash-command-csplit/command";
@@ -83,6 +83,7 @@ export interface AgentCommandsOptions {
   readonly applyPatch?: Omit<ApplyPatchCommandsOptions, "replace">;
   readonly xml?: Omit<XmlCommandsOptions, "replace">;
   readonly timeout?: Omit<TimeoutCommandsOptions, "replace">;
+  readonly stdbuf?: Omit<StdbufCommandsOptions, "replace">;
   readonly which?: Omit<WhichCommandsOptions, "replace">;
   readonly expr?: Omit<ExprCommandsOptions, "replace" | "regex" | "regexExecutor">;
   readonly csplit?: Omit<CsplitCommandsOptions, "replace" | "regex" | "regexExecutor">;
@@ -178,8 +179,8 @@ function getDefaultStatelessFamilies() {
     ]),
     beforeCsplit: Object.freeze([
       ...createWhichCommands({}),
-      ...createStdbufCommands(),
       ...createTimeoutCommands(undefined),
+      ...createStdbufCommands(),
       ...createApplyPatchCommands({}),
       ...createXmlCommands({}),
     ]),
@@ -219,6 +220,7 @@ function hasCustomFamilyOptions(options: AgentCommandsOptions): boolean {
     options.du !== undefined ||
     options.which !== undefined ||
     options.timeout !== undefined ||
+    options.stdbuf !== undefined ||
     options.applyPatch !== undefined ||
     options.xml !== undefined ||
     options.pr !== undefined ||
@@ -301,10 +303,10 @@ export function composeRawAgentCommands(options: AgentCommandsOptions, executors
     ...createDuCommands({ ...options.du }),
     createExprCommandWithExecutor(executors.expr, exprLimits === undefined ? {} : { limits: exprLimits }),
     ...createWhichCommands(whichLimits === undefined ? {} : { limits: whichLimits }),
-    ...createStdbufCommands(),
     ...createTimeoutCommands(timeoutOptions === undefined ? undefined : {
       ...timeoutOptions,
     }),
+    ...createStdbufCommands(options.stdbuf),
     ...createApplyPatchCommands(applyPatchLimits === undefined ? {} : { limits: applyPatchLimits }),
     ...createXmlCommands(xmlLimits === undefined ? {} : { limits: xmlLimits }),
     createCsplitCommandWithExecutor(executors.csplit, csplitLimits === undefined ? {} : { limits: csplitLimits }),

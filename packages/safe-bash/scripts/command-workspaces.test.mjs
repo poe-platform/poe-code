@@ -4,7 +4,7 @@ import { test } from "node:test";
 const root = new URL("../../../", import.meta.url);
 const names = "zgrep zegrep zfgrep zdiff zcmp zless zmore col colrm sort cp bc fd sponge less more xxd od pandoc ssconvert op htmlq csvkit dd shuf yes xmllint apply-patch cmp column csplit du expr factor file getopt hexdump html-to-markdown iconv install pr split timeout tree truncate tsort which xan nl rev tac readlink realpath strings paste join comm expand unexpand date env printenv sleep touch egrep fgrep rgrep rg zip base64 md5sum sha1sum sha256sum".split(" ");
 const manifest = path => JSON.parse(readFileSync(new URL(path, root), "utf8"));
-for (const name of [...names, "ls", "docx", "pptx", "pdfunite", "pdfseparate"]) test(name + " has one private portable command owner", () => {
+for (const name of [...names, "ls", "docx", "pptx", "pdfunite", "pdfseparate", "stdbuf"]) test(name + " has one private portable command owner", () => {
   const packageName = "safe-bash-command-" + name;
   const folder = "packages/" + packageName + "/";
   const pkg = manifest(folder + "package.json");

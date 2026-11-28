@@ -893,7 +893,9 @@ responsibilities.
 nested command dispatch, and `regex` worker limits. Per-family options are
 `text`, `structured`, `search`, `diffPatch`, `metadata`, `archive`, `tableText`,
 `streamInspection`, `streamFormat`, `split`, `timeEnv`, `tree`, `file`, `column`,
-`htmlToMarkdown`, `du`, `expr`, `which`, `timeout`, and `applyPatch`.
+`htmlToMarkdown`, `du`, `expr`, `which`, `timeout`, `stdbuf`, and `applyPatch`.
+`stdbuf -oL command` runs the command with unchanged virtual streams after validating
+the buffering modes. `stdbuf.limits.maxArgumentBytes` bounds its argument processing.
 `timeout.limits` bounds argument count, argument bytes, and timeout's own output
 through `maxArguments`, `maxArgumentBytes`, and `maxOutputBytes`.
 `timeEnv.maxTimerMilliseconds` and `timeout.maxTimerMilliseconds` accept `Infinity`;

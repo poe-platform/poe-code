@@ -6,66 +6,60 @@ export function copyOptions(context: CommandContext) {
   // Optional long arguments only consume attached values.
   const args: string[] = [];
   const preserve = new Set<CopyAttribute>();
-  let update: "none" | "older" | "all" = "all";
   let ended = false;
   let overwrite: "i" | "n" | undefined;
   let dereference: "H" | "L" | "P" | undefined;
+  let update = "all";
   for (let index = 0; index < context.args.length; index++) {
     const argument = context.args[index]!;
-    if (!ended && argument.startsWith("--update=")) {
-      const when = argument.slice("--update=".length);
-      if (when !== "none" && when !== "older" && when !== "all") throw new UsageError(`invalid argument '${when}' for 'update'`);
-      update = when;
-    } else if (!ended && (argument === "--no-preserve" || argument.startsWith("--no-preserve="))) {
-      const list = argument === "--no-preserve" ? context.args[++index] : argument.slice("--no-preserve=".length);
-      if (list === undefined) throw new UsageError("option '--no-preserve' requires an argument");
-      for (const attribute of list.split(",")) {
-        if (attribute === "all") preserve.clear();
-        else if (attribute === "mode" || attribute === "ownership" || attribute === "timestamps" || attribute === "links") preserve.delete(attribute);
-        else if (attribute !== "context" && attribute !== "xattr") throw new UsageError(`invalid argument '${attribute}' for 'no-preserve'`);
-      }
-    } else if (!ended && argument.startsWith("--preserve=")) {
-      for (const attribute of argument.slice("--preserve=".length).split(",")) {
-        if (attribute === "mode" || attribute === "ownership" || attribute === "timestamps" || attribute === "links") {
-          preserve.add(attribute);
-        } else if (attribute === "all" || attribute === "context" || attribute === "xattr") {
-          throw new FsError("ENOTSUP", { syscall: "cp", message: `preserving ${attribute} is unavailable` });
-        } else throw new UsageError(`invalid argument '${attribute}' for 'preserve'`);
-      }
-    } else args.push(!ended && argument === "--backup" ? `--backup=${context.env.VERSION_CONTROL ?? "existing"}` : argument);
+    args.push(!ended && argument === "--backup" ? `--backup=${context.env.VERSION_CONTROL ?? "existing"}`
+      : !ended && argument.startsWith("--u") && "--update".startsWith(argument) ? "--update=older"
+      : !ended && argument.startsWith("--pr") && "--preserve".startsWith(argument) ? "--preserve=mode,ownership,timestamps" : argument);
     if (argument === "--") ended = true;
     const valueOffset = argument.startsWith("-") && !argument.startsWith("--")
       ? [...argument].findIndex((character, offset) => offset > 0 && (character === "S" || character === "t")) : -1;
     if (!ended) {
-      if (argument === "--update") update = "older";
-      if (argument === "--preserve" || argument === "--archive") {
-        for (const attribute of ["mode", "ownership", "timestamps"] as const) preserve.add(attribute);
-        if (argument === "--archive") preserve.add("links");
-      }
       if (argument === "--interactive") overwrite = "i";
       else if (argument === "--no-clobber") overwrite = "n";
       else if (argument.startsWith("-") && !argument.startsWith("--")) {
         for (const flag of argument.slice(1, valueOffset > 0 ? valueOffset : undefined)) {
           if (flag === "i" || flag === "n") overwrite = flag;
-          if (flag === "u") update = "older";
-          if (flag === "a" || flag === "p") {
-            for (const attribute of ["mode", "ownership", "timestamps"] as const) preserve.add(attribute);
-          }
-          if (flag === "a" || flag === "d") preserve.add("links");
         }
       }
     }
-    if (!ended && (argument === "--suffix" || argument === "--target-directory" || valueOffset > 0 && valueOffset === argument.length - 1)) {
+    if (!ended && (argument === "--suffix" || argument === "--target-directory" || argument === "--no-preserve" || valueOffset > 0 && valueOffset === argument.length - 1)) {
       if (context.args[index + 1] !== undefined) args.push(context.args[++index]!);
     }
   }
   const parsed = options(args, "arRfinuvPHLpdbS:t:Tlsx", {
-    archive: "a", preserve: "p", "attributes-only": false, parents: false, link: "l", "symbolic-link": "s",
-    recursive: "R", "one-file-system": "x", force: "f", interactive: "i", "no-clobber": "n", update: "u", verbose: "v", dereference: "L", "no-dereference": "P",
+    archive: "a", preserve: "preserve:", "no-preserve": "no-preserve:", "attributes-only": false, parents: false, link: "l", "symbolic-link": "s",
+    recursive: "R", "one-file-system": "x", force: "f", interactive: "i", "no-clobber": "n", update: "update:", verbose: "v", dereference: "L", "no-dereference": "P",
     backup: "backup:", suffix: "S", "target-directory": "t", "no-target-directory": "T", "remove-destination": false,
-  }, false, undefined, undefined, flag => {
+  }, false, undefined, undefined, (flag, argument) => {
     if (flag === "a" || flag === "d") dereference = "P";
     else if (flag === "H" || flag === "L" || flag === "P") dereference = flag;
+    if (flag === "u") update = "older";
+    else if (flag === "update") {
+      if (argument !== "none" && argument !== "older" && argument !== "all") {
+        throw new UsageError(`invalid argument '${argument}' for 'update'`);
+      }
+      update = argument;
+    }
+    if (flag === "a" || flag === "p") {
+      for (const attribute of ["mode", "ownership", "timestamps"] as const) preserve.add(attribute);
+    }
+    if (flag === "a" || flag === "d") preserve.add("links");
+    if (flag === "preserve" || flag === "no-preserve") {
+      for (const attribute of argument!.split(",")) {
+        if (attribute === "mode" || attribute === "ownership" || attribute === "timestamps" || attribute === "links") {
+          if (flag === "preserve") preserve.add(attribute);
+          else preserve.delete(attribute);
+        } else if (attribute === "all" || attribute === "context" || attribute === "xattr") {
+          if (flag === "preserve") throw new FsError("ENOTSUP", { syscall: "cp", message: `preserving ${attribute} is unavailable` });
+          if (attribute === "all") preserve.clear();
+        } else throw new UsageError(`invalid argument '${attribute}' for '${flag}'`);
+      }
+    }
   });
   if (overwrite) parsed.flags.delete(overwrite === "i" ? "n" : "i");
   if (parsed.flags.has("l") && parsed.flags.has("s")) throw new UsageError("cannot make both hard and symbolic links");

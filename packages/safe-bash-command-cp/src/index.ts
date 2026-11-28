@@ -71,6 +71,7 @@ async function copy(
   rootStat ??= sourceStat;
   const removeDestination = flags.has("remove-destination") && sourceStat.type !== "directory";
   const targetStat = await maybeStat(context, target, !preserveLink && !removeDestination && !linkMode);
+  if (settings.update === "none" && sourceStat.type !== "directory" && await maybeStat(context, target, false)) return 0;
   const physicalSource = preserveLink
     ? joinPath(await context.fs.realpath(dirname(source), { signal: context.signal }), basename(source))
     : await context.fs.realpath(source, { signal: context.signal });
@@ -82,7 +83,7 @@ async function copy(
   if (physicalSource === physicalTarget || compareCopyIdentity(sourceStat, targetStat) === "same") {
     throw sameFile();
   }
-  if ((flags.has("n") || settings.update === "none" && sourceStat.type !== "directory") && await maybeStat(context, target, false)) return 0;
+  if (flags.has("n") && await maybeStat(context, target, false)) return 0;
   if (settings.update === "older" && sourceStat.type !== "directory" && targetStat && targetStat.type !== "directory"
     && sourceStat.mtimeMs <= targetStat.mtimeMs) return 0;
   if (!preflight && !preserveLink && targetStat && await compareObservedEntries(context.fs, source, sourceStat, context.fs, target, targetStat, { signal: context.signal }) === "same") {

@@ -4,7 +4,7 @@ import { fixture } from "./helpers.js";
 import { Shell } from "../../src/shell/index.js";
 import { agentCommands } from "../../src/plugins/index.js";
 
-for (const option of ["-u", "--update"]) {
+for (const option of ["-u", "--update", "--update=older"]) {
   for (const destinationTime of [undefined, 1000, 2000, 3000]) {
     test(`cp ${option} updates a destination with timestamp ${destinationTime}`, async () => {
       const fs = await fixture({ source: "new", ...(destinationTime === undefined ? {} : { output: "old" }) });
@@ -21,6 +21,18 @@ for (const option of ["-u", "--update"]) {
     });
   }
 }
+
+test("cp accepts explicit update policies and disables mode preservation in shell scripts", async () => {
+  const shell = new Shell({ fs: await fixture({}), cwd: "/work" }).use(agentCommands());
+  try {
+    const result = await shell.exec('echo x > a; echo y > b; touch -d 2001-01-01 b; cp --update=older a b; cat b; echo y > c; cp --update=none a c; echo "st=$?"; cat c; chmod 600 a; cp -p --no-preserve=mode a d; echo "st=$?"');
+    assert.equal(result.stdout, "x\nst=0\ny\nst=0\n");
+    assert.equal(result.stderr, "");
+    assert.equal(result.exitCode, 0);
+  } finally {
+    await shell.dispose();
+  }
+});
 
 test("cp update traverses newer directories and compares each leaf before backups or replacement", async () => {
   const fs = await fixture({ "source/older": "new", "source/newer": "new", "source/missing": "new", "target/older": "old", "target/newer": "old" });

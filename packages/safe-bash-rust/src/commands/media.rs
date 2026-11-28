@@ -12684,6 +12684,13 @@ fn cmd_magick(
                 channels = None;
                 i += 1;
             }
+            "-clut" => {
+                stack_steps.push((
+                    ops.len(),
+                    magick_stack::Step::Clut(channels.unwrap_or([true, true, true, false])),
+                ));
+                i += 1;
+            }
             "-separate" => {
                 stack_steps.push((
                     ops.len(),
@@ -13154,7 +13161,12 @@ fn cmd_magick(
                     _ => false,
                 })))
         || stack_steps.iter().any(|(_, s)| {
-            matches!(s, magick_stack::Step::Edit(..) | magick_stack::Step::Separate(..))
+            matches!(
+                s,
+                magick_stack::Step::Edit(..)
+                    | magick_stack::Step::Separate(..)
+                    | magick_stack::Step::Clut(..)
+            )
         });
     let apply_pixels =
         |image: &mut png_pixels::Raster, range: std::ops::Range<usize>, gif_input: bool| {
@@ -13340,6 +13352,7 @@ fn cmd_magick(
                         matches!(
                             s,
                             magick_stack::Step::Edit(..)
+                                | magick_stack::Step::Clut(..)
                                 | magick_stack::Step::Separate(..)
                                 | magick_stack::Step::Append(..)
                                 | magick_stack::Step::Write(..)

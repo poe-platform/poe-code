@@ -119,6 +119,7 @@ pub(super) enum Step<'a> {
     Edit(&'a str, &'a str, usize),
     Append(bool, Gravity, [u8; 4]),
     Separate([bool; 4]),
+    Clut([bool; 4]),
 }
 
 struct SourceTiming {
@@ -692,6 +693,54 @@ pub(super) fn evaluate(
                 ));
             }
             Step::Append(..) => {}
+            Step::Clut(channels) => {
+                if stack.len() < 2 {
+                    return Err("image sequence is required `-clut'".into());
+                }
+                // ImageMagick consumes the sequence, using its first two images.
+                stack.truncate(2);
+                for (scene, start) in &mut stack {
+                    let scene = Rc::make_mut(scene);
+                    let (keep, alpha) =
+                        transform(&mut scene.image, *start..*at, scene.timing.is_some())?;
+                    scene.png_alpha = alpha;
+                    if !keep {
+                        scene.timing = None;
+                    }
+                    *start = *at;
+                }
+                let (table, _) = stack.pop().unwrap();
+                let table = &table.image;
+                if table.width == 0 || table.height == 0 {
+                    return Err("Invalid lookup image dimensions".into());
+                }
+                let scene = Rc::make_mut(&mut stack[0].0);
+                for pixel in &mut scene.image.pixels {
+                    for c in 0..4 {
+                        if !channels[c] || (c == 3 && !scene.image.alpha) {
+                            continue;
+                        }
+                        let t = f64::from(pixel[c]) / 255.;
+                        let x = t * (table.width - 1) as f64;
+                        let y = t * (table.height - 1) as f64;
+                        let (x0, y0) = (x as usize, y as usize);
+                        let (x1, y1) = (
+                            (x0 + 1).min(table.width - 1),
+                            (y0 + 1).min(table.height - 1),
+                        );
+                        let (dx, dy) = (x - x0 as f64, y - y0 as f64);
+                        let sample =
+                            |x: usize, y: usize| f64::from(table.pixels[y * table.width + x][c]);
+                        pixel[c] = ((sample(x0, y0) * (1. - dx) + sample(x1, y0) * dx) * (1. - dy)
+                            + (sample(x0, y1) * (1. - dx) + sample(x1, y1) * dx) * dy)
+                            .round() as u8;
+                    }
+                }
+                scene.image.gray = false;
+                retained = scene.image.pixels.len() * 4
+                    + size_of::<Scene>()
+                    + size_of::<(Rc<Scene>, usize)>();
+            }
             Step::Separate(channels) => {
                 let mut separated = Vec::new();
                 retained = 0;

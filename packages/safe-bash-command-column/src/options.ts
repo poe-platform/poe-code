@@ -225,6 +225,6 @@ export const helpText = `Usage: column [-t] [-s characters] [-o string] [-c widt
   -x, --fillrows           fill across rows instead of down columns
   -h, --help              show this supported profile
   --                      end options; - reads shared stdin
-Strict UTF-8; deterministic scalar widths; retained tabs expand at 8-column stops.
+Invalid UTF-8 bytes are escaped; deterministic scalar widths; retained tabs expand at 8-column stops.
 No terminal/locale detection, ANSI controls, colors, or tree mode.
 `;

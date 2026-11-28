@@ -11,6 +11,6 @@ shell.use(columnCommands());
 const result = await shell.exec("column --help");
 ```
 
-`column -t` preserves UTF-8 format characters, including emoji joiners and a leading BOM, without counting them toward column width.
+`column -t` preserves UTF-8 format characters, including emoji joiners and a leading BOM, without counting them toward column width. Invalid UTF-8 bytes appear as `\xHH` escapes and align by their displayed width.
 
 The module also exports `createColumnCommand`, its command-list factory, and typed options and limits.

@@ -76,7 +76,29 @@ const utf8FatalDecoder = new TextDecoder("utf-8", { fatal: true, ignoreBOM: true
 
 export function decode(bytes: Uint8Array): string {
   try { return utf8FatalDecoder.decode(bytes); }
-  catch { throw new FsError("EINVAL", { message: "invalid UTF-8 input" }); }
+  catch { /* Preserve valid UTF-8 runs and escape each malformed byte below. */ }
+  let text = "", start = 0;
+  for (let offset = 0; offset < bytes.length;) {
+    const first = bytes[offset]!;
+    let size = first < 0x80 ? 1 : first >= 0xc2 && first <= 0xdf ? 2
+      : first >= 0xe0 && first <= 0xef ? 3 : first >= 0xf0 && first <= 0xf4 ? 4 : 0;
+    if (offset + size > bytes.length) size = 0;
+    for (let index = 1; index < size; index++) {
+      const next = bytes[offset + index]!;
+      if (next < 0x80 || next > 0xbf
+        || (index === 1 && ((first === 0xe0 && next < 0xa0)
+          || (first === 0xed && next > 0x9f)
+          || (first === 0xf0 && next < 0x90)
+          || (first === 0xf4 && next > 0x8f)))) size = 0;
+    }
+    if (size) offset += size;
+    else {
+      text += utf8FatalDecoder.decode(bytes.subarray(start, offset));
+      text += `\\x${first.toString(16).padStart(2, "0")}`;
+      start = ++offset;
+    }
+  }
+  return text + utf8FatalDecoder.decode(bytes.subarray(start));
 }
 
 export async function fields(text: string, separator: Set<string> | undefined, budget: ColumnBudget, remainingCells: number, columnLimit = 0, outputSeparatorBytes?: number): Promise<string[]> {

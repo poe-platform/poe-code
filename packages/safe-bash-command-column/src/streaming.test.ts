@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { FsError, toByteSource, type CommandContext } from "safe-bash-contracts";
+import { FsError, toByteSource, type CommandContext, type PluginHost } from "safe-bash-contracts";
 import { createMemoryFileSystem } from "@poe-code/safe-fs";
 import { createColumnCommand, type ColumnCommandsOptions } from "./index.js";
 import { ColumnBudget } from "./internal.js";
@@ -25,6 +25,42 @@ function deferred<Value = void>() {
   const promise = new Promise<Value>((success, failure) => { resolve = success; reject = failure; });
   return { promise, resolve, reject };
 }
+
+test("table layout escapes invalid UTF-8 bytes and counts their displayed width", async () => {
+  const result = await run(["-t"], Buffer.from("caf\xe9 1\nx 22\n", "latin1"));
+  assert.equal(result.exitCode, 0);
+  assert.equal(result.stderr, "");
+  assert.equal(result.stdout, "caf\\xe9  1\nx        22\n");
+});
+
+test("shell pipeline preserves the column success status for legacy-encoded input", async () => {
+  const shellSource: string = "../../safe-bash/src/shell/shell.js";
+  const pluginsSource: string = "../../safe-bash/src/plugins/index.js";
+  const { Shell } = await import(shellSource);
+  const { agentCommands } = await import(pluginsSource);
+  const shell = new Shell({ fs: createMemoryFileSystem(), cwd: "/work" }).use(agentCommands());
+  shell.use({ name: "source-column", setup(host: PluginHost) {
+    host.commands.register(createColumnCommand(), { replace: true });
+  } });
+  try {
+    const result = await shell.exec(String.raw`printf 'caf\351 1\nx 22\n' | column -t; echo "rc=$?"`);
+    assert.equal(result.stdout, "caf\\xe9  1\nx        22\nrc=0\n");
+    assert.equal(result.stderr, "");
+    assert.equal(result.exitCode, 0);
+  } finally { await shell.dispose(); }
+});
+
+test("invalid sequences escape each byte while valid Unicode remains intact", async () => {
+  const input = Buffer.concat([
+    Buffer.from("é界😀� "),
+    Buffer.from([0xc0, 0xaf, 0xed, 0xa0, 0x80, 0xf4, 0x90, 0x80, 0x80, 0xe2, 0x82]),
+    Buffer.from("\n"),
+  ]);
+  const result = await run(["-t"], input);
+  assert.equal(result.exitCode, 0);
+  assert.equal(result.stderr, "");
+  assert.equal(result.stdout, "é界😀�  \\xc0\\xaf\\xed\\xa0\\x80\\xf4\\x90\\x80\\x80\\xe2\\x82\n");
+});
 
 
 test("entire absent suffix is admitted before any padding is published", async () => {

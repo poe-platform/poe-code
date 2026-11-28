@@ -323,6 +323,28 @@ test("find executes semicolon and plus forms with literal argv and detects symli
   assert.equal((await run("find", ["-L", "."], { fs })).exitCode, 1);
 });
 
+test("find execdir runs a nested shell and pwd from the normalized match directory", async () => {
+  const shell = new Shell({ fs: await fixture(), cwd: "/work" }).use(agentCommands());
+  try {
+    const result = await shell.exec(`mkdir d; touch d/a; find . -name a -execdir sh -c 'echo "$PWD $0"' {} \\;; echo "st=$?"; find . -name a -execdir pwd \\;`);
+    assert.equal(result.stdout, "/work/d ./a\nst=0\n/work/d\n");
+    assert.equal(result.stderr, "");
+    assert.equal(result.exitCode, 0);
+    assert.equal((await shell.exec("pwd")).stdout, "/work\n");
+  } finally { await shell.dispose(); }
+});
+
+test("find execdir batches nested shell arguments separately for each match directory", async () => {
+  const fs = await fixture({ "d/a": "", "d/b file": "", "e/a": "" });
+  const shell = new Shell({ fs, cwd: "/work" }).use(agentCommands());
+  try {
+    const result = await shell.exec(`find . -type f -execdir sh -c 'pwd; printf "<%s>\\n" "$@"' sh {} +`);
+    assert.equal(result.stdout, "/work/d\n<./a>\n<./b file>\n/work/e\n<./a>\n");
+    assert.equal(result.stderr, "");
+    assert.equal(result.exitCode, 0);
+  } finally { await shell.dispose(); }
+});
+
 test("xargs default whitespace mode preserves non-UTF-8 bytes without crashing", async () => {
   const res = await run("xargs", ["printf", "%s"], { stdin: Uint8Array.from([0xff, 0x20, 0xfe, 0x0a]), env: { LC_ALL: "C" } });
   assert.equal(res.exitCode, 0, res.stderr);

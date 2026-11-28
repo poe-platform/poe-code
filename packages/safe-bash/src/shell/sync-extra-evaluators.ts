@@ -3072,7 +3072,7 @@ export class FastShellCommandContext {
   declare private _invoke: ShellCommandContext["invoke"] | undefined;
   constructor( runtime: Runtime, state: State, io: IO, scope: InvocationScope, name: string, args: readonly string[], argumentValues: CommandArguments | undefined, env: Record<string, string> | undefined, signalIsScoped: boolean, definition: NonNullable<ReturnType<CommandRegistry["get"]>>, ) {
     const directContext = builtInDirectContextExecutors.has(definition.execute) && !customRegisteredCommands.has(definition.execute)
-      && (FAST_DIRECT_CONTEXT_COMMANDS.has(name) || (name === "find" && !args.includes("-exec") && !args.includes("-ok")));
+      && (FAST_DIRECT_CONTEXT_COMMANDS.has(name) || (name === "find" && !args.includes("-exec") && !args.includes("-execdir") && !args.includes("-ok")));
     if (!directContext) {
       const { [invocationScope]: ignoredScope, [valueScope]: ignoredAllocation, [declarationArrays]: ignoredArrays, argumentValues: ignoredArguments, signal: ignoredSignal, ...publicIO } = io as IO & { argumentValues?: unknown; signal?: AbortSignal };
       Object.defineProperties(this, Object.getOwnPropertyDescriptors(publicIO));

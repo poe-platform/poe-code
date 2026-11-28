@@ -226,7 +226,7 @@ for (const terminator of [";", "+"]) {
       cwd: "/work", env: {}, fs, stdin: toByteSource(""), signal: new AbortController().signal,
       stdout: { async write() {} }, stderr: { async write(bytes) { stderr += new TextDecoder().decode(bytes); } },
       async invoke(command, args, options) {
-        calls.push([command, await fs.realpath(options!.cwd!), [...args]]);
+        calls.push([command, options!.cwd, [...args]]);
         return { exitCode: 0 };
       },
     });

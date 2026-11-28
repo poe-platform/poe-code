@@ -39,7 +39,7 @@ type ClassItem =
   | { readonly kind: "range"; readonly lo: number; readonly hi: number }
   | { readonly kind: "shorthand"; readonly id: "d" | "D" | "w" | "W" | "s" | "S" }
   | { readonly kind: "unicode"; readonly matcher: RegExp; readonly negated: boolean }
-  | { readonly kind: "posix"; readonly name: string };
+  | { readonly kind: "posix"; readonly name: string; readonly unicode: boolean };
 
 type AstNode =
   | { readonly type: "empty" }
@@ -72,7 +72,18 @@ function foldAsciiCp(cp: number): number {
   return cp >= 65 && cp <= 90 ? cp + 32 : cp;
 }
 
-function matchPosixClass(name: string, cp: number, insensitive: boolean): boolean {
+function matchPosixClass(name: string, cp: number, insensitive: boolean, unicode: boolean): boolean {
+  if (unicode && cp >= 128) {
+    // C.UTF-8 also classifies non-ASCII decimal digits as alphabetic.
+    // Only a single scalar reaches these fixed host predicates.
+    const character = String.fromCodePoint(cp);
+    switch (name) {
+      case "alpha":
+      case "alnum": return /[\p{Alphabetic}\p{Nd}]/u.test(character);
+      case "lower": return (insensitive ? /\p{Lowercase}/iu : /\p{Lowercase}/u).test(character);
+      case "upper": return (insensitive ? /\p{Uppercase}/iu : /\p{Uppercase}/u).test(character);
+    }
+  }
   const c = insensitive ? foldAsciiCp(cp) : cp;
   switch (name) {
     case "alnum": return (c >= 48 && c <= 57) || (c >= 65 && c <= 90) || (c >= 97 && c <= 122);
@@ -146,7 +157,7 @@ function evalClassNode(
         break;
       }
     } else if (item.kind === "posix") {
-      if (matchPosixClass(item.name, cp, node.insensitive)) {
+      if (matchPosixClass(item.name, cp, node.insensitive, item.unicode)) {
         matched = true;
         break;
       }
@@ -272,7 +283,9 @@ function parsePattern(
         }
         if (name === "space") hasCrossLinePotential = true;
         pos = closeIdx + 2;
-        return { item: { kind: "posix", name }, ereText: `[:${name}:]`, isSingleChar: false };
+        const unicode = kind === "grep" && !perl && (name === "alpha" || name === "alnum" || name === "lower" || name === "upper");
+        if (unicode) needsVm = true;
+        return { item: { kind: "posix", name, unicode }, ereText: `[:${name}:]`, isSingleChar: false };
       }
       if (ch === "\\") {
         pos++;

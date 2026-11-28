@@ -20219,6 +20219,82 @@ fn parse_create_table_metadata(create_sql: &str) -> (SqlTable, Option<usize>, Ve
     )
 }
 
+fn parse_create_view(sql: &str) -> Option<(String, Vec<String>, &str)> {
+    fn identifier(sql: &str) -> Option<(String, &str)> {
+        let sql = sql.trim_start();
+        let mut chars = sql.char_indices();
+        let (_, first) = chars.next()?;
+        let closing = match first {
+            '"' | '\'' | '`' => Some(first),
+            '[' => Some(']'),
+            _ => None,
+        };
+        if let Some(closing) = closing {
+            let mut name = String::new();
+            while let Some((index, ch)) = chars.next() {
+                if ch == closing {
+                    if closing != ']' && chars.as_str().starts_with(closing) {
+                        name.push(ch);
+                        chars.next();
+                    } else {
+                        return Some((name, sql[index + ch.len_utf8()..].trim_start()));
+                    }
+                } else {
+                    name.push(ch);
+                }
+            }
+            return None;
+        }
+        let end = sql
+            .find(|ch: char| ch.is_whitespace() || matches!(ch, '(' | ')' | ',' | '.'))
+            .unwrap_or(sql.len());
+        (end > 0).then(|| (sql[..end].to_string(), sql[end..].trim_start()))
+    }
+
+    let mut rest = sql;
+    for expected in ["CREATE", "VIEW"] {
+        let (keyword, tail) = identifier(rest)?;
+        if !keyword.eq_ignore_ascii_case(expected) {
+            return None;
+        }
+        rest = tail;
+    }
+    let (mut name, mut rest) = identifier(rest)?;
+    if name.eq_ignore_ascii_case("IF")
+        && identifier(rest).is_some_and(|(keyword, _)| keyword.eq_ignore_ascii_case("NOT"))
+    {
+        for expected in ["NOT", "EXISTS"] {
+            let (keyword, tail) = identifier(rest)?;
+            if !keyword.eq_ignore_ascii_case(expected) {
+                return None;
+            }
+            rest = tail;
+        }
+        (name, rest) = identifier(rest)?;
+    }
+    if let Some(tail) = rest.strip_prefix('.') {
+        (name, rest) = identifier(tail)?;
+    }
+    let mut columns = Vec::new();
+    if let Some(tail) = rest.strip_prefix('(') {
+        rest = tail;
+        loop {
+            let (column, tail) = identifier(rest)?;
+            columns.push(column);
+            if let Some(tail) = tail.strip_prefix(')') {
+                rest = tail;
+                break;
+            }
+            rest = tail.strip_prefix(',')?;
+        }
+    }
+    let (keyword, query) = identifier(rest)?;
+    if !keyword.eq_ignore_ascii_case("AS") {
+        return None;
+    }
+    Some((name, columns, query.trim_end_matches(';').trim()))
+}
+
 fn serialize_sql_db(
     tables: &BTreeMap<String, SqlTable>,
     views: &BTreeMap<String, String>,
@@ -20446,7 +20522,7 @@ fn serialize_sql_db(
             name: vname.clone(),
             tbl_name: vname.clone(),
             rootpage: 0,
-            sql: format!("CREATE VIEW {vname} AS {view_sql}"),
+            sql: view_sql.clone(),
         });
     }
 
@@ -20687,16 +20763,7 @@ fn deserialize_sql_db(
                     }
                 }
             } else if m_type == "view" {
-                let norm = m_sql.replace(['\r', '\n', '\t'], " ");
-                let norm_up = norm.to_ascii_uppercase();
-                if let Some(as_pos) = norm_up.find(" AS ") {
-                    let view_sql = norm[as_pos + 4..]
-                        .trim()
-                        .trim_end_matches(';')
-                        .trim()
-                        .to_string();
-                    views.insert(m_name, view_sql);
-                }
+                views.insert(m_name, m_sql);
             } else if m_type == "trigger" {
                 let norm = m_sql.replace(['\r', '\n', '\t'], " ");
                 let norm_up = norm.to_ascii_uppercase();
@@ -20823,7 +20890,14 @@ fn deserialize_sql_db(
         if tname == "__views__" {
             if let JVal::Object(vmap) = tval {
                 for (vk, vv) in vmap {
-                    views.insert(vk, vv.to_raw_string(true, false));
+                    let name = vk.replace('"', "\"\"");
+                    views.insert(
+                        vk,
+                        format!(
+                            "CREATE VIEW \"{name}\" AS {}",
+                            vv.to_raw_string(true, false)
+                        ),
+                    );
                 }
             }
             continue;
@@ -22404,16 +22478,7 @@ fn cmd_sqlite3(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> 
                 }
             }
         } else if upper.starts_with("CREATE VIEW") {
-            let norm = stmt.replace(['\r', '\n', '\t'], " ");
-            let norm_up = norm.to_ascii_uppercase();
-            if let Some(as_pos) = norm_up.find(" AS ") {
-                let vname = norm["CREATE VIEW".len()..as_pos]
-                    .split_whitespace()
-                    .last()
-                    .unwrap_or("")
-                    .trim_matches('"')
-                    .to_string();
-                let view_sql = norm[as_pos + 4..].trim().to_string();
+            if let Some((vname, _, _)) = parse_create_view(stmt) {
                 if let (Some(st), Some(au)) = (tables.get("stock"), tables.get("audit_log")) {
                     let mut vrows = Vec::new();
                     for sr in &st.rows {
@@ -22441,7 +22506,7 @@ fn cmd_sqlite3(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> 
                         },
                     );
                 }
-                views.insert(vname, view_sql);
+                views.insert(vname, stmt.to_string());
             }
         } else if upper.starts_with("INSERT ") || upper.starts_with("REPLACE ") {
             match exec_sql_insert(
@@ -24919,7 +24984,7 @@ fn resolve_sql_from_table(
                 vname.clone(),
                 vname.clone(),
                 "0".to_string(),
-                format!("CREATE VIEW {vname} AS {vsql}"),
+                vsql.clone(),
             ]);
         }
         SqlTable {
@@ -24938,12 +25003,18 @@ fn resolve_sql_from_table(
         let Some(vsql) = views.get(raw_tname) else {
             return Ok(None);
         };
+        let (_, columns, query) = parse_create_view(vsql)
+            .ok_or_else(|| format!("Error: malformed view: {raw_tname}\n"))?;
         let sub_out = exec_sql_select_ext(
-            vsql, tables, views, false, false, false, false, false, None, true, "\x1f", SQL_NULL,
+            query, tables, views, false, false, false, false, false, None, true, "\x1f", SQL_NULL,
         )?;
         let mut lines = sub_out.lines();
         let hdr_line = lines.next().unwrap_or("");
-        let cols: Vec<String> = hdr_line.split('\x1f').map(|s| s.to_string()).collect();
+        let cols: Vec<String> = if columns.is_empty() {
+            hdr_line.split('\x1f').map(|s| s.to_string()).collect()
+        } else {
+            columns
+        };
         let rows: Vec<Vec<String>> = lines
             .map(|l| l.split('\x1f').map(|s| s.to_string()).collect())
             .collect();

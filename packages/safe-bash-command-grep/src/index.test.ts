@@ -5,6 +5,29 @@ import { createCommandArguments, toByteSource } from "safe-bash-contracts";
 import { createGrepCommands } from "./index.js";
 import { createGrepAliases } from "./aliases.js";
 
+for (const option of ["--color", "--colour"]) {
+  for (const [args, expected] of [
+    [[option, "a"], "a\n"],
+    [[option, "-c", "a"], "1\n"],
+    [[`${option}=auto`, "a"], "a\n"],
+    [[`${option}=never`, "a"], "a\n"],
+    [["-e", option], `${option}\n`],
+    [["--", option], `${option}\n`],
+  ] as const) {
+    test(`grep ${args.join(" ")} preserves optional color arguments and literal patterns`, async () => {
+      let stdout = "", stderr = "";
+      const result = await createGrepCommands()[0]!.execute({
+        command: "grep", args: [...args], cwd: "/work", env: {},
+        fs: createMemoryFileSystem(), stdin: toByteSource(args[0] === "-e" || args[0] === "--" ? `${option}\n` : "a\nb\n"),
+        stdout: { async write(bytes) { stdout += new TextDecoder().decode(bytes); } },
+        stderr: { async write(bytes) { stderr += new TextDecoder().decode(bytes); } },
+        signal: new AbortController().signal,
+      });
+      assert.deepEqual({ ...result, stdout, stderr }, { exitCode: 0, stdout: expected, stderr: "" });
+    });
+  }
+}
+
 for (const recursive of [["-r"], ["-R"], ["-d", "recurse"], []]) {
   for (const mode of [[], ["-l"], ["-c", "--include=*.txt"]]) {
     for (const operands of [[], ["."]]) {

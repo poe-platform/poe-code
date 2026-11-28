@@ -558,6 +558,10 @@ async function executeGrepWithSession(
         if (!arg.startsWith("-") || arg === "-") continue;
         if (arg.startsWith("--")) {
           if (arg.includes("=")) continue;
+          if (arg === "--color" || arg === "--colour") {
+            (rewrittenArgs ??= context.args.slice())[i] = `${arg}=auto`;
+            continue;
+          }
           const key = GREP_LONG_OPTIONS[arg.slice(2)];
           if (typeof key === "string" && (key.endsWith(":") || GREP_SHORT_OPTIONS.includes(`${key}:`))) i++;
           continue;

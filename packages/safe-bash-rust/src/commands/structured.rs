@@ -18296,6 +18296,10 @@ fn sql_text_value(value: &str) -> String {
     }
 }
 
+fn sql_value_text(value: &str) -> &str {
+    value.strip_prefix(SQL_TEXT_PREFIX).unwrap_or(value)
+}
+
 fn sql_apply_row_affinity(row: &mut [String], metadata: &[SqlColumnMetadata]) {
     for (value, column) in row.iter_mut().zip(metadata) {
         if value == SQL_NULL || value.starts_with(SQL_BLOB_PREFIX) {
@@ -22522,7 +22526,7 @@ fn sql_foreign_key_satisfied(
         .into_iter()
         .map(|col| {
             find_sql_col(columns, col)
-                .map(|index| row.get(index).map(String::as_str).unwrap_or(SQL_NULL))
+                .map(|index| row.get(index).map(|value| sql_value_text(value)).unwrap_or(SQL_NULL))
         })
         .collect();
     let Some(child_values) = child_values else {
@@ -22552,7 +22556,7 @@ fn sql_foreign_key_satisfied(
                         .iter()
                         .zip(&child_values)
                         .all(|(index, value)| {
-                            parent_row.get(*index).map(String::as_str) == Some(*value)
+                            parent_row.get(*index).map(|value| sql_value_text(value)) == Some(*value)
                         })
                 })
         })
@@ -22850,7 +22854,7 @@ fn format_sql_returning(
                 } else if let Ok(n) = val_s.parse::<f64>() {
                     JVal::Number(n, None)
                 } else {
-                    JVal::Str(val_s)
+                    JVal::Str(sql_value_text(&val_s).to_string())
                 };
                 entries.push((alias.clone(), jv));
             }
@@ -23002,7 +23006,7 @@ fn exec_sql_insert(
                 break;
             };
             let tuple_str = &after_open[1..close_rel];
-            let vals: Vec<String> = split_top_level_comma(tuple_str)
+            let vals = split_top_level_comma(tuple_str)
                 .into_iter()
                 .map(|v| {
                     let vt = v.trim();
@@ -23583,7 +23587,9 @@ fn exec_sql_update(
                     let mut child_updates: Vec<(Vec<String>, Vec<String>)> = Vec::new();
                     if let Some(ctbl) = tables.get_mut(&ctname) {
                         for cr in &mut ctbl.rows {
-                            if cr.get(c_idx).map(|s| s.as_str()) == Some(old_pval.as_str()) {
+                            if cr.get(c_idx).map(|s| sql_value_text(s))
+                                == Some(sql_value_text(&old_pval))
+                            {
                                 let old_cr = cr.clone();
                                 match fk.on_update.as_str() {
                                     "CASCADE" => cr[c_idx] = new_pval.clone(),
@@ -23596,6 +23602,7 @@ fn exec_sql_update(
                                     }
                                     _ => {}
                                 }
+                                sql_apply_row_affinity(cr, &ctbl.metadata);
                                 if cr != &old_cr {
                                     child_updates.push((old_cr, cr.clone()));
                                 }
@@ -23799,7 +23806,8 @@ fn exec_sql_delete(
                                     && fk.on_delete == "NO ACTION")
                                     && pval != SQL_NULL
                                     && ctbl.rows.iter().any(|cr| {
-                                        cr.get(c_idx).map(|s| s.as_str()) == Some(pval.as_str())
+                                        cr.get(c_idx).map(|s| sql_value_text(s))
+                                            == Some(sql_value_text(&pval))
                                     })
                                 {
                                     *tables = tables_snap;
@@ -23810,12 +23818,15 @@ fn exec_sql_delete(
                             }
                             "CASCADE" => {
                                 ctbl.retain_rows(|cr| {
-                                    cr.get(c_idx).map(|s| s.as_str()) != Some(pval.as_str())
+                                    cr.get(c_idx).map(|s| sql_value_text(s))
+                                        != Some(sql_value_text(&pval))
                                 });
                             }
                             "SET NULL" => {
                                 for cr in &mut ctbl.rows {
-                                    if cr.get(c_idx).map(|s| s.as_str()) == Some(pval.as_str()) {
+                                    if cr.get(c_idx).map(|s| sql_value_text(s))
+                                        == Some(sql_value_text(&pval))
+                                    {
                                         cr[c_idx] = SQL_NULL.to_string();
                                     }
                                 }
@@ -23826,8 +23837,11 @@ fn exec_sql_delete(
                                     .cloned()
                                     .unwrap_or_else(|| SQL_NULL.to_string());
                                 for cr in &mut ctbl.rows {
-                                    if cr.get(c_idx).map(|s| s.as_str()) == Some(pval.as_str()) {
+                                    if cr.get(c_idx).map(|s| sql_value_text(s))
+                                        == Some(sql_value_text(&pval))
+                                    {
                                         cr[c_idx] = def_v.clone();
+                                        sql_apply_row_affinity(cr, &ctbl.metadata);
                                     }
                                 }
                             }
@@ -24580,7 +24594,7 @@ fn format_sql_result_rows(
         } else if v == SQL_NULL {
             nullvalue.into()
         } else {
-            v.into()
+            sql_value_text(v).into()
         }
     }
     if mode == "json" {
@@ -24938,7 +24952,9 @@ fn compare_sql_order_values(a: &str, b: &str, desc: bool, nulls_first: bool) -> 
     }
     let order = match (a.parse::<f64>(), b.parse::<f64>()) {
         (Ok(a), Ok(b)) => a.partial_cmp(&b).unwrap_or(std::cmp::Ordering::Equal),
-        _ => a.cmp(b),
+        (Ok(_), Err(_)) => std::cmp::Ordering::Less,
+        (Err(_), Ok(_)) => std::cmp::Ordering::Greater,
+        _ => sql_value_text(a).cmp(sql_value_text(b)),
     };
     if desc { order.reverse() } else { order }
 }
@@ -25901,7 +25917,7 @@ fn exec_sql_select_with_mode(
                             } else if wval.parse::<f64>().is_ok() {
                                 wval
                             } else {
-                                format!("'{}'", wval.replace('\'', "''"))
+                                format!("'{}'", sql_value_text(&wval).replace('\'', "''"))
                             };
                             expanded_e.replace_range(fn_start..=over_close, &replacement);
                         }
@@ -27617,7 +27633,7 @@ fn eval_sql_row_value(
         if v.starts_with(SQL_BLOB_PREFIX) {
             return "blob".to_string();
         }
-        if v == "\x00LIT_NULL" {
+        if v == "\x00LIT_NULL" || v.starts_with(SQL_TEXT_PREFIX) {
             return "text".to_string();
         }
         if v == SQL_NULL {
@@ -27643,7 +27659,7 @@ fn eval_sql_row_value(
             return format!("'{}'", text.replace('\'', "''"));
         }
         if is_str_lit {
-            return format!("'{}'", v.replace('\'', "''"));
+            return format!("'{}'", sql_value_text(&v).replace('\'', "''"));
         }
         if v == "\x00LIT_NULL" {
             return "'NULL'".to_string();
@@ -27654,7 +27670,7 @@ fn eval_sql_row_value(
         if v.parse::<f64>().is_ok() {
             return v;
         }
-        return format!("'{}'", v.replace('\'', "''"));
+        return format!("'{}'", sql_value_text(&v).replace('\'', "''"));
     }
     if upper.starts_with("HEX(") && s.ends_with(')') {
         let inner = eval_sql_row_expr(&s[4..s.len() - 1], cols, row, tables);

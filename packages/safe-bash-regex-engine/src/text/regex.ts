@@ -647,19 +647,22 @@ export class Pattern {
     const repeated = (original: Node): Node => {
       let node = original;
       if (!extended && (node.type === "begin" || node.type === "end")) return node;
-      const quantifier = source[offset];
-      if (quantifier === "*" || quantifier === "+" || quantifier === "?") {
-        offset++;
-        node = { type: "repeat", node, minimum: quantifier === "+" ? 1 : 0, maximum: quantifier === "?" ? 1 : Infinity };
-      } else if (quantifier === "{") {
-        const match = /^\{([0-9]+)(?:,([0-9]*))?\}/u.exec(source.slice(offset));
-        if (!match) throw new ProgramError("invalid repetition interval");
-        const minimum = Number(match[1]);
-        const maximum = match[2] === undefined ? minimum : match[2] === "" ? Infinity : Number(match[2]);
-        if (!Number.isSafeInteger(minimum) || maximum !== Infinity && !Number.isSafeInteger(maximum) || maximum < minimum) throw new ProgramError("invalid or excessive repetition interval");
-        offset += match[0].length;
-        node = { type: "repeat", node, minimum, maximum };
-      }
+      do {
+        const quantifier = source[offset];
+        if (quantifier === "*" || quantifier === "+" || quantifier === "?") {
+          offset++;
+          node = { type: "repeat", node, minimum: quantifier === "+" ? 1 : 0, maximum: quantifier === "?" ? 1 : Infinity };
+        } else if (quantifier === "{") {
+          const match = /^\{([0-9]+)(?:,([0-9]*))?\}/u.exec(source.slice(offset));
+          if (!match) throw new ProgramError("invalid repetition interval");
+          const minimum = Number(match[1]);
+          const maximum = match[2] === undefined ? minimum : match[2] === "" ? Infinity : Number(match[2]);
+          if (!Number.isSafeInteger(minimum) || maximum !== Infinity && !Number.isSafeInteger(maximum) || maximum < minimum) throw new ProgramError("invalid or excessive repetition interval");
+          offset += match[0].length;
+          node = { type: "repeat", node, minimum, maximum };
+        }
+        // sed/awk apply each quantifier to the preceding repetition; jq uses lazy suffixes.
+      } while (dialect !== "jq" && source[offset] !== undefined && "*+?{".includes(source[offset]!));
       if (dialect === "jq" && node.type === "repeat" && source[offset] === "?") { node.lazy = true; offset++; }
       if (source[offset] !== undefined && "*+?{".includes(source[offset]!)) throw new ProgramError("nested quantifier is not supported");
       return node;

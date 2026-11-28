@@ -5,7 +5,18 @@ import { Shell } from "../../src/shell/index.js";
 import { CommandRegistry, FsError, toByteSource, type CommandContext, type FileSystem } from "../../src/contracts/index.js";
 import { registerYieldCheckpoint, scheduleTurn } from "../../src/contracts/yield.js";
 import { createStandardCommands } from "../../src/commands/index.js";
+import { agentCommands } from "../../src/plugins/index.js";
 import { chunks, fixture, run } from "./helpers.js";
+
+test("sed and awk apply successive quantifiers greedily", async () => {
+  const shell = new Shell({ fs: await fixture(), cwd: "/work" }).use(agentCommands());
+  try {
+    const result = await shell.exec(String.raw`printf 'aab\n' | sed -E 's/a+?/X/'; echo "rc=$?"; printf 'a "b" c\n' | sed -E 's/".*?"/Q/'; echo "rc=$?"; printf 'aab\n' | sed 's/a\+\?/X/'; echo "rc=$?"; printf 'aaaa\n' | sed -E 's/a{1,2}{2}/X/'; echo "rc=$?"; awk 'BEGIN { s = "x \"a\" y"; gsub(/".*?"/, "Q", s); print s }'; echo "rc=$?"; awk 'BEGIN { print match("aaa", /a+?/), RLENGTH }'; echo "rc=$?"; echo 'aab' | awk '{ sub(/a*?b/, "X"); print }'; echo "rc=$?"`);
+    assert.equal(result.stdout, "Xb\nrc=0\na Q c\nrc=0\nXb\nrc=0\nX\nrc=0\nx Q y\nrc=0\n1 3\nrc=0\nX\nrc=0\n");
+    assert.equal(result.stderr, "");
+    assert.equal(result.exitCode, 0);
+  } finally { await shell.dispose(); }
+});
 
 for (const source of ["stdin", "file"] as const) {
   for (const args of ["-b2 -s", "-c2 --delimiter=:", "-b0", "--unknown", "-f1 -b2", "-b 2-1", "--c", "-b", "-f1 -d::", "-Q"]) {

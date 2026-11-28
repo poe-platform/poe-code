@@ -122,10 +122,10 @@ test("grep supports BRE escapes (\\|, \\+, \\?, \\(, \\), \\{m,n\\}) and shortha
   }
 });
 
-test("sed and awk support ergonomic shorthand classes (\\d, \\w, \\s) and non-capturing groups (?:...)", async () => {
+test("sed and awk support their shorthand classes (\\d, \\w, \\s) and non-capturing groups (?:...)", async () => {
   const shell = new Shell({ fs: new MemoryFileSystem() }).use(agentCommands());
   try {
-    const sedRes = await shell.exec("sed -E 's/(?:item|sku)_(\\w+):\\s*(\\d+)/\\1=\\2/g'", {
+    const sedRes = await shell.exec("sed -E 's/(?:item|sku)_(\\w+):\\s*([0-9]+)/\\1=\\2/g'", {
       stdin: "item_alpha: 42 and sku_beta:  99\n",
     });
     assert.equal(sedRes.exitCode, 0, sedRes.stderr);
@@ -166,7 +166,7 @@ test("shared regex syntax works through sed, awk, jq, rg, and fd", async () => {
   const shell = new Shell({ fs }).use(agentCommands());
   try {
     for (const [command, stdin, stdout] of [
-      [String.raw`sed -E 's/[\d]+/NUM/g'`, "foo 123\n", "foo NUM\n"],
+      [String.raw`sed -E 's/[\d]+/NUM/g'`, "foo ddd 123\n", "foo NUM 123\n"],
       [String.raw`sed -E 's/[\w]+/W/g'`, "foo 123\n", "W W\n"],
       [String.raw`sed 's/\(?:foo\)/X/g'`, "foo foobar\n", "X Xbar\n"],
       [String.raw`awk '{ gsub(/[\d]+/, "NUM"); print }'`, "foo 123\n", "foo NUM\n"],

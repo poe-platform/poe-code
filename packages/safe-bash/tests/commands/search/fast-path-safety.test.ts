@@ -130,11 +130,11 @@ for (const profile of ["default", "cloudflare"] as const) {
 
 for (const bytes of [Buffer.from("hello\0world\n"), Buffer.from([104, 101, 108, 108, 111, 255, 10]), Buffer.from([255, 10]), Buffer.from([104, 101, 108, 108, 111, 195, 10])]) {
   for (const input of ["file", "stdin"] as const) {
-    test(`ASCII grep rejects invalid subject ${bytes.toString("hex")} from ${input}`, async () => {
+    test(`ASCII grep skips binary subject ${bytes.toString("hex")} from ${input}`, async () => {
       const fs = await fixture({ input: bytes });
       const result = await run("grep", ["hello", input === "file" ? "input" : "-"], { fs, commands: createGrepCommands(new RegexExecutor(createBoundedRegexProvider())), ...(input === "stdin" ? { stdin: bytes } : {}) });
-      assert.equal(result.exitCode, 2);
-      assert.match(result.stderr, /valid non-NUL UTF-8/);
+      assert.equal(result.exitCode, 1);
+      assert.equal(result.stderr, "");
       assert.equal(result.stdout, "");
     });
   }

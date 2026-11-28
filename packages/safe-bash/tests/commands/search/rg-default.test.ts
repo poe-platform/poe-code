@@ -17,12 +17,12 @@ test("default agent rg searches ordinary patterns in virtual files", async () =>
   } finally { await shell.dispose(); }
 });
 
-test("rg help describes the default ASCII case and word profile", async () => {
+test("rg help describes Unicode word selection", async () => {
   const shell = new Shell({ fs: new MemoryFileSystem() }).use(agentCommands());
   try {
     const result = await shell.exec("rg --help");
     assert.equal(result.exitCode, 0);
-    assert.ok(result.stdout.includes("Case and word selection support ASCII patterns and subjects."));
+    assert.ok(result.stdout.includes("Word selection (-w, \\w, \\b) supports Unicode letters, marks and numbers."));
   } finally { await shell.dispose(); }
 });
 

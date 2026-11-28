@@ -38,7 +38,11 @@ fn bc_halt_in_function_terminates_the_program() {
             .unwrap();
         assert_eq!(result.exit_code, 0, "{caller}: {}", result.stderr);
         assert_eq!(result.stderr, "", "{caller}");
-        let expected = if caller.starts_with("print") { "7" } else { "" };
+        let expected = match caller {
+            "print 7,stop(),99" => "7",
+            "for (i=0;i<2;r=stop()) { i++; };99" => "0\n",
+            _ => "",
+        };
         assert_eq!(result.stdout, expected, "{caller}");
     }
 }

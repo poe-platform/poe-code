@@ -742,6 +742,54 @@ pub fn commit(
     })
 }
 
+pub(crate) fn reset_guarded_worktree(
+    fs: &MemoryFs,
+    dir: &str,
+    gitdir: &str,
+    target: &str,
+    keep: bool,
+) -> Result<(), GitError> {
+    let oid = crate::cli_history::resolve_commit(fs, gitdir, target)?;
+    let target_map = get_head_tree_map(fs, gitdir, &oid)?;
+    let head_map = get_head_tree_map(fs, gitdir, "HEAD")?;
+    let entries = GitIndexManager::acquire(fs, gitdir, |index| Ok(index.entries()))?;
+    let index_map: BTreeMap<_, _> = entries.iter().map(|e| (e.path.clone(), e)).collect();
+    let paths: BTreeSet<_> = target_map.keys().chain(head_map.keys()).chain(index_map.keys()).collect();
+    let mut changed = Vec::new();
+    let mut conflicts = Vec::new();
+    for path in paths {
+        let target = target_map.get(path).map(|e| (e.oid.as_str(), e.mode.clone()));
+        let head = head_map.get(path).map(|e| (e.oid.as_str(), e.mode.clone()));
+        let index = index_map.get(path).map(|e| (e.oid.as_str(), format!("{:o}", e.mode)));
+        if keep && index_map.get(path).is_some_and(|e| e.stages.iter().skip(1).any(Option::is_some)) {
+            conflicts.push(path.clone());
+        } else if &target != if keep { &head } else { &index } {
+            let work = compute_workdir_oid(fs, dir, gitdir, path);
+            let work = work.as_ref().map(|(oid, stat)| (oid.as_str(), format!("{:o}", crate::utils::normalize_mode(stat.mode))));
+            if work != index || (keep && index != head) {
+                conflicts.push(path.clone());
+            } else {
+                assert_no_symlink_in_leading_path(fs, dir, path)?;
+                if target.is_some() && fs.lstat(&join(&[dir, path])).is_ok_and(|s| s.is_directory()) {
+                    conflicts.push(path.clone());
+                }
+                changed.push(path.clone());
+            }
+        }
+    }
+    if !conflicts.is_empty() {
+        return Err(GitError::checkout_conflict(conflicts));
+    }
+    // Preflight the whole reset before changing any worktree or index entry.
+    checkout(fs, dir, Some(gitdir), Some(&oid), Some(&changed), None, false, true, false, true, false)?;
+    for path in changed {
+        if !target_map.contains_key(&path) {
+            let _ = fs.unlink(&join(&[dir, &path]));
+        }
+    }
+    Ok(())
+}
+
 #[allow(clippy::too_many_arguments)]
 pub fn checkout(
     fs: &MemoryFs,

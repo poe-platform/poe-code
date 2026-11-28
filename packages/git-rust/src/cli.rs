@@ -554,6 +554,9 @@ pub fn execute_git_cli_with_input(
             CliResult::ok("")
         }
         "reset" => {
+            if sub_args.iter().filter(|a| matches!(**a, "--hard" | "--soft" | "--mixed" | "--keep" | "--merge")).count() > 1 {
+                return CliResult::err(128, "fatal: Cannot do multiple reset modes.\n");
+            }
             let separator = sub_args.iter().position(|a| *a == "--");
             let target = positionals
                 .first()
@@ -564,7 +567,7 @@ pub fn execute_git_cli_with_input(
                 && separator.is_none()
                 && sub_args
                     .iter()
-                    .any(|a| matches!(*a, "--hard" | "--soft" | "--mixed"))
+                    .any(|a| matches!(*a, "--hard" | "--soft" | "--mixed" | "--keep" | "--merge"))
             {
                 return CliResult::err(
                     128,
@@ -587,6 +590,9 @@ pub fn execute_git_cli_with_input(
                     .collect()
             };
             let result = if !paths.is_empty() {
+                if sub_args.iter().any(|a| matches!(*a, "--keep" | "--merge")) {
+                    return CliResult::err(128, "fatal: Cannot do guarded reset with paths.\n");
+                }
                 let files: std::collections::BTreeSet<_> = list_files(fs, &gitdir, None)
                     .unwrap_or_default()
                     .into_iter()
@@ -603,6 +609,13 @@ pub fn execute_git_cli_with_input(
                     })
                     .try_for_each(|p| reset_index(fs, Some(&repo_root), &gitdir, &p, target))
             } else {
+                if sub_args.iter().any(|a| matches!(*a, "--keep" | "--merge"))
+                    && let Err(e) = crate::commands::worktree::reset_guarded_worktree(
+                        fs, &repo_root, &gitdir, target.unwrap_or("HEAD"),
+                        sub_args.contains(&"--keep"),
+                    ) {
+                        return CliResult::err(128, format!("fatal: {}\n", e.message));
+                }
                 reset_repository(
                     fs,
                     &repo_root,
